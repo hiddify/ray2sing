@@ -18,7 +18,6 @@ import (
 	"time"
 )
 
-
 func detectType(input string) string {
 	switch {
 	case strings.HasPrefix(input, "vmess://"):
@@ -144,14 +143,6 @@ func isValidAddress(address string) bool {
 	return false
 }
 
-// ... (ipInfo and getFlags functions will go here, but they involve API calls and more complex logic)
-
-func isBase64Encoded(s string) bool {
-	if s == base64.StdEncoding.EncodeToString([]byte(s)) {
-		return true
-	}
-	return false
-}
 func generateUniqueRandomNumbers(max int, count int) []int {
 	rand.Seed(time.Now().UnixNano())
 	randomNumbers := make(map[int]bool)
@@ -184,47 +175,96 @@ func toInt16(s string) uint16 {
 	return uint16(val)
 }
 
-func getVmessV2RayTransportOptions(decodedVmess map[string]string) (T.V2RayTransportOptions, error) {
+func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, error) {
 	var transportOptions T.V2RayTransportOptions
-	var host = decodedVmess["host"]
-	// Populate the transport options based on the "net" field in decodedVmess
-	switch decodedVmess["net"] {
+	host, net, path := decoded["host"], decoded["net"], decoded["path"]
+	if net == "" {
+		net = decoded["type"]
+	}
+	if path == "" {
+		path = decoded["serviceName"]
+	}
+	switch net {
 	case "http":
 		transportOptions.Type = C.V2RayTransportTypeHTTP
 		transportOptions.HTTPOptions = T.V2RayHTTPOptions{
-			Path:    decodedVmess["path"],
+			Path:    path,
 			Headers: map[string]T.Listable[string]{"Host": {host}},
 		}
 	case "ws":
 		transportOptions.Type = C.V2RayTransportTypeWebsocket
 		transportOptions.WebsocketOptions = T.V2RayWebsocketOptions{
-			Path:                decodedVmess["path"],
+			Path:                path,
 			Headers:             map[string]T.Listable[string]{"Host": {host}},
-			MaxEarlyData:        0,                        // You can set this value accordingly
-			EarlyDataHeaderName: "Sec-WebSocket-Protocol", // You can set this value accordingly
+			MaxEarlyData:        0,
+			EarlyDataHeaderName: "Sec-WebSocket-Protocol",
 		}
 	case "grpc":
 		transportOptions.Type = C.V2RayTransportTypeGRPC
 		transportOptions.GRPCOptions = T.V2RayGRPCOptions{
-			ServiceName:         decodedVmess["path"],
+			ServiceName:         path,
 			IdleTimeout:         T.Duration(15 * time.Second),
 			PingTimeout:         T.Duration(15 * time.Second),
 			PermitWithoutStream: false,
 		}
-	// Handle other cases as needed
 	default:
-		return transportOptions, E.New("unknown transport type: " + decodedVmess["net"])
+		return nil, E.New("unknown transport type: " + net)
 	}
 
-	return transportOptions, nil
+	return &transportOptions, nil
 }
+
+func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
+	if !(decoded["tls"] == "tls" || decoded["security"] == "tls" || decoded["security"] == "reality") {
+		return nil
+	}
+
+	serverName := decoded["sni"]
+	if serverName == "" {
+		serverName = decoded["add"]
+	}
+	if serverName == "" {
+		serverName = decoded["sni"]
+	}
+
+	tlsOptions := &T.OutboundTLSOptions{
+		Enabled:    true,
+		ServerName: serverName,
+		Insecure:   true,
+		DisableSNI: false,
+		UTLS: &T.OutboundUTLSOptions{
+			Enabled:     true,
+			Fingerprint: "chrome",
+		},
+	}
+
+	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
+		tlsOptions.ALPN = strings.Split(alpn, ",")
+	}
+
+	return tlsOptions
+}
+
+func fixName(name string, counter int) string {
+	if name == "" {
+		name = "-"
+	}
+	return fmt.Sprintf("%s | %d", name, counter)
+}
+
 func VmessSingbox(vmessURL string, counter int) (T.Outbound, error) {
 	decoded, err := decodeVmess(vmessURL)
 	if err != nil {
 		return T.Outbound{}, err
 	}
+
 	port := toInt16(decoded["port"])
-	result := T.Outbound{
+	transportOptions, err := getTransportOptions(decoded)
+	if err != nil {
+		return T.Outbound{}, err
+	}
+
+	return T.Outbound{
 		Tag:  fixName(decoded["ps"], counter),
 		Type: "vmess",
 		VMessOptions: T.VMessOutboundOptions{
@@ -239,44 +279,12 @@ func VmessSingbox(vmessURL string, counter int) (T.Outbound, error) {
 			GlobalPadding:       false,
 			AuthenticatedLength: true,
 			PacketEncoding:      "xudp",
+			TLS:                 getTLSOptions(decoded),
+			Transport:           transportOptions,
 		},
-	}
-
-	if port == 443 || decoded["tls"] == "tls" {
-		var serverName string
-		if sni, ok := decoded["sni"]; ok && sni != "" {
-			serverName = sni
-		} else {
-			serverName = decoded["add"]
-		}
-		result.VMessOptions.TLS = &T.OutboundTLSOptions{
-			Enabled:    true,
-			ServerName: serverName,
-			Insecure:   true,
-			DisableSNI: false,
-			UTLS: &T.OutboundUTLSOptions{
-				Enabled:     true,
-				Fingerprint: "chrome",
-			},
-		}
-		if decoded["alpn"] != "" {
-			result.VMessOptions.TLS.ALPN = strings.Split(decoded["alpn"], ",")
-		}
-
-	}
-	transport, err := getVmessV2RayTransportOptions(decoded)
-	if err != nil {
-		result.VMessOptions.Transport = &transport
-	}
-
-	return result, nil
+	}, nil
 }
-func fixName(name string, counter int) string {
-	if name == "" {
-		name = "-"
-	}
-	return name + " | " + strconv.Itoa(counter)
-}
+
 func VlessSingbox(vlessURL string, counter int) (T.Outbound, error) {
 	decoded, err := parseProxyURL(vlessURL, "vless")
 	if err != nil {
@@ -284,10 +292,20 @@ func VlessSingbox(vlessURL string, counter int) (T.Outbound, error) {
 	}
 
 	port := toInt16(decoded["port"])
+	transportOptions, err := getTransportOptions(decoded)
+	tlsOptions := getTLSOptions(decoded)
+	if tlsOptions != nil {
+		if security := decoded["security"]; security == "reality" {
+			tlsOptions.Reality = &T.OutboundRealityOptions{
+				Enabled:   true,
+				PublicKey: decoded["pbk"],
+				ShortID:   decoded["sid"],
+			}
+		}
+	}
 
 	xudp := "xudp"
-
-	result := T.Outbound{
+	return T.Outbound{
 		Tag:  fixName(decoded["hash"], counter),
 		Type: "vless",
 		VLESSOptions: T.VLESSOutboundOptions{
@@ -298,66 +316,26 @@ func VlessSingbox(vlessURL string, counter int) (T.Outbound, error) {
 			},
 			UUID:           decoded["username"],
 			PacketEncoding: &xudp,
+			Flow:           decoded["flow"],
+			TLS:            tlsOptions,
+			Transport:      transportOptions,
 		},
-	}
-	if decoded["flow"] != "" {
-		result.VLESSOptions.Flow = "xtls-rprx-vision"
-	}
-
-	security := decoded["security"]
-	if port == 443 || security == "tls" || security == "reality" {
-		result.VLESSOptions.TLS = &T.OutboundTLSOptions{
-			Enabled:    true,
-			ServerName: decoded["sni"],
-			Insecure:   false,
-			DisableSNI: false,
-			UTLS: &T.OutboundUTLSOptions{
-				Enabled:     true,
-				Fingerprint: "chrome",
-			},
-		}
-		if security == "reality" {
-			result.VLESSOptions.TLS.Reality = &T.OutboundRealityOptions{
-				Enabled:   true,
-				PublicKey: decoded["pbk"],
-				ShortID:   decoded["sid"],
-			}
-		}
-		if decoded["alpn"] != "" {
-			result.VLESSOptions.TLS.ALPN = strings.Split(decoded["alpn"], ",")
-		}
-	}
-	if decoded["type"] == "ws" || decoded["type"] == "grpc" {
-
-		result.VLESSOptions.Transport = &T.V2RayTransportOptions{
-			Type: decoded["type"], // Assuming the type is specified in the params map
-			WebsocketOptions: T.V2RayWebsocketOptions{
-				Path:                decoded["path"],
-				Headers:             map[string]T.Listable[string]{"Host": {decoded["host"]}},
-				MaxEarlyData:        0,
-				EarlyDataHeaderName: "Sec-WebSocket-Protocol",
-			},
-			GRPCOptions: T.V2RayGRPCOptions{
-				ServiceName:         decoded["serviceName"],
-				IdleTimeout:         T.Duration(15 * time.Second),
-				PingTimeout:         T.Duration(15 * time.Second),
-				PermitWithoutStream: false,
-			},
-		}
-	}
-
-	return result, nil
+	}, nil
 }
 
-func TrojanSingbox(trojanUrl string, counter int) (T.Outbound, error) {
-	decoded, err := parseProxyURL(trojanUrl, "trojan")
+func TrojanSingbox(trojanURL string, counter int) (T.Outbound, error) {
+	decoded, err := parseProxyURL(trojanURL, "trojan")
 	if err != nil {
 		return T.Outbound{}, err
 	}
 
 	port := toInt16(decoded["port"])
+	transportOptions, err := getTransportOptions(decoded)
+	if err != nil {
+		return T.Outbound{}, err
+	}
 
-	result := T.Outbound{
+	return T.Outbound{
 		Tag:  fixName(decoded["hash"], counter),
 		Type: "trojan",
 		TrojanOptions: T.TrojanOutboundOptions{
@@ -366,44 +344,11 @@ func TrojanSingbox(trojanUrl string, counter int) (T.Outbound, error) {
 				Server:     decoded["hostname"],
 				ServerPort: port,
 			},
-			Password: decoded["username"],
+			Password:  decoded["username"],
+			TLS:       getTLSOptions(decoded),
+			Transport: transportOptions,
 		},
-	}
-	security := decoded["security"]
-	if port == 443 || security == "tls" {
-		result.TrojanOptions.TLS = &T.OutboundTLSOptions{
-			Enabled:    true,
-			ServerName: decoded["sni"],
-			Insecure:   false,
-			DisableSNI: false,
-			UTLS: &T.OutboundUTLSOptions{
-				Enabled:     true,
-				Fingerprint: "chrome",
-			},
-		}
-		if decoded["alpn"] != "" {
-			result.TrojanOptions.TLS.ALPN = strings.Split(decoded["alpn"], ",")
-		}
-	}
-	if decoded["type"] == "ws" || decoded["type"] == "grpc" {
-
-		result.TrojanOptions.Transport = &T.V2RayTransportOptions{
-			Type: decoded["type"], // Assuming the type is specified in the params map
-			WebsocketOptions: T.V2RayWebsocketOptions{
-				Path:                decoded["path"],
-				Headers:             map[string]T.Listable[string]{"Host": {decoded["host"]}},
-				MaxEarlyData:        0,
-				EarlyDataHeaderName: "Sec-WebSocket-Protocol",
-			},
-			GRPCOptions: T.V2RayGRPCOptions{
-				ServiceName:         decoded["serviceName"],
-				IdleTimeout:         T.Duration(15 * time.Second),
-				PingTimeout:         T.Duration(15 * time.Second),
-				PermitWithoutStream: false,
-			},
-		}
-	}
-	return result, nil
+	}, nil
 }
 
 func getPath(path string) string {
@@ -512,16 +457,21 @@ func GenerateConfigLite(input string) (string, error) {
 		default:
 			configSingbox, err = T.Outbound{}, E.New("Not supported config type")
 		}
-		fmt.Printf("======configSingbox: %+v\n", configSingbox)
+		// fmt.Printf("======configSingbox: %+v\n", configSingbox)
 		if err == nil {
-
 			outbounds = append(outbounds, configSingbox)
-			a, _ := json.MarshalIndent(configSingbox, "", "  ")
-			fmt.Println(string(a))
+			// a, _ := json.MarshalIndent(configSingbox, "", "  ")
+			// fmt.Println(string(a))
 		}
 	}
+	if len(outbounds) == 0 {
+		return "", E.New("No outbounds found")
+	}
+	fullConfig := T.Options{
+		Outbounds: outbounds,
+	}
 
-	jsonOutbound, err := json.MarshalIndent(outbounds, "", "  ")
+	jsonOutbound, err := json.MarshalIndent(fullConfig, "", "  ")
 	if err != nil {
 		return "", err
 	}
@@ -530,14 +480,12 @@ func GenerateConfigLite(input string) (string, error) {
 
 func Ray2Singbox(configs string) (string, error) {
 	configData := configs
-	if isBase64Encoded(configs) {
-		conf, err := base64.StdEncoding.DecodeString(configs)
-		if err != nil {
-			return "", err
-		}
+
+	conf, err := base64.StdEncoding.DecodeString(configs)
+	// fmt.Printf("decode: %s\n", string(conf))
+	if err == nil {
 		configData = string(conf)
 	}
-
 	convertedData, err := GenerateConfigLite(configData)
 	return convertedData, err
 }
