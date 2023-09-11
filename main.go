@@ -23,7 +23,7 @@ func main() {
 }
 
 func read() string {
-	url := "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/base64/mix"
+	url := "https://clean.alicivil.workers.dev/?ip=185.109.21.134&protocol=&count=100000000&url=https://sub.EndOfTheLine.cloud/subscribe?tkn=fd82ce20d1c10d1e27e548105"
 
 	resp, err := http.Get(url)
 	if err != nil {

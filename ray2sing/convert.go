@@ -2,6 +2,8 @@ package ray2sing
 
 import (
 	"fmt"
+	"os"
+	"runtime"
 
 	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
@@ -185,6 +187,8 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 		path = decoded["serviceName"]
 	}
 	switch net {
+	case "tcp":
+		return nil, nil
 	case "http":
 		transportOptions.Type = C.V2RayTransportTypeHTTP
 		transportOptions.HTTPOptions = T.V2RayHTTPOptions{
@@ -245,14 +249,14 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 	return tlsOptions
 }
 
-func fixName(name string, counter int) string {
+func fixName(name string) string {
 	if name == "" {
 		name = "-"
 	}
-	return fmt.Sprintf("%s | %d", name, counter)
+	return name
 }
 
-func VmessSingbox(vmessURL string, counter int) (T.Outbound, error) {
+func VmessSingbox(vmessURL string) (T.Outbound, error) {
 	decoded, err := decodeVmess(vmessURL)
 	if err != nil {
 		return T.Outbound{}, err
@@ -265,7 +269,7 @@ func VmessSingbox(vmessURL string, counter int) (T.Outbound, error) {
 	}
 
 	return T.Outbound{
-		Tag:  fixName(decoded["ps"], counter),
+		Tag:  fixName(decoded["ps"]),
 		Type: "vmess",
 		VMessOptions: T.VMessOutboundOptions{
 			DialerOptions: T.DialerOptions{},
@@ -285,8 +289,10 @@ func VmessSingbox(vmessURL string, counter int) (T.Outbound, error) {
 	}, nil
 }
 
-func VlessSingbox(vlessURL string, counter int) (T.Outbound, error) {
+func VlessSingbox(vlessURL string) (T.Outbound, error) {
 	decoded, err := parseProxyURL(vlessURL, "vless")
+	var a int = 5
+	a = a / (a - a)
 	if err != nil {
 		return T.Outbound{}, err
 	}
@@ -306,7 +312,7 @@ func VlessSingbox(vlessURL string, counter int) (T.Outbound, error) {
 
 	xudp := "xudp"
 	return T.Outbound{
-		Tag:  fixName(decoded["hash"], counter),
+		Tag:  fixName(decoded["hash"]),
 		Type: "vless",
 		VLESSOptions: T.VLESSOutboundOptions{
 			DialerOptions: T.DialerOptions{},
@@ -323,7 +329,7 @@ func VlessSingbox(vlessURL string, counter int) (T.Outbound, error) {
 	}, nil
 }
 
-func TrojanSingbox(trojanURL string, counter int) (T.Outbound, error) {
+func TrojanSingbox(trojanURL string) (T.Outbound, error) {
 	decoded, err := parseProxyURL(trojanURL, "trojan")
 	if err != nil {
 		return T.Outbound{}, err
@@ -336,7 +342,7 @@ func TrojanSingbox(trojanURL string, counter int) (T.Outbound, error) {
 	}
 
 	return T.Outbound{
-		Tag:  fixName(decoded["hash"], counter),
+		Tag:  fixName(decoded["hash"]),
 		Type: "trojan",
 		TrojanOptions: T.TrojanOutboundOptions{
 			DialerOptions: T.DialerOptions{},
@@ -358,16 +364,11 @@ func getPath(path string) string {
 	return "/" + path
 }
 
-func ShadowsocksSingbox(shadowsocksUrl string, counter int) (T.Outbound, error) {
+func ShadowsocksSingbox(shadowsocksUrl string) (T.Outbound, error) {
 	decoded, err := parseShadowsocks(shadowsocksUrl)
 	if err != nil {
 		return T.Outbound{}, err
 	}
-
-	if decoded["name"] == "" {
-		decoded["name"] = "-"
-	}
-	name := decoded["name"] + " | " + strconv.Itoa(counter)
 
 	defaultMethod := "chacha20-ietf-poly1305"
 	if decoded["encryption_method"] != "" {
@@ -376,7 +377,7 @@ func ShadowsocksSingbox(shadowsocksUrl string, counter int) (T.Outbound, error) 
 
 	result := T.Outbound{
 		Type: "shadowsocks",
-		Tag:  name,
+		Tag:  fixName(decoded["name"]),
 		ShadowsocksOptions: T.ShadowsocksOutboundOptions{
 			ServerOptions: T.ServerOptions{
 				Server:     decoded["server"],
@@ -392,19 +393,15 @@ func ShadowsocksSingbox(shadowsocksUrl string, counter int) (T.Outbound, error) 
 	return result, nil
 }
 
-func TuicSingbox(tuicUrl string, counter int) (T.Outbound, error) {
+func TuicSingbox(tuicUrl string) (T.Outbound, error) {
 	decoded, err := parseTuic(tuicUrl)
 	if err != nil {
 		return T.Outbound{}, err
 	}
-	if decoded["name"] == "" {
-		decoded["name"] = "-"
-	}
-	name := decoded["name"] + " | " + strconv.Itoa(counter)
 
 	result := T.Outbound{
 		Type: "tuic",
-		Tag:  name,
+		Tag:  fixName(decoded["name"]),
 		TUICOptions: T.TUICOutboundOptions{
 			ServerOptions: T.ServerOptions{
 				Server:     decoded["hostname"],
@@ -429,6 +426,41 @@ func TuicSingbox(tuicUrl string, counter int) (T.Outbound, error) {
 	return result, nil
 }
 
+func processSingleConfig(config string) (outbound T.Outbound, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			outbound = T.Outbound{}
+			stackTrace := make([]byte, 1024)
+			runtime.Stack(stackTrace, false)
+			err = fmt.Errorf("Error in Parsing: %+v\nStack trace:\n%s", r, stackTrace)
+		}
+	}()
+	configType := detectType(config)
+	config, err = url.QueryUnescape(config)
+	if err != nil {
+		return T.Outbound{}, err
+	}
+	var configSingbox T.Outbound
+	switch configType {
+	case "vmess":
+		configSingbox, err = VmessSingbox(config)
+	case "vless":
+		configSingbox, err = VlessSingbox(config)
+	case "trojan":
+		configSingbox, err = TrojanSingbox(config)
+	case "ss":
+		configSingbox, err = ShadowsocksSingbox(config)
+	case "tuic":
+		configSingbox, err = TuicSingbox(config)
+	default:
+		return T.Outbound{}, E.New("Not supported config type")
+	}
+	if err != nil {
+		return T.Outbound{}, err
+	}
+	json.MarshalIndent(configSingbox, "", "  ")
+	return configSingbox, nil
+}
 func GenerateConfigLite(input string) (string, error) {
 
 	// v2raySubscription := url.QueryEscape(input)
@@ -437,32 +469,16 @@ func GenerateConfigLite(input string) (string, error) {
 
 	var outbounds []T.Outbound
 	for counter, config := range configArray {
-		fmt.Printf("======config: %s\n", config)
-		configType := detectType(config)
-		var err error
-		config, err = url.QueryUnescape(config)
-		var configSingbox T.Outbound
-
-		switch configType {
-		case "vmess":
-			configSingbox, err = VmessSingbox(config, counter)
-		case "vless":
-			configSingbox, err = VlessSingbox(config, counter)
-		case "trojan":
-			configSingbox, err = TrojanSingbox(config, counter)
-		case "ss":
-			configSingbox, err = ShadowsocksSingbox(config, counter)
-		case "tuic":
-			configSingbox, err = TuicSingbox(config, counter)
-		default:
-			configSingbox, err = T.Outbound{}, E.New("Not supported config type")
-		}
+		//
+		configSingbox, err := processSingleConfig(config)
 		// fmt.Printf("======configSingbox: %+v\n", configSingbox)
-		if err == nil {
-			outbounds = append(outbounds, configSingbox)
-			// a, _ := json.MarshalIndent(configSingbox, "", "  ")
-			// fmt.Println(string(a))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
+			continue
 		}
+		configSingbox.Tag += " | " + strconv.Itoa(counter)
+		outbounds = append(outbounds, configSingbox)
+
 	}
 	if len(outbounds) == 0 {
 		return "", E.New("No outbounds found")
@@ -478,7 +494,15 @@ func GenerateConfigLite(input string) (string, error) {
 	return string(jsonOutbound), nil
 }
 
-func Ray2Singbox(configs string) (string, error) {
+func Ray2Singbox(configs string) (out string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			out = ""
+			stackTrace := make([]byte, 1024)
+			runtime.Stack(stackTrace, false)
+			err = fmt.Errorf("Error in Parsing %s: %+v\nStack trace:\n%s", configs, r, stackTrace)
+		}
+	}()
 	configData := configs
 
 	conf, err := base64.StdEncoding.DecodeString(configs)
