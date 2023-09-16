@@ -291,8 +291,6 @@ func VmessSingbox(vmessURL string) (T.Outbound, error) {
 
 func VlessSingbox(vlessURL string) (T.Outbound, error) {
 	decoded, err := parseProxyURL(vlessURL, "vless")
-	var a int = 5
-	a = a / (a - a)
 	if err != nil {
 		return T.Outbound{}, err
 	}
