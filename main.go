@@ -6,13 +6,21 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/hiddify/ray2sing/ray2sing"
 )
 
 func main() {
 	// Replace "path/to/your/config/file" with the actual path to your config file
-	clash_conf, err := ray2sing.Ray2Singbox(read())
+	var configs string
+	if len(os.Args) > 1 {
+		configs = strings.Join(os.Args[1:], "\n")
+	} else {
+		configs = read()
+	}
+	clash_conf, err := ray2sing.Ray2Singbox(configs)
 	if err != nil {
 		log.Fatalf("Failed to parse config: %v", err)
 	}
