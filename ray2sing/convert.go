@@ -231,6 +231,8 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 		serverName = decoded["sni"]
 	}
 
+	_, hasECH := decoded["ech"]
+
 	tlsOptions := &T.OutboundTLSOptions{
 		Enabled:    true,
 		ServerName: serverName,
@@ -239,6 +241,9 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 		UTLS: &T.OutboundUTLSOptions{
 			Enabled:     true,
 			Fingerprint: "chrome",
+		},
+		ECH: &T.OutboundECHOptions{
+			Enabled: hasECH,
 		},
 	}
 
