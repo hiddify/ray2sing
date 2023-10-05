@@ -694,7 +694,7 @@ func GenerateConfigLite(input string) (string, error) {
 			fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
 			continue
 		}
-		configSingbox.Tag += " | " + strconv.Itoa(counter)
+		configSingbox.Tag += " § " + strconv.Itoa(counter)
 		outbounds = append(outbounds, configSingbox)
 
 	}
