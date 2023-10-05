@@ -93,7 +93,7 @@ func parseSSH(inputURL string) (result map[string]string, err error) {
 		"password": password,
 		"hostname": parsedURL.Hostname(),
 		"port":     parsedURL.Port(),
-		"name":     generateName(parsedURL.Fragment, "ssh-out"),
+		"name":     generateName(parsedURL.Fragment, "SSH"),
 	}
 	for key, values := range params {
 		result[key] = strings.Join(values, ",")
@@ -111,9 +111,13 @@ func parseWireguard(inputURL string) (result map[string]string, err error) {
 
 func decodeVmess(vmessConfig string) (map[string]string, error) {
 	vmessData := vmessConfig[8:]
-	decodedData, _ := base64.StdEncoding.DecodeString(vmessData)
+	decodedData, err := base64.StdEncoding.DecodeString(vmessData)
+	if err != nil {
+		return nil, err
+	}
 	var data map[string]string
 	json.Unmarshal(decodedData, &data)
+	// fmt.Printf("----%v---", data)
 	return data, nil
 }
 
@@ -255,12 +259,16 @@ func toInt16(s string) uint16 {
 
 func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, error) {
 	var transportOptions T.V2RayTransportOptions
+	// fmt.Printf("=======%v", decoded)
 	host, net, path := decoded["host"], decoded["net"], decoded["path"]
 	if net == "" {
 		net = decoded["type"]
 	}
 	if path == "" {
 		path = decoded["serviceName"]
+	}
+	if decoded["headerType"] == "http" && net == "tcp" {
+		net = "http"
 	}
 	switch net {
 	case "tcp":
@@ -347,7 +355,10 @@ func VmessSingbox(vmessURL string) (T.Outbound, error) {
 	if err != nil {
 		return T.Outbound{}, err
 	}
-
+	security := "auto"
+	if decoded["scy"] != "" {
+		security = decoded["scy"]
+	}
 	return T.Outbound{
 		Tag:  fixName(decoded["ps"]),
 		Type: "vmess",
@@ -358,7 +369,7 @@ func VmessSingbox(vmessURL string) (T.Outbound, error) {
 				ServerPort: port,
 			},
 			UUID:                decoded["id"],
-			Security:            "auto",
+			Security:            security,
 			AlterId:             toInt(decoded["aid"]),
 			GlobalPadding:       false,
 			AuthenticatedLength: true,
@@ -614,10 +625,14 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 		}
 	}()
 	configType := detectType(config)
-	config, err = url.QueryUnescape(config)
-	if err != nil {
-		return T.Outbound{}, err
+	// fmt.Print(configType)
+	if configType != "vmess" {
+		config, err = url.QueryUnescape(config)
+		if err != nil {
+			return T.Outbound{}, err
+		}
 	}
+
 	var configSingbox T.Outbound
 	switch configType {
 	case "vmess":
@@ -646,9 +661,9 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 func GenerateConfigLite(input string) (string, error) {
 
 	// v2raySubscription := url.QueryEscape(input)
-
+	// print(input)
 	configArray := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
-
+	// print(configArray)
 	var outbounds []T.Outbound
 	for counter, config := range configArray {
 		//
