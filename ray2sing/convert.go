@@ -2,6 +2,7 @@ package ray2sing
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"runtime"
 
@@ -13,25 +14,29 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/url"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
+var configTypes = map[string]string{
+	"vmess://":     "vmess",
+	"vless://":     "vless",
+	"trojan://":    "trojan",
+	"ss://":        "ss",
+	"tuic://":      "tuic",
+	"hysteria2://": "hysteria2",
+	"hy2://":       "hysteria2",
+	"ssh://":       "ssh",
+	"wg://":        "wireguard",
+}
+
 func detectType(input string) string {
-	switch {
-	case strings.HasPrefix(input, "vmess://"):
-		return "vmess"
-	case strings.HasPrefix(input, "vless://"):
-		return "vless"
-	case strings.HasPrefix(input, "trojan://"):
-		return "trojan"
-	case strings.HasPrefix(input, "ss://"):
-		return "ss"
-	case strings.HasPrefix(input, "tuic://"):
-		return "tuic"
+	for k, v := range configTypes {
+		if strings.HasPrefix(input, k) {
+			return v
+		}
 	}
 	return ""
 }
@@ -48,8 +53,60 @@ func parseConfig(input string) (map[string]string, error) {
 		parsedConfig, err = parseShadowsocks(input)
 	case "tuic":
 		parsedConfig, err = parseTuic(input)
+	case "hysteria2":
+		parsedConfig, err = parseHysteria2(input)
+	case "ssh":
+		parsedConfig, err = parseSSH(input)
+	case "wireguard":
+		parsedConfig, err = parseWireguard(input)
 	}
 	return parsedConfig, err
+}
+
+func generateName(fragment string, configType string) string {
+	if fragment != "" {
+		return fragment
+	}
+	return fmt.Sprintf("%v-%v", configType, time.Now().UnixNano())
+}
+
+func fixName(name string) string {
+	if name == "" {
+		return fmt.Sprintf("unnamed-%v", time.Now().UnixNano())
+	}
+	return name
+}
+
+func parseSSH(inputURL string) (result map[string]string, err error) {
+	parsedURL, err := url.Parse(inputURL)
+	if err != nil {
+		return
+	}
+	params := parsedURL.Query()
+	password, ok := parsedURL.User.Password()
+	if !ok {
+		password = ""
+	}
+	result = map[string]string{
+		"protocol": "ssh",
+		"username": parsedURL.User.Username(),
+		"password": password,
+		"hostname": parsedURL.Hostname(),
+		"port":     parsedURL.Port(),
+		"name":     generateName(parsedURL.Fragment, "ssh-out"),
+	}
+	for key, values := range params {
+		result[key] = strings.Join(values, ",")
+	}
+	if _, ok = result["hk"]; !ok {
+		err = fmt.Errorf("Failed to parse SSH URL: HostKey not provided")
+		return
+	}
+	return
+}
+
+func parseWireguard(inputURL string) (result map[string]string, err error) {
+	return nil, fmt.Errorf("Not Implemented")
 }
 
 func decodeVmess(vmessConfig string) (map[string]string, error) {
@@ -75,6 +132,30 @@ func parseProxyURL(inputURL string, protocol string) (map[string]string, error) 
 		output[key] = strings.Join(values, ",")
 	}
 	return output, nil
+}
+
+func parseHysteria2(inputURL string) (result map[string]string, err error) {
+	parsedURL, err := url.Parse(inputURL)
+	if err != nil {
+		return
+	}
+	params := parsedURL.Query()
+	name := parsedURL.Fragment
+	if name == "" {
+		name = fmt.Sprintf("hysteria2-%v-out", time.Now().UnixNano())
+	}
+	result = map[string]string{
+		"protocol": "hysteria2",
+		"password": parsedURL.User.String(),
+		"hostname": parsedURL.Hostname(),
+		"port":     parsedURL.Port(),
+		"name":     name,
+	}
+	for key, values := range params {
+		result[key] = strings.Join(values, ",")
+	}
+
+	return
 }
 
 func parseShadowsocks(configStr string) (map[string]string, error) {
@@ -126,12 +207,7 @@ func isNumberWithDots(s string) bool {
 }
 
 func isValidAddress(address string) bool {
-	ipv4Pattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
-	ipv6Pattern := `^[0-9a-fA-F:]+$`
-	if matched, _ := regexp.MatchString(ipv4Pattern, address); matched {
-		return true
-	}
-	if matched, _ := regexp.MatchString(ipv6Pattern, address); matched {
+	if isIPOnly(address) {
 		return true
 	}
 	if !isNumberWithDots(address) {
@@ -146,12 +222,12 @@ func isValidAddress(address string) bool {
 }
 
 func generateUniqueRandomNumbers(max int, count int) []int {
-	rand.Seed(time.Now().UnixNano())
+	randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomNumbers := make(map[int]bool)
 	var uniqueNumbers []int
 
 	for len(uniqueNumbers) < count {
-		number := rand.Intn(max + 1)
+		number := randGen.Intn(max + 1)
 		if !randomNumbers[number] {
 			randomNumbers[number] = true
 			uniqueNumbers = append(uniqueNumbers, number)
@@ -231,6 +307,16 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 		serverName = decoded["sni"]
 	}
 
+	valECH, hasECH := decoded["ech"]
+	hasECH = hasECH && (valECH != "0")
+	var ECHOpts *T.OutboundECHOptions
+	ECHOpts = nil
+	if hasECH {
+		ECHOpts = &T.OutboundECHOptions{
+			Enabled: hasECH,
+		}
+	}
+
 	tlsOptions := &T.OutboundTLSOptions{
 		Enabled:    true,
 		ServerName: serverName,
@@ -240,6 +326,7 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 			Enabled:     true,
 			Fingerprint: "chrome",
 		},
+		ECH: ECHOpts,
 	}
 
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
@@ -247,13 +334,6 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 	}
 
 	return tlsOptions
-}
-
-func fixName(name string) string {
-	if name == "" {
-		name = "-"
-	}
-	return name
 }
 
 func VmessSingbox(vmessURL string) (T.Outbound, error) {
@@ -397,6 +477,16 @@ func TuicSingbox(tuicUrl string) (T.Outbound, error) {
 		return T.Outbound{}, err
 	}
 
+	valECH, hasECH := decoded["ech"]
+	hasECH = hasECH && (valECH != "0")
+	var ECHOpts *T.OutboundECHOptions
+	ECHOpts = nil
+	if hasECH {
+		ECHOpts = &T.OutboundECHOptions{
+			Enabled: hasECH,
+		}
+	}
+
 	result := T.Outbound{
 		Type: "tuic",
 		Tag:  fixName(decoded["name"]),
@@ -417,10 +507,100 @@ func TuicSingbox(tuicUrl string) (T.Outbound, error) {
 				ServerName: decoded["sni"],
 				Insecure:   decoded["allow_insecure"] == "1",
 				ALPN:       []string{"h3", "spdy/3.1"},
+				ECH:        ECHOpts,
 			},
 		},
 	}
 
+	return result, nil
+}
+
+func isIPOnly(s string) bool {
+	return net.ParseIP(s) != nil
+}
+
+func Hysteria2Singbox(hysteria2Url string) (T.Outbound, error) {
+	decoded, err := parseHysteria2(hysteria2Url)
+	if err != nil {
+		return T.Outbound{}, err
+	}
+	var ObfsOpts *T.Hysteria2Obfs
+	ObfsOpts = nil
+	if obfs, ok := decoded["obfs"]; ok && obfs != "" {
+		ObfsOpts = &T.Hysteria2Obfs{
+			Type:     obfs,
+			Password: decoded["obfs-password"],
+		}
+	}
+
+	valECH, hasECH := decoded["ech"]
+	hasECH = hasECH && (valECH != "0")
+	var ECHOpts *T.OutboundECHOptions
+	ECHOpts = nil
+	if hasECH {
+		ECHOpts = &T.OutboundECHOptions{
+			Enabled: hasECH,
+		}
+	}
+
+	SNI := decoded["sni"]
+	if SNI == "" {
+		SNI = decoded["hostname"]
+	}
+
+	result := T.Outbound{
+		Type: "hysteria2",
+		Tag:  decoded["name"],
+		Hysteria2Options: T.Hysteria2OutboundOptions{
+			ServerOptions: T.ServerOptions{
+				Server:     decoded["hostname"],
+				ServerPort: toInt16(decoded["port"]),
+			},
+			Obfs:     ObfsOpts,
+			Password: decoded["password"],
+			TLS: &T.OutboundTLSOptions{
+				Insecure:   decoded["insecure"] == "1",
+				DisableSNI: isIPOnly(SNI),
+				ServerName: SNI,
+				ECH:        ECHOpts,
+			},
+		},
+	}
+	return result, nil
+}
+
+func SSHSingbox(sshURL string) (T.Outbound, error) {
+	decoded, err := parseSSH(sshURL)
+	if err != nil {
+		return T.Outbound{}, err
+	}
+	prefix := "-----BEGIN OPENSSH PRIVATE KEY-----\n"
+	suffix := "\n-----END OPENSSH PRIVATE KEY-----\n"
+
+	privkeys := strings.Split(decoded["pk"], ",")
+	if len(privkeys) == 1 && privkeys[0] == "" {
+		privkeys = []string{}
+	}
+	for i := 0; i < len(privkeys); i++ {
+		privkeys[i] = prefix + privkeys[i] + suffix
+	}
+
+	hostkeys := strings.Split(decoded["hk"], ",")
+
+	result := T.Outbound{
+		Type: "ssh",
+		Tag:  decoded["name"],
+		SSHOptions: T.SSHOutboundOptions{
+			ServerOptions: T.ServerOptions{
+				Server:     decoded["hostname"],
+				ServerPort: toInt16(decoded["port"]),
+			},
+			User:       decoded["username"],
+			Password:   decoded["password"],
+			PrivateKey: privkeys,
+			HostKey:    hostkeys,
+		},
+	}
 	return result, nil
 }
 
@@ -450,6 +630,10 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 		configSingbox, err = ShadowsocksSingbox(config)
 	case "tuic":
 		configSingbox, err = TuicSingbox(config)
+	case "histeria2":
+		configSingbox, err = Hysteria2Singbox(config)
+	case "ssh":
+		configSingbox, err = SSHSingbox(config)
 	default:
 		return T.Outbound{}, E.New("Not supported config type")
 	}
