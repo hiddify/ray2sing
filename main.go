@@ -31,7 +31,7 @@ func main() {
 }
 
 func read() string {
-	url := "https://clean.alicivil.workers.dev/?ip=185.109.21.134&protocol=&count=100000000&url=https://sub.EndOfTheLine.cloud/subscribe?tkn=fd82ce20d1c10d1e27e548105"
+	url := "https://raw.githubusercontent.com/ImMyron/V2ray/main/V2ray.txt"
 
 	resp, err := http.Get(url)
 	if err != nil {

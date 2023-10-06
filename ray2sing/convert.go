@@ -155,6 +155,7 @@ func parseProxyURL(inputURL string, protocol string) (map[string]string, error) 
 		// Assuming you want to concatenate multiple values with a comma (",") separator
 		output[key] = strings.Join(values, ",")
 	}
+	fmt.Printf("====%v", output)
 	return output, nil
 }
 
@@ -189,10 +190,11 @@ func parseShadowsocks(configStr string) (map[string]string, error) {
 	server := map[string]string{
 		"encryption_method": userDetails[0],
 		"password":          userDetails[1],
-		"server_address":    parsedURL.Hostname(),
-		"server_port":       parsedURL.Port(),
+		"server":            parsedURL.Hostname(),
+		"port":              parsedURL.Port(),
 		"name":              parsedURL.Fragment,
 	}
+	fmt.Printf("MMMM %v", server)
 	return server, nil
 }
 
@@ -269,8 +271,9 @@ func toInt(s string) int {
 }
 
 func toInt16(s string) uint16 {
-	val, err := strconv.ParseInt(s, 10, 16)
+	val, err := strconv.ParseInt(s, 10, 17)
 	if err != nil {
+		// fmt.Printf("err %v", err)
 		// handle the error appropriately; here we return 0
 		return 0
 	}
@@ -279,7 +282,7 @@ func toInt16(s string) uint16 {
 
 func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, error) {
 	var transportOptions T.V2RayTransportOptions
-	// fmt.Printf("=======%v", decoded)
+	fmt.Printf("=======%v", decoded)
 	host, net, path := decoded["host"], decoded["net"], decoded["path"]
 	if net == "" {
 		net = decoded["type"]
@@ -288,7 +291,7 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 		path = decoded["serviceName"]
 	}
 	// fmt.Printf("\n\nheaderType:%s, net:%s, type:%s\n\n", decoded["headerType"], net, decoded["type"])
-	if decoded["type"] == "http" && net == "tcp" {
+	if (decoded["type"] == "http" || decoded["headerType"] == "http") && net == "tcp" {
 		net = "http"
 	}
 	switch net {
@@ -408,7 +411,12 @@ func VlessSingbox(vlessURL string) (T.Outbound, error) {
 	}
 
 	port := toInt16(decoded["port"])
+	fmt.Printf("Port %v deco=%v", port, decoded)
 	transportOptions, err := getTransportOptions(decoded)
+	if err != nil {
+		return T.Outbound{}, err
+	}
+
 	tlsOptions := getTLSOptions(decoded)
 	if tlsOptions != nil {
 		if security := decoded["security"]; security == "reality" {
