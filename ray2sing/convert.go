@@ -666,7 +666,7 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 		configSingbox, err = ShadowsocksSingbox(config)
 	case "tuic":
 		configSingbox, err = TuicSingbox(config)
-	case "histeria2":
+	case "hysteria2":
 		configSingbox, err = Hysteria2Singbox(config)
 	case "ssh":
 		configSingbox, err = SSHSingbox(config)
