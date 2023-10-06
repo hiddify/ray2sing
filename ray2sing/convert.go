@@ -155,7 +155,7 @@ func parseProxyURL(inputURL string, protocol string) (map[string]string, error) 
 		// Assuming you want to concatenate multiple values with a comma (",") separator
 		output[key] = strings.Join(values, ",")
 	}
-	fmt.Printf("====%v", output)
+	// fmt.Printf("====%v", output)
 	return output, nil
 }
 
@@ -194,7 +194,7 @@ func parseShadowsocks(configStr string) (map[string]string, error) {
 		"port":              parsedURL.Port(),
 		"name":              parsedURL.Fragment,
 	}
-	fmt.Printf("MMMM %v", server)
+	// fmt.Printf("MMMM %v", server)
 	return server, nil
 }
 
@@ -282,7 +282,7 @@ func toInt16(s string) uint16 {
 
 func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, error) {
 	var transportOptions T.V2RayTransportOptions
-	fmt.Printf("=======%v", decoded)
+	// fmt.Printf("=======%v", decoded)
 	host, net, path := decoded["host"], decoded["net"], decoded["path"]
 	if net == "" {
 		net = decoded["type"]
@@ -411,7 +411,7 @@ func VlessSingbox(vlessURL string) (T.Outbound, error) {
 	}
 
 	port := toInt16(decoded["port"])
-	fmt.Printf("Port %v deco=%v", port, decoded)
+	// fmt.Printf("Port %v deco=%v", port, decoded)
 	transportOptions, err := getTransportOptions(decoded)
 	if err != nil {
 		return T.Outbound{}, err
