@@ -599,6 +599,7 @@ func Hysteria2Singbox(hysteria2Url string) (T.Outbound, error) {
 			Obfs:     ObfsOpts,
 			Password: decoded["password"],
 			TLS: &T.OutboundTLSOptions{
+				Enabled: 	true,
 				Insecure:   decoded["insecure"] == "1",
 				DisableSNI: isIPOnly(SNI),
 				ServerName: SNI,
@@ -655,12 +656,12 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 	}()
 	configType := detectType(config)
 	// fmt.Print(configType)
-	if configType != "vmess" {
-		config, err = url.QueryUnescape(config)
-		if err != nil {
-			return T.Outbound{}, err
-		}
-	}
+	// if configType != "vmess" {
+		// config, err = url.QueryUnescape(config)
+		// 	if err != nil {
+	// 		return T.Outbound{}, err
+	// 	}
+	// }
 
 	var configSingbox T.Outbound
 	switch configType {
