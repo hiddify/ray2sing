@@ -185,11 +185,24 @@ func parseHysteria2(inputURL string) (result map[string]string, err error) {
 
 func parseShadowsocks(configStr string) (map[string]string, error) {
 	parsedURL, _ := url.Parse(configStr)
-	userInfo, _ := base64.StdEncoding.DecodeString(parsedURL.User.String())
-	userDetails := strings.Split(string(userInfo), ":")
+	var encryption_method string
+	var password string
+
+	userInfo, err := base64.StdEncoding.DecodeString(parsedURL.User.String())
+	if err != nil {
+		// If there's an error in decoding, use the original string
+		encryption_method = parsedURL.User.Username()
+		password, _ = parsedURL.User.Password()
+	} else {
+		// If decoding is successful, use the decoded string
+		userDetails := strings.Split(string(userInfo), ":")
+		encryption_method = userDetails[0]
+		password = userDetails[1]
+	}
+
 	server := map[string]string{
-		"encryption_method": userDetails[0],
-		"password":          userDetails[1],
+		"encryption_method": encryption_method,
+		"password":          password,
 		"server":            parsedURL.Hostname(),
 		"port":              parsedURL.Port(),
 		"name":              parsedURL.Fragment,
@@ -599,7 +612,7 @@ func Hysteria2Singbox(hysteria2Url string) (T.Outbound, error) {
 			Obfs:     ObfsOpts,
 			Password: decoded["password"],
 			TLS: &T.OutboundTLSOptions{
-				Enabled: 	true,
+				Enabled:    true,
 				Insecure:   decoded["insecure"] == "1",
 				DisableSNI: isIPOnly(SNI),
 				ServerName: SNI,
@@ -657,8 +670,8 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 	configType := detectType(config)
 	// fmt.Print(configType)
 	// if configType != "vmess" {
-		// config, err = url.QueryUnescape(config)
-		// 	if err != nil {
+	// config, err = url.QueryUnescape(config)
+	// 	if err != nil {
 	// 		return T.Outbound{}, err
 	// 	}
 	// }
