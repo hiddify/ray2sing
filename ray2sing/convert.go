@@ -41,6 +41,52 @@ func detectType(input string) string {
 	return ""
 }
 
+func ParseTurnURL(turnURL string) (*T.TurnRelayOptions, error) {
+	// Parse the URL
+	if turnURL == "" {
+		return nil, nil
+	}
+	parsedURL, err := url.Parse(turnURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if the URL scheme is "turn"
+	if parsedURL.Scheme != "turn" {
+		return nil, fmt.Errorf("Invalid URL scheme: %s", parsedURL.Scheme)
+	}
+
+	// Extract the username and password from the URL
+	username := parsedURL.User.Username()
+	password, _ := parsedURL.User.Password()
+
+	// Extract the host and port from the URL
+	hostAndPort := strings.Split(parsedURL.Host, ":")
+	if len(hostAndPort) != 2 {
+		return nil, fmt.Errorf("Invalid host:port format")
+	}
+	server := hostAndPort[0]
+	serverPort, err := strconv.ParseUint(hostAndPort[1], 10, 16)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid server port: %s", serverPort)
+	}
+	// Extract the realm query parameter
+	realm := parsedURL.Query().Get("realm")
+
+	// Create a TurnRelayOptions struct
+	relayOptions := &T.TurnRelayOptions{
+		ServerOptions: T.ServerOptions{
+			Server:     server,
+			ServerPort: uint16(serverPort),
+		},
+		Username: username,
+		Password: password,
+		Realm:    realm,
+	}
+
+	return relayOptions, nil
+}
+
 func parseConfig(input string) (map[string]string, error) {
 	var parsedConfig map[string]string
 	var err error
@@ -381,22 +427,22 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 	return tlsOptions
 }
 
-func VmessSingbox(vmessURL string) (T.Outbound, error) {
+func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 	decoded, err := decodeVmess(vmessURL)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 	// fmt.Printf("port:%v", decoded["port"])
 	port := toInt16(decoded["port"])
 	transportOptions, err := getTransportOptions(decoded)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 	security := "auto"
 	if decoded["scy"] != "" {
 		security = decoded["scy"]
 	}
-	return T.Outbound{
+	return &T.Outbound{
 		Tag:  fixName(decoded["ps"]),
 		Type: "vmess",
 		VMessOptions: T.VMessOutboundOptions{
@@ -417,17 +463,17 @@ func VmessSingbox(vmessURL string) (T.Outbound, error) {
 	}, nil
 }
 
-func VlessSingbox(vlessURL string) (T.Outbound, error) {
+func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 	decoded, err := parseProxyURL(vlessURL, "vless")
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 
 	port := toInt16(decoded["port"])
 	// fmt.Printf("Port %v deco=%v", port, decoded)
 	transportOptions, err := getTransportOptions(decoded)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 
 	tlsOptions := getTLSOptions(decoded)
@@ -442,7 +488,7 @@ func VlessSingbox(vlessURL string) (T.Outbound, error) {
 	}
 
 	xudp := "xudp"
-	return T.Outbound{
+	return &T.Outbound{
 		Tag:  fixName(decoded["hash"]),
 		Type: "vless",
 		VLESSOptions: T.VLESSOutboundOptions{
@@ -460,19 +506,19 @@ func VlessSingbox(vlessURL string) (T.Outbound, error) {
 	}, nil
 }
 
-func TrojanSingbox(trojanURL string) (T.Outbound, error) {
+func TrojanSingbox(trojanURL string) (*T.Outbound, error) {
 	decoded, err := parseProxyURL(trojanURL, "trojan")
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 
 	port := toInt16(decoded["port"])
 	transportOptions, err := getTransportOptions(decoded)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 
-	return T.Outbound{
+	return &T.Outbound{
 		Tag:  fixName(decoded["hash"]),
 		Type: "trojan",
 		TrojanOptions: T.TrojanOutboundOptions{
@@ -495,10 +541,10 @@ func getPath(path string) string {
 	return "/" + path
 }
 
-func ShadowsocksSingbox(shadowsocksUrl string) (T.Outbound, error) {
+func ShadowsocksSingbox(shadowsocksUrl string) (*T.Outbound, error) {
 	decoded, err := parseShadowsocks(shadowsocksUrl)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 
 	defaultMethod := "chacha20-ietf-poly1305"
@@ -521,13 +567,13 @@ func ShadowsocksSingbox(shadowsocksUrl string) (T.Outbound, error) {
 		},
 	}
 
-	return result, nil
+	return &result, nil
 }
 
-func TuicSingbox(tuicUrl string) (T.Outbound, error) {
+func TuicSingbox(tuicUrl string) (*T.Outbound, error) {
 	decoded, err := parseTuic(tuicUrl)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 
 	valECH, hasECH := decoded["ech"]
@@ -539,7 +585,10 @@ func TuicSingbox(tuicUrl string) (T.Outbound, error) {
 			Enabled: hasECH,
 		}
 	}
-
+	turnRelay, err := ParseTurnURL(decoded["relay"])
+	if err != nil {
+		return nil, err
+	}
 	result := T.Outbound{
 		Type: "tuic",
 		Tag:  fixName(decoded["name"]),
@@ -562,20 +611,21 @@ func TuicSingbox(tuicUrl string) (T.Outbound, error) {
 				ALPN:       []string{"h3", "spdy/3.1"},
 				ECH:        ECHOpts,
 			},
+			TurnRelay: turnRelay,
 		},
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 func isIPOnly(s string) bool {
 	return net.ParseIP(s) != nil
 }
 
-func Hysteria2Singbox(hysteria2Url string) (T.Outbound, error) {
+func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 	decoded, err := parseHysteria2(hysteria2Url)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 	var ObfsOpts *T.Hysteria2Obfs
 	ObfsOpts = nil
@@ -600,7 +650,10 @@ func Hysteria2Singbox(hysteria2Url string) (T.Outbound, error) {
 	if SNI == "" {
 		SNI = decoded["hostname"]
 	}
-
+	turnRelay, err := ParseTurnURL(decoded["relay"])
+	if err != nil {
+		return nil, err
+	}
 	result := T.Outbound{
 		Type: "hysteria2",
 		Tag:  decoded["name"],
@@ -618,15 +671,17 @@ func Hysteria2Singbox(hysteria2Url string) (T.Outbound, error) {
 				ServerName: SNI,
 				ECH:        ECHOpts,
 			},
+			TurnRelay: turnRelay,
 		},
 	}
-	return result, nil
+
+	return &result, nil
 }
 
-func SSHSingbox(sshURL string) (T.Outbound, error) {
+func SSHSingbox(sshURL string) (*T.Outbound, error) {
 	decoded, err := parseSSH(sshURL)
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 	prefix := "-----BEGIN OPENSSH PRIVATE KEY-----\n"
 	suffix := "\n-----END OPENSSH PRIVATE KEY-----\n"
@@ -655,13 +710,13 @@ func SSHSingbox(sshURL string) (T.Outbound, error) {
 			HostKey:    hostkeys,
 		},
 	}
-	return result, nil
+	return &result, nil
 }
 
-func processSingleConfig(config string) (outbound T.Outbound, err error) {
+func processSingleConfig(config string) (outbound *T.Outbound, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			outbound = T.Outbound{}
+			outbound = nil
 			stackTrace := make([]byte, 1024)
 			runtime.Stack(stackTrace, false)
 			err = fmt.Errorf("Error in Parsing: %+v\nStack trace:\n%s", r, stackTrace)
@@ -672,11 +727,11 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 	// if configType != "vmess" {
 	// config, err = url.QueryUnescape(config)
 	// 	if err != nil {
-	// 		return T.Outbound{}, err
+	// 		return nil, err
 	// 	}
 	// }
 
-	var configSingbox T.Outbound
+	var configSingbox *T.Outbound
 	switch configType {
 	case "vmess":
 		configSingbox, err = VmessSingbox(config)
@@ -693,10 +748,10 @@ func processSingleConfig(config string) (outbound T.Outbound, err error) {
 	case "ssh":
 		configSingbox, err = SSHSingbox(config)
 	default:
-		return T.Outbound{}, E.New("Not supported config type")
+		return nil, E.New("Not supported config type")
 	}
 	if err != nil {
-		return T.Outbound{}, err
+		return nil, err
 	}
 	json.MarshalIndent(configSingbox, "", "  ")
 	return configSingbox, nil
@@ -717,7 +772,7 @@ func GenerateConfigLite(input string) (string, error) {
 			continue
 		}
 		configSingbox.Tag += " § " + strconv.Itoa(counter)
-		outbounds = append(outbounds, configSingbox)
+		outbounds = append(outbounds, *configSingbox)
 
 	}
 	if len(outbounds) == 0 {
