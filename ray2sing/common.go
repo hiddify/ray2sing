@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 
@@ -85,11 +86,12 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 			Headers: map[string]T.Listable[string]{"Host": {host}},
 		}
 	case "ws":
+		path, ed := processPath(path)
 		transportOptions.Type = C.V2RayTransportTypeWebsocket
 		transportOptions.WebsocketOptions = T.V2RayWebsocketOptions{
 			Path:                path,
 			Headers:             map[string]T.Listable[string]{"Host": {host}},
-			MaxEarlyData:        0,
+			MaxEarlyData:        ed,
 			EarlyDataHeaderName: "Sec-WebSocket-Protocol",
 		}
 	case "grpc":
@@ -105,6 +107,31 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 	}
 
 	return &transportOptions, nil
+}
+func processPath(path string) (string, uint32) {
+	// Compile the regular expression to find 'ed=number'
+	re := regexp.MustCompile(`[?&]ed=(\d+)`)
+
+	// Find the first match
+	match := re.FindStringSubmatch(path)
+
+	if len(match) > 1 {
+		// Convert the captured string to an integer
+		ed, err := strconv.Atoi(match[1])
+		if err != nil {
+			// Handle the error if conversion fails
+			fmt.Println("Error converting number:", err)
+			return path, 0
+		}
+
+		// Remove 'ed=number' from the path
+		newPath := re.ReplaceAllString(path, "")
+
+		return newPath, uint32(ed)
+	}
+
+	// Return the original path and 0 if 'ed=number' is not found
+	return path, 0
 }
 
 func generateName(fragment string, configType string) string {
