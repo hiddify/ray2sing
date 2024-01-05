@@ -72,6 +72,9 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		return nil, nil
 	case "http":
 		transportOptions.Type = C.V2RayTransportTypeHTTP
+		if decoded["security"] != "tls" {
+			transportOptions.HTTPOptions.Method = "GET"
+		}
 		if host != "" {
 			transportOptions.HTTPOptions.Host = option.Listable[string]{host}
 		}
