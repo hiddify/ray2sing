@@ -2,26 +2,21 @@ package ray2sing
 
 import (
 	"encoding/base64"
-	"fmt"
-	"math/rand"
 	"net"
 	"net/url"
-	"regexp"
-	"sort"
 	"strconv"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
-	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"strings"
 	"time"
 )
 
-type ParserFunc func(string) (*T.Outbound, error)
+type ParserFunc func(string) (*option.Outbound, error)
 
-func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
+func getTLSOptions(decoded map[string]string) *option.OutboundTLSOptions {
 	if !(decoded["tls"] == "tls" || decoded["security"] == "tls" || decoded["security"] == "reality") {
 		return nil
 	}
@@ -31,20 +26,20 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 		serverName = decoded["add"]
 	}
 
-	var ECHOpts *T.OutboundECHOptions
+	var ECHOpts *option.OutboundECHOptions
 	valECH, hasECH := decoded["ech"]
 	if hasECH && (valECH != "0") {
-		ECHOpts = &T.OutboundECHOptions{
+		ECHOpts = &option.OutboundECHOptions{
 			Enabled: true,
 		}
 	}
 
-	tlsOptions := &T.OutboundTLSOptions{
+	tlsOptions := &option.OutboundTLSOptions{
 		Enabled:    true,
 		ServerName: serverName,
 		Insecure:   true,
 		DisableSNI: false,
-		UTLS: &T.OutboundUTLSOptions{
+		UTLS: &option.OutboundUTLSOptions{
 			Enabled:     true,
 			Fingerprint: "chrome",
 		},
@@ -58,9 +53,8 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 	return tlsOptions
 }
 
-func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, error) {
-	var transportOptions T.V2RayTransportOptions
-	// fmt.Printf("=======%v", decoded)
+func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptions, error) {
+	var transportOptions option.V2RayTransportOptions
 	host, net, path := decoded["host"], decoded["net"], decoded["path"]
 	if net == "" {
 		net = decoded["type"]
@@ -68,7 +62,7 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 	if path == "" {
 		path = decoded["serviceName"]
 	}
-	// fmt.Printf("\n\nheaderType:%s, net:%s, type:%s\n\n", decoded["headerType"], net, decoded["type"])
+	// fmoption.Printf("\n\nheaderType:%s, net:%s, type:%s\n\n", decoded["headerType"], net, decoded["type"])
 	if (decoded["type"] == "http" || decoded["headerType"] == "http") && net == "tcp" {
 		net = "http"
 	}
@@ -77,19 +71,19 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 	case "tcp":
 		return nil, nil
 	case "http":
+		transportOptions.Type = C.V2RayTransportTypeHTTP
+		if host != "" {
+			transportOptions.HTTPOptions.Host = option.Listable[string]{host}
+		}
 		httpPath := path
 		if httpPath == "" {
 			httpPath = "/"
 		}
-		transportOptions.Type = C.V2RayTransportTypeHTTP
-		transportOptions.HTTPOptions = T.V2RayHTTPOptions{
-			Path:    httpPath,
-			Headers: map[string]T.Listable[string]{"Host": {host}},
-		}
+		transportOptions.HTTPOptions.Path = httpPath
 	case "ws":
 		transportOptions.Type = C.V2RayTransportTypeWebsocket
 		if host != "" {
-			transportOptions.WebsocketOptions.Headers = map[string]T.Listable[string]{"Host": {host}}
+			transportOptions.WebsocketOptions.Headers = map[string]option.Listable[string]{"Host": {host}}
 		}
 		if path != "" {
 			if !strings.HasPrefix(path, "/") {
@@ -114,10 +108,10 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 		}
 	case "grpc":
 		transportOptions.Type = C.V2RayTransportTypeGRPC
-		transportOptions.GRPCOptions = T.V2RayGRPCOptions{
+		transportOptions.GRPCOptions = option.V2RayGRPCOptions{
 			ServiceName:         path,
-			IdleTimeout:         T.Duration(15 * time.Second),
-			PingTimeout:         T.Duration(15 * time.Second),
+			IdleTimeout:         option.Duration(15 * time.Second),
+			PingTimeout:         option.Duration(15 * time.Second),
 			PermitWithoutStream: false,
 		}
 	case "quic":
@@ -127,39 +121,6 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 	}
 
 	return &transportOptions, nil
-}
-
-func processPath(path string) (string, uint32) {
-	// Compile the regular expression to find 'ed=number'
-	re := regexp.MustCompile(`[?&]ed=(\d+)`)
-
-	// Find the first match
-	match := re.FindStringSubmatch(path)
-
-	if len(match) > 1 {
-		// Convert the captured string to an integer
-		ed, err := strconv.Atoi(match[1])
-		if err != nil {
-			// Handle the error if conversion fails
-			fmt.Println("Error converting number:", err)
-			return path, 0
-		}
-
-		// Remove 'ed=number' from the path
-		newPath := re.ReplaceAllString(path, "")
-
-		return newPath, uint32(ed)
-	}
-
-	// Return the original path and 0 if 'ed=number' is not found
-	return path, 0
-}
-
-func generateName(fragment string, configType string) string {
-	if fragment != "" {
-		return fragment
-	}
-	return fmt.Sprintf("%v-%v", configType, time.Now().UnixNano())
 }
 
 func decodeBase64IfNeeded(b64string string) (string, error) {
@@ -176,48 +137,6 @@ func decodeBase64IfNeeded(b64string string) (string, error) {
 	return string(decodedBytes), nil
 }
 
-func isNumberWithDots(s string) bool {
-	for _, c := range s {
-		if !strings.ContainsRune("0123456789.", c) {
-			return false
-		}
-	}
-	return true
-}
-
-func isValidAddress(address string) bool {
-	if isIPOnly(address) {
-		return true
-	}
-	if !isNumberWithDots(address) {
-		if strings.HasPrefix(address, "https://") || strings.HasPrefix(address, "http://") {
-			_, err := url.ParseRequestURI(address)
-			return err == nil
-		}
-		_, err := url.ParseRequestURI("https://" + address)
-		return err == nil
-	}
-	return false
-}
-
-func generateUniqueRandomNumbers(max int, count int) []int {
-	randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
-	randomNumbers := make(map[int]bool)
-	var uniqueNumbers []int
-
-	for len(uniqueNumbers) < count {
-		number := randGen.Intn(max + 1)
-		if !randomNumbers[number] {
-			randomNumbers[number] = true
-			uniqueNumbers = append(uniqueNumbers, number)
-		}
-	}
-
-	sort.Ints(uniqueNumbers)
-
-	return uniqueNumbers
-}
-
 func toInt(s string) int {
 	i, _ := strconv.Atoi(s)
 	return i
@@ -226,7 +145,7 @@ func toInt(s string) int {
 func toInt16(s string) uint16 {
 	val, err := strconv.ParseInt(s, 10, 17)
 	if err != nil {
-		// fmt.Printf("err %v", err)
+		// fmoption.Printf("err %v", err)
 		// handle the error appropriately; here we return 0
 		return 443
 	}
