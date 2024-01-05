@@ -17,9 +17,11 @@ func decodeVmess(vmessConfig string) (map[string]string, error) {
 		return nil, err
 	}
 	var data map[string]interface{}
-	json.Unmarshal(decodedData, &data)
+	err = json.Unmarshal(decodedData, &data)
+	if err != nil {
+		return nil, err
+	}
 	strdata := convertToStrings(data)
-	// fmt.Printf("----%v---", strdata)
 	return strdata, nil
 }
 
@@ -47,7 +49,7 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Printf("port:%v", decoded["port"])
+
 	port := toInt16(decoded["port"])
 	transportOptions, err := getTransportOptions(decoded)
 	if err != nil {

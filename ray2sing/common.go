@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/option"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 
@@ -29,17 +30,12 @@ func getTLSOptions(decoded map[string]string) *T.OutboundTLSOptions {
 	if serverName == "" {
 		serverName = decoded["add"]
 	}
-	if serverName == "" {
-		serverName = decoded["sni"]
-	}
 
-	valECH, hasECH := decoded["ech"]
-	hasECH = hasECH && (valECH != "0")
 	var ECHOpts *T.OutboundECHOptions
-	ECHOpts = nil
-	if hasECH {
+	valECH, hasECH := decoded["ech"]
+	if hasECH && (valECH != "0") {
 		ECHOpts = &T.OutboundECHOptions{
-			Enabled: hasECH,
+			Enabled: true,
 		}
 	}
 
@@ -76,23 +72,45 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 	if (decoded["type"] == "http" || decoded["headerType"] == "http") && net == "tcp" {
 		net = "http"
 	}
+
 	switch net {
 	case "tcp":
 		return nil, nil
 	case "http":
+		httpPath := path
+		if httpPath == "" {
+			httpPath = "/"
+		}
 		transportOptions.Type = C.V2RayTransportTypeHTTP
 		transportOptions.HTTPOptions = T.V2RayHTTPOptions{
-			Path:    path,
+			Path:    httpPath,
 			Headers: map[string]T.Listable[string]{"Host": {host}},
 		}
 	case "ws":
-		path, ed := processPath(path)
 		transportOptions.Type = C.V2RayTransportTypeWebsocket
-		transportOptions.WebsocketOptions = T.V2RayWebsocketOptions{
-			Path:                path,
-			Headers:             map[string]T.Listable[string]{"Host": {host}},
-			MaxEarlyData:        ed,
-			EarlyDataHeaderName: "Sec-WebSocket-Protocol",
+		if host != "" {
+			transportOptions.WebsocketOptions.Headers = map[string]T.Listable[string]{"Host": {host}}
+		}
+		if path != "" {
+			if !strings.HasPrefix(path, "/") {
+				path = "/" + path
+			}
+			pathURL, err := url.Parse(path)
+			if err != nil {
+				return &option.V2RayTransportOptions{}, err
+			}
+			pathQuery := pathURL.Query()
+			maxEarlyDataString := pathQuery.Get("ed")
+			if maxEarlyDataString != "" {
+				maxEarlyDate, err := strconv.ParseUint(maxEarlyDataString, 10, 32)
+				if err == nil {
+					transportOptions.WebsocketOptions.MaxEarlyData = uint32(maxEarlyDate)
+					transportOptions.WebsocketOptions.EarlyDataHeaderName = "Sec-WebSocket-Protocol"
+					pathQuery.Del("ed")
+					pathURL.RawQuery = pathQuery.Encode()
+				}
+			}
+			transportOptions.WebsocketOptions.Path = pathURL.String()
 		}
 	case "grpc":
 		transportOptions.Type = C.V2RayTransportTypeGRPC
@@ -102,12 +120,15 @@ func getTransportOptions(decoded map[string]string) (*T.V2RayTransportOptions, e
 			PingTimeout:         T.Duration(15 * time.Second),
 			PermitWithoutStream: false,
 		}
+	case "quic":
+		transportOptions.Type = C.V2RayTransportTypeQUIC
 	default:
 		return nil, E.New("unknown transport type: " + net)
 	}
 
 	return &transportOptions, nil
 }
+
 func processPath(path string) (string, uint32) {
 	// Compile the regular expression to find 'ed=number'
 	re := regexp.MustCompile(`[?&]ed=(\d+)`)
