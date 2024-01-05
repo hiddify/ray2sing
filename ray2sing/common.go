@@ -34,6 +34,11 @@ func getTLSOptions(decoded map[string]string) *option.OutboundTLSOptions {
 		}
 	}
 
+	fp := decoded["fp"]
+	if fp == "" {
+		fp = "chrome"
+	}
+
 	tlsOptions := &option.OutboundTLSOptions{
 		Enabled:    true,
 		ServerName: serverName,
@@ -41,7 +46,7 @@ func getTLSOptions(decoded map[string]string) *option.OutboundTLSOptions {
 		DisableSNI: false,
 		UTLS: &option.OutboundUTLSOptions{
 			Enabled:     true,
-			Fingerprint: "chrome",
+			Fingerprint: fp,
 		},
 		ECH: ECHOpts,
 	}
