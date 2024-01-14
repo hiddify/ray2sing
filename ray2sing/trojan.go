@@ -20,7 +20,7 @@ func TrojanSingbox(trojanURL string) (*T.Outbound, error) {
 		Tag:  u.Name,
 		Type: "trojan",
 		TrojanOptions: T.TrojanOutboundOptions{
-			DialerOptions: T.DialerOptions{},
+			DialerOptions: getDialerOptions(decoded),
 			ServerOptions: u.GetServerOption(),
 			Password:      u.Username,
 			TLS:           getTLSOptions(decoded),

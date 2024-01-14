@@ -20,4 +20,4 @@ require (
 	golang.org/x/tools v0.16.0 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.4.0-rc.3.0.20231223062555-6654baf4ccde
+replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.7.9-0.20240113144724-d348f6fa8ff2

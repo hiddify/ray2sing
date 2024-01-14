@@ -8,6 +8,7 @@ import (
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
+	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 
 	"strings"
@@ -42,13 +43,14 @@ func getTLSOptions(decoded map[string]string) *option.OutboundTLSOptions {
 	tlsOptions := &option.OutboundTLSOptions{
 		Enabled:    true,
 		ServerName: serverName,
-		Insecure:   true,
-		DisableSNI: false,
+		Insecure:   decoded["insecure"] == "true",
+		DisableSNI: serverName == "",
 		UTLS: &option.OutboundUTLSOptions{
 			Enabled:     true,
 			Fingerprint: fp,
 		},
-		ECH: ECHOpts,
+		ECH:       ECHOpts,
+		TLSTricks: getTricksOptions(decoded),
 	}
 
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
@@ -58,6 +60,33 @@ func getTLSOptions(decoded map[string]string) *option.OutboundTLSOptions {
 	return tlsOptions
 }
 
+func getTricksOptions(decoded map[string]string) *option.TLSTricksOptions {
+	trick := option.TLSTricksOptions{}
+	if decoded["mc"] == "1" {
+		trick.MixedCaseSNI = true
+	}
+	trick.PaddingMode = decoded["padmode"]
+	trick.PaddingSNI = decoded["padsni"]
+	trick.PaddingSize = decoded["padsize"]
+
+	if !trick.MixedCaseSNI && trick.PaddingMode == "" && trick.PaddingSNI == "" && trick.PaddingSize == "" {
+		return nil
+	}
+	return &trick
+}
+func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
+	trick := option.TLSFragmentOptions{}
+	trick.Size = decoded["fgsize"]
+	trick.Sleep = decoded["fgsleep"]
+
+	if trick.Size != "" {
+		trick.Enabled = true
+	}
+	if !trick.Enabled {
+		return nil
+	}
+	return &trick
+}
 func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptions, error) {
 	var transportOptions option.V2RayTransportOptions
 	host, net, path := decoded["host"], decoded["net"], decoded["path"]
@@ -129,6 +158,11 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 	}
 
 	return &transportOptions, nil
+}
+func getDialerOptions(decoded map[string]string) option.DialerOptions {
+	return T.DialerOptions{
+		TLSFragment: getFragmentOptions(decoded),
+	}
 }
 
 func decodeBase64IfNeeded(b64string string) (string, error) {

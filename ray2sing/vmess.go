@@ -59,11 +59,15 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 	if decoded["scy"] != "" {
 		security = decoded["scy"]
 	}
+	packetEncoding := decoded["packetEncoding"]
+	// if packetEncoding == "" {
+	// 	packetEncoding = "xudp"
+	// }
 	return &T.Outbound{
 		Tag:  decoded["ps"],
 		Type: "vmess",
 		VMessOptions: T.VMessOutboundOptions{
-			DialerOptions: T.DialerOptions{},
+			DialerOptions: getDialerOptions(decoded),
 			ServerOptions: T.ServerOptions{
 				Server:     decoded["add"],
 				ServerPort: port,
@@ -73,7 +77,7 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 			AlterId:             toInt(decoded["aid"]),
 			GlobalPadding:       false,
 			AuthenticatedLength: true,
-			PacketEncoding:      "xudp",
+			PacketEncoding:      packetEncoding,
 			TLS:                 getTLSOptions(decoded),
 			Transport:           transportOptions,
 		},

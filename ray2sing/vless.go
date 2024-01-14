@@ -28,11 +28,15 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 	}
 
 	packetEncoding := decoded["packetEncoding"]
+	// if packetEncoding==""{
+	// 	packetEncoding="xudp"
+	// }
 
 	return &T.Outbound{
 		Tag:  u.Name,
 		Type: "vless",
 		VLESSOptions: T.VLESSOutboundOptions{
+			DialerOptions:  getDialerOptions(decoded),
 			ServerOptions:  u.GetServerOption(),
 			UUID:           u.Username,
 			PacketEncoding: &packetEncoding,
