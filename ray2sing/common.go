@@ -87,6 +87,26 @@ func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
 	}
 	return &trick
 }
+func getMuxOptions(decoded map[string]string) *option.OutboundMultiplexOptions {
+	mux := option.OutboundMultiplexOptions{}
+	mux.Protocol = decoded["mux"]
+	if mux.Protocol == "" {
+		return nil
+	}
+	mux.Enabled = true
+	mux.MaxConnections = toInt(decoded["mux_max"])
+	mux.MinStreams = toInt(decoded["mux_min"])
+	mux.Padding = decoded["mux_pad"] == "true"
+
+	if decoded["mux_up"] != "" && decoded["mux_down"] != "" {
+		mux.Brutal = &option.BrutalOptions{
+			Enabled:  true,
+			UpMbps:   toInt(decoded["mux_up"]),
+			DownMbps: toInt(decoded["mux_down"]),
+		}
+	}
+	return &mux
+}
 func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptions, error) {
 	var transportOptions option.V2RayTransportOptions
 	host, net, path := decoded["host"], decoded["net"], decoded["path"]
@@ -131,12 +151,13 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 				return &option.V2RayTransportOptions{}, err
 			}
 			pathQuery := pathURL.Query()
+			transportOptions.WebsocketOptions.MaxEarlyData = 0
+			transportOptions.WebsocketOptions.EarlyDataHeaderName = "Sec-WebSocket-Protocol"
 			maxEarlyDataString := pathQuery.Get("ed")
 			if maxEarlyDataString != "" {
 				maxEarlyDate, err := strconv.ParseUint(maxEarlyDataString, 10, 32)
 				if err == nil {
 					transportOptions.WebsocketOptions.MaxEarlyData = uint32(maxEarlyDate)
-					transportOptions.WebsocketOptions.EarlyDataHeaderName = "Sec-WebSocket-Protocol"
 					pathQuery.Del("ed")
 					pathURL.RawQuery = pathQuery.Encode()
 				}

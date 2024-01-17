@@ -80,6 +80,7 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 			PacketEncoding:      packetEncoding,
 			TLS:                 getTLSOptions(decoded),
 			Transport:           transportOptions,
+			Multiplex:           getMuxOptions(decoded),
 		},
 	}, nil
 }

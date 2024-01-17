@@ -25,6 +25,7 @@ func TrojanSingbox(trojanURL string) (*T.Outbound, error) {
 			Password:      u.Username,
 			TLS:           getTLSOptions(decoded),
 			Transport:     transportOptions,
+			Multiplex:     getMuxOptions(decoded),
 		},
 	}, nil
 }

@@ -43,6 +43,7 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 			Flow:           decoded["flow"],
 			TLS:            tlsOptions,
 			Transport:      transportOptions,
+			Multiplex:      getMuxOptions(decoded),
 		},
 	}, nil
 }
