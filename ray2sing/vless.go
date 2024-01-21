@@ -17,9 +17,9 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 	}
 
 	tlsOptions := getTLSOptions(decoded)
-	if tlsOptions != nil {
+	if tlsOptions.TLS != nil {
 		if security := decoded["security"]; security == "reality" {
-			tlsOptions.Reality = &T.OutboundRealityOptions{
+			tlsOptions.TLS.Reality = &T.OutboundRealityOptions{
 				Enabled:   true,
 				PublicKey: decoded["pbk"],
 				ShortID:   decoded["sid"],
@@ -36,14 +36,14 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 		Tag:  u.Name,
 		Type: "vless",
 		VLESSOptions: T.VLESSOutboundOptions{
-			DialerOptions:  getDialerOptions(decoded),
-			ServerOptions:  u.GetServerOption(),
-			UUID:           u.Username,
-			PacketEncoding: &packetEncoding,
-			Flow:           decoded["flow"],
-			TLS:            tlsOptions,
-			Transport:      transportOptions,
-			Multiplex:      getMuxOptions(decoded),
+			DialerOptions:               getDialerOptions(decoded),
+			ServerOptions:               u.GetServerOption(),
+			UUID:                        u.Username,
+			PacketEncoding:              &packetEncoding,
+			Flow:                        decoded["flow"],
+			OutboundTLSOptionsContainer: tlsOptions,
+			Transport:                   transportOptions,
+			Multiplex:                   getMuxOptions(decoded),
 		},
 	}, nil
 }

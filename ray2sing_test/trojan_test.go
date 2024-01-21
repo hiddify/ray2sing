@@ -23,7 +23,6 @@ func TestTrojan(t *testing.T) {
 			"tls": {
 			  "enabled": true,
 			  "server_name": "aws-ar-buenosaires-1.f1cflineb.com",
-			  "insecure": true,
 			  "utls": {
 				"enabled": true,
 				"fingerprint": "chrome"

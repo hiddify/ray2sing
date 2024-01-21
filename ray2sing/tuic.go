@@ -36,13 +36,15 @@ func TuicSingbox(tuicUrl string) (*T.Outbound, error) {
 			UDPRelayMode:      decoded["udp_relay_mode"],
 			ZeroRTTHandshake:  false,
 			Heartbeat:         T.Duration(10 * time.Second),
-			TLS: &T.OutboundTLSOptions{
-				Enabled:    true,
-				DisableSNI: decoded["sni"] == "",
-				ServerName: decoded["sni"],
-				Insecure:   decoded["allow_insecure"] == "1",
-				ALPN:       []string{"h3", "spdy/3.1"},
-				ECH:        ECHOpts,
+			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
+				TLS: &T.OutboundTLSOptions{
+					Enabled:    true,
+					DisableSNI: decoded["sni"] == "",
+					ServerName: decoded["sni"],
+					Insecure:   decoded["allow_insecure"] == "1",
+					ALPN:       []string{"h3", "spdy/3.1"},
+					ECH:        ECHOpts,
+				},
 			},
 			TurnRelay: turnRelay,
 		},

@@ -17,11 +17,13 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 		Tag:  u.Name,
 		HysteriaOptions: T.HysteriaOutboundOptions{
 			ServerOptions: u.GetServerOption(),
-			TLS: &T.OutboundTLSOptions{
-				Enabled:    true,
-				DisableSNI: isIPOnly(SNI),
-				ServerName: SNI,
-				Insecure:   u.Params["insecure"] == "1",
+			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
+				TLS: &T.OutboundTLSOptions{
+					Enabled:    true,
+					DisableSNI: isIPOnly(SNI),
+					ServerName: SNI,
+					Insecure:   u.Params["insecure"] == "1",
+				},
 			},
 		},
 	}

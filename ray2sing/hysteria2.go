@@ -44,12 +44,14 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 			ServerOptions: u.GetServerOption(),
 			Obfs:          ObfsOpts,
 			Password:      u.Username,
-			TLS: &T.OutboundTLSOptions{
-				Enabled:    true,
-				Insecure:   decoded["insecure"] == "1",
-				DisableSNI: isIPOnly(SNI),
-				ServerName: SNI,
-				ECH:        ECHOpts,
+			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
+				TLS: &T.OutboundTLSOptions{
+					Enabled:    true,
+					Insecure:   decoded["insecure"] == "1",
+					DisableSNI: isIPOnly(SNI),
+					ServerName: SNI,
+					ECH:        ECHOpts,
+				},
 			},
 			TurnRelay: turnRelay,
 		},

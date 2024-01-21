@@ -3,7 +3,7 @@ module github.com/hiddify/ray2sing
 go 1.21.1
 
 require (
-	github.com/sagernet/sing v0.2.20
+	github.com/sagernet/sing v0.3.0
 	github.com/sagernet/sing-box v1.7.8
 	github.com/spf13/cobra v1.8.0
 )
@@ -14,10 +14,11 @@ require (
 	github.com/miekg/dns v1.1.57 // indirect
 	github.com/sagernet/sing-dns v0.1.12 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/tools v0.16.0 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.7.9-0.20240113144724-d348f6fa8ff2
+replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.7.9-0.20240121092547-68ac7a67eee1

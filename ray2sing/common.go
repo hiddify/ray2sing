@@ -17,9 +17,9 @@ import (
 
 type ParserFunc func(string) (*option.Outbound, error)
 
-func getTLSOptions(decoded map[string]string) *option.OutboundTLSOptions {
+func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	if !(decoded["tls"] == "tls" || decoded["security"] == "tls" || decoded["security"] == "reality") {
-		return nil
+		return T.OutboundTLSOptionsContainer{TLS: nil}
 	}
 
 	serverName := decoded["sni"]
@@ -56,8 +56,10 @@ func getTLSOptions(decoded map[string]string) *option.OutboundTLSOptions {
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
 		tlsOptions.ALPN = strings.Split(alpn, ",")
 	}
+	return T.OutboundTLSOptionsContainer{
+		TLS: tlsOptions,
+	}
 
-	return tlsOptions
 }
 
 func getTricksOptions(decoded map[string]string) *option.TLSTricksOptions {
