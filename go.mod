@@ -1,10 +1,10 @@
 module github.com/hiddify/ray2sing
 
-go 1.21.1
+go 1.21.6
 
 require (
 	github.com/sagernet/sing v0.3.0
-	github.com/sagernet/sing-box v1.7.8
+	github.com/sagernet/sing-box v1.8.2
 	github.com/spf13/cobra v1.8.0
 )
 
