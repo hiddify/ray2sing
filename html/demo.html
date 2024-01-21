@@ -34,9 +34,14 @@
         });
 
         document.getElementById("callButton").addEventListener("click", () => {
-            const input = document.getElementById("inputTextArea").value;
-            const result = callGoFunction(input); // Modify this function to accept input
-            document.getElementById("outputTextArea").value = result;
+            const inputText = document.getElementById("inputTextArea").value;
+            const outputText = document.getElementById("outputTextArea");
+            try {
+                const result = callGoFunction(inputText);
+                outputText.value = result;
+            } catch (err) {
+                outputText.value = "Error: " + err.message;
+            }
         });
 
         document.getElementById("copyButton").addEventListener("click", () => {
