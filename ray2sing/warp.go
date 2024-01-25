@@ -14,10 +14,10 @@ func WarpSingbox(url string) (*T.Outbound, error) {
 		Tag:  u.Name,
 		CustomOptions: map[string]interface{}{
 			"warp": map[string]interface{}{
-				"key":         u.Username,
-				"host":        u.Hostname,
-				"port":        u.Port,
-				"fakePackets": u.Params["fake_packets"],
+				"key":          u.Username,
+				"host":         u.Hostname,
+				"port":         u.Port,
+				"fake_packets": u.Params["ifp"],
 			},
 		},
 	}
