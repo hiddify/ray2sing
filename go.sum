@@ -1,8 +1,8 @@
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/hiddify/hiddify-sing-box v1.7.9-0.20240121092547-68ac7a67eee1 h1:bzGnAZ2C8SLkra6RsJuU/eGh00I6kmFEm88Kg77QyZo=
-github.com/hiddify/hiddify-sing-box v1.7.9-0.20240121092547-68ac7a67eee1/go.mod h1:UjYAsVOhYPgx2Yl53iPjIwHOp7HghictAi16Lmi+CZw=
+github.com/hiddify/hiddify-sing-box v1.7.9-0.20240125155948-df6318730338 h1:8Sqfq36q1f9La853T/6VnY7IgCvfPL0uhkguyrTl3t8=
+github.com/hiddify/hiddify-sing-box v1.7.9-0.20240125155948-df6318730338/go.mod h1:DnlHl/vlinL9Mn95+qJ3RzgE3E/9pWlAvTsauo7F5HM=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/logrusorgru/aurora v2.0.3+incompatible h1:tOpm7WcpBTn4fjmVfgpQq0EfczGlG91VSDkswnjF5A8=

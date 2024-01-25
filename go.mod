@@ -1,6 +1,6 @@
 module github.com/hiddify/ray2sing
 
-go 1.21.6
+go 1.21.1
 
 require (
 	github.com/sagernet/sing v0.3.0
@@ -21,4 +21,4 @@ require (
 	golang.org/x/tools v0.16.0 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.7.9-0.20240121092547-68ac7a67eee1
+replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.7.9-0.20240125155948-df6318730338

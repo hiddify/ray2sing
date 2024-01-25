@@ -1,17 +1,12 @@
 package ray2sing
 
 import (
-	"fmt"
 	"net/netip"
 	"strconv"
 	"strings"
 
 	T "github.com/sagernet/sing-box/option"
 )
-
-func parseWireguard(inputURL string) (result map[string]string, err error) {
-	return nil, fmt.Errorf("Not Implemented")
-}
 
 func WiregaurdSingbox(url string) (*T.Outbound, error) {
 	u, err := ParseUrl(url)

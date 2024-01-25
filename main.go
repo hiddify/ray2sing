@@ -46,6 +46,11 @@ var examples = map[string][]string{
 	"wg": {
 		"wg://[server]:222/?pk=[private_key]&local_address=10.0.0.2/24&peer_pk=[peer_public_key]&pre_shared_key=[pre_shared_key]&workers=[workers]&mtu=[mtu]&reserved=0,0,0",
 	},
+	"warp": {
+		"warp://key@host:1234/#WARPkey",
+		"warp://engage.cloudflareclient.com:2408#WARPnoKey",
+		"warp://key@engage.cloudflareclient.com:2408/?ifp=5-10#WARPparam",
+	},
 }
 
 func main() {
