@@ -22,5 +22,8 @@ func WarpSingbox(url string) (*T.Outbound, error) {
 			},
 		},
 	}
+	if out.Tag == "" {
+		out.Tag = "WARP"
+	}
 	return out, nil
 }

@@ -51,6 +51,9 @@ func processSingleConfig(config string) (outbound *T.Outbound, err error) {
 	if configSingbox == nil {
 		return nil, E.New("Not supported config type")
 	}
+	if configSingbox.Tag == "" {
+		configSingbox.Tag = configSingbox.Type
+	}
 	json.MarshalIndent(configSingbox, "", "  ")
 	return configSingbox, nil
 }
