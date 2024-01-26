@@ -27,3 +27,54 @@ func TestShadowsocks(t *testing.T) {
 	`
 	ray2sing.CheckUrlAndJson(url, expectedJSON, t)
 }
+
+
+func TestShadowsocksEIHBase64(t *testing.T) {
+	// EIH extension: https://github.com/Shadowsocks-NET/shadowsocks-specs/blob/main/2022-2-shadowsocks-2022-extensible-identity-headers.md
+	// Named as "multi-user" in https://sing-box.sagernet.org/configuration/inbound/shadowsocks/#structure
+
+	url := "ss://MjAyMi1ibGFrZTMtYWVzLTEyOC1nY206cTdENzRBVjhCRlY0UUk3NWVqVS9nTXViWER4ejEyRysvU2o3RUlyTHZCdz06L21JTjIvb0pZRzBJbHZGYlA1UEs5VmhGcnlTODl0ZjFEK3E4SUR1czA0VT0%3D@10.20.30.40:54321#sample-tag"
+	// b64decode(MjAyMi1...) = "2022-blake3-aes-128-gcm:q7D74AV8BFV4QI75ejU/gMubXDxz12G+/Sj7EIrLvBw=:/mIN2/oJYG0IlvFbP5PK9VhFryS89tf1D+q8IDus04U="
+
+	expectedJSON := `
+	{
+		"outbounds": [
+		  {
+			"type": "shadowsocks",
+			"tag": "sample-tag § 0",
+			"server": "10.20.30.40",
+			"server_port": 54321,
+			"method": "2022-blake3-aes-128-gcm",
+			"password": "q7D74AV8BFV4QI75ejU/gMubXDxz12G+/Sj7EIrLvBw=:/mIN2/oJYG0IlvFbP5PK9VhFryS89tf1D+q8IDus04U="
+		  }
+		]
+	  }
+	`
+
+	ray2sing.CheckUrlAndJson(url, expectedJSON, t)
+}
+
+
+func TestShadowsocksEIHPlain(t *testing.T) {
+	// EIH extension: https://github.com/Shadowsocks-NET/shadowsocks-specs/blob/main/2022-2-shadowsocks-2022-extensible-identity-headers.md
+	// Named as "multi-user" in https://sing-box.sagernet.org/configuration/inbound/shadowsocks/#structure
+
+	url := "ss://2022-blake3-aes-128-gcm:q7D74AV8BFV4QI75ejU%2FgMubXDxz12G%2B%2FSj7EIrLvBw%3D:%2FmIN2%2FoJYG0IlvFbP5PK9VhFryS89tf1D%2Bq8IDus04U%3D@10.20.30.40:54321#sample-tag"
+
+	expectedJSON := `
+	{
+		"outbounds": [
+		  {
+			"type": "shadowsocks",
+			"tag": "sample-tag § 0",
+			"server": "10.20.30.40",
+			"server_port": 54321,
+			"method": "2022-blake3-aes-128-gcm",
+			"password": "q7D74AV8BFV4QI75ejU/gMubXDxz12G+/Sj7EIrLvBw=:/mIN2/oJYG0IlvFbP5PK9VhFryS89tf1D+q8IDus04U="
+		  }
+		]
+	  }
+	`
+
+	ray2sing.CheckUrlAndJson(url, expectedJSON, t)
+}
