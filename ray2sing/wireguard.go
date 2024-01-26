@@ -9,7 +9,7 @@ import (
 )
 
 func WiregaurdSingbox(url string) (*T.Outbound, error) {
-	u, err := ParseUrl(url)
+	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -22,6 +22,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			PrivateKey:    u.Params["pk"],
 			PeerPublicKey: u.Params["peer_pk"],
 			PreSharedKey:  u.Params["pre_shared_key"],
+			FakePackets:   u.Params["ifp"],
 		},
 	}
 

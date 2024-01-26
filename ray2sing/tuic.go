@@ -7,7 +7,7 @@ import (
 )
 
 func TuicSingbox(tuicUrl string) (*T.Outbound, error) {
-	u, err := ParseUrl(tuicUrl)
+	u, err := ParseUrl(tuicUrl, 443)
 	if err != nil {
 		return nil, err
 	}

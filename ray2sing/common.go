@@ -207,12 +207,12 @@ func toInt(s string) int {
 	return i
 }
 
-func toInt16(s string) uint16 {
+func toInt16(s string, defaultPort uint16) uint16 {
 	val, err := strconv.ParseInt(s, 10, 17)
 	if err != nil {
 		// fmoption.Printf("err %v", err)
 		// handle the error appropriately; here we return 0
-		return 443
+		return defaultPort
 	}
 	return uint16(val)
 }

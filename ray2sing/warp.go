@@ -5,10 +5,11 @@ import (
 )
 
 func WarpSingbox(url string) (*T.Outbound, error) {
-	u, err := ParseUrl(url)
+	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
 	}
+
 	out := &T.Outbound{
 		Type: "custom",
 		Tag:  u.Name,

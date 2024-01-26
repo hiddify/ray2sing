@@ -30,13 +30,13 @@ func (u UrlSchema) GetRelayOptions() (*T.TurnRelayOptions, error) {
 }
 
 // parseHysteria2 parses a given URL and returns a HysteriaURLData struct.
-func ParseUrl(inputURL string) (*UrlSchema, error) {
+func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return nil, err
 	}
 
-	port := toInt16(parsedURL.Port())
+	port := toInt16(parsedURL.Port(), defaultPort)
 
 	data := &UrlSchema{
 		Scheme:   parsedURL.Scheme,

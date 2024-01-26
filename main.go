@@ -50,6 +50,7 @@ var examples = map[string][]string{
 		"warp://key@host:1234/#WARPkey",
 		"warp://engage.cloudflareclient.com:2408#WARPnoKey",
 		"warp://key@engage.cloudflareclient.com:2408/?ifp=5-10#WARPparam",
+		"warp://auto/#WARP_auto",
 	},
 }
 

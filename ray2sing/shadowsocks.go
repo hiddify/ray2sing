@@ -36,7 +36,7 @@ func parseShadowsocks(configStr string) (map[string]string, error) {
 }
 
 func ShadowsocksSingbox(shadowsocksUrl string) (*T.Outbound, error) {
-	u, err := ParseUrl(shadowsocksUrl)
+	u, err := ParseUrl(shadowsocksUrl, 443)
 	if err != nil {
 		return nil, err
 	}

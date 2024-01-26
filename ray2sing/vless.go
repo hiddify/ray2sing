@@ -5,7 +5,7 @@ import (
 )
 
 func VlessSingbox(vlessURL string) (*T.Outbound, error) {
-	u, err := ParseUrl(vlessURL)
+	u, err := ParseUrl(vlessURL, 443)
 	if err != nil {
 		return nil, err
 	}

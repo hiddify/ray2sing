@@ -5,7 +5,7 @@ import (
 )
 
 func TrojanSingbox(trojanURL string) (*T.Outbound, error) {
-	u, err := ParseUrl(trojanURL)
+	u, err := ParseUrl(trojanURL, 443)
 	if err != nil {
 		return nil, err
 	}

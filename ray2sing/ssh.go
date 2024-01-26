@@ -7,7 +7,7 @@ import (
 )
 
 func SSHSingbox(sshURL string) (*T.Outbound, error) {
-	u, err := ParseUrl(sshURL)
+	u, err := ParseUrl(sshURL, 22)
 	if err != nil {
 		return nil, err
 	}

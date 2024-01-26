@@ -7,7 +7,7 @@ import (
 )
 
 func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
-	u, err := ParseUrl(hysteriaURL)
+	u, err := ParseUrl(hysteriaURL, 443)
 	if err != nil {
 		return nil, err
 	}
