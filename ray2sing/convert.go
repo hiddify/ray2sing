@@ -26,6 +26,7 @@ var configTypes = map[string]ParserFunc{
 	"wg://":        WiregaurdSingbox,
 	"ssconf://":    BeepassSingbox,
 	"warp://":      WarpSingbox,
+	"direct://":    DirectSingbox,
 }
 
 func processSingleConfig(config string) (outbound *T.Outbound, err error) {

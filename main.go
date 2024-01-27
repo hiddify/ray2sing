@@ -52,6 +52,9 @@ var examples = map[string][]string{
 		"warp://key@engage.cloudflareclient.com:2408/?ifp=5-10#WARPparam",
 		"warp://auto/#WARP_auto",
 	},
+	"direct": {
+		"direct://?fgsize=10-100&fgsleep=100-200",
+	},
 }
 
 func main() {
