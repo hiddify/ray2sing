@@ -78,9 +78,15 @@ func getTricksOptions(decoded map[string]string) *option.TLSTricksOptions {
 }
 func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
 	trick := option.TLSFragmentOptions{}
-	trick.Size = decoded["fgsize"]
-	trick.Sleep = decoded["fgsleep"]
-
+	fragment := decoded["fragment"]
+	if fragment != "" {
+		splt := strings.Split(fragment, ",")
+		trick.Size = splt[0]
+		trick.Sleep = splt[1]
+	} else {
+		trick.Size = decoded["fgsize"]
+		trick.Sleep = decoded["fgsleep"]
+	}
 	if trick.Size != "" {
 		trick.Enabled = true
 	}
