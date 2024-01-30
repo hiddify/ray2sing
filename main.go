@@ -52,6 +52,10 @@ var examples = map[string][]string{
 		"warp://key@engage.cloudflareclient.com:2408/?ifp=5-10#WARPparam",
 		"warp://auto/#WARP_auto",
 	},
+	"chain": {
+		"warp://auto&&detour=warp://auto",
+		"vless://409f106a-b2f2-4416-b186-5429c9979cd9@54.38.144.4:2053?encryption=none&flow=&fp=chrome&pbk=SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc&security=reality&serviceName=xyz&sid=&sni=discordapp.com&type=grpc#رایگان | REALITY | @EliV2ray | FR🇫🇷 | 0️⃣1️⃣&&detour=tuic://3618921b-adeb-4bd3-a2a0-f98b72a674b1:dongtaiwang@108.181.24.7:23450?allow_insecure=1&alpn=h3&congestion_control=bbr&sni=www.google.com&udp_relay_mode=native#رایگان | TUIC | @V2rayCollector | CA🇨🇦 | 0️⃣1️⃣",
+	},
 	"direct": {
 		"direct://?fgsize=10-100&fgsleep=100-200",
 	},

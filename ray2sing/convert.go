@@ -68,8 +68,9 @@ func GenerateConfigLite(input string) (string, error) {
 	for _, config := range configArray {
 
 		detourTag := ""
-		chains := strings.Split(config, "&detour=")
+		chains := strings.Split(config, "&&detour=")
 		for _, chain := range chains {
+			fmt.Printf("%s", chain)
 			configSingbox, err := processSingleConfig(chain)
 
 			if err != nil {
@@ -103,8 +104,13 @@ func GenerateConfigLite(input string) (string, error) {
 			}
 			if dialer != nil {
 				dialer.Detour = detourTag
-				detourTag = configSingbox.Tag
 			}
+			if C.TypeCustom == configSingbox.Type {
+				if warp, ok := configSingbox.CustomOptions["warp"].(map[string]interface{}); ok {
+					warp["detour"] = detourTag
+				}
+			}
+			detourTag = configSingbox.Tag
 
 			outbounds = append(outbounds, *configSingbox)
 			counter += 1
