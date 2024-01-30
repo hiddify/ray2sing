@@ -5,12 +5,13 @@ import (
 	"os"
 	"runtime"
 
-	T "github.com/sagernet/sing-box/option"
-	E "github.com/sagernet/sing/common/exceptions"
-
 	"encoding/json"
 	"strconv"
 	"strings"
+
+	C "github.com/sagernet/sing-box/constant"
+	T "github.com/sagernet/sing-box/option"
+	E "github.com/sagernet/sing/common/exceptions"
 )
 
 var configTypes = map[string]ParserFunc{
@@ -63,16 +64,52 @@ func GenerateConfigLite(input string) (string, error) {
 	configArray := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
 
 	var outbounds []T.Outbound
-	for counter, config := range configArray {
-		//
-		configSingbox, err := processSingleConfig(config)
+	counter := 0
+	for _, config := range configArray {
 
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
-			continue
+		detourTag := ""
+		chains := strings.Split(config, "&detour=")
+		for _, chain := range chains {
+			configSingbox, err := processSingleConfig(chain)
+
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
+				continue
+			}
+			configSingbox.Tag += " § " + strconv.Itoa(counter)
+
+			var dialer *T.DialerOptions
+			switch configSingbox.Type {
+			case C.TypeWireGuard:
+				dialer = &configSingbox.WireGuardOptions.DialerOptions
+			case C.TypeVLESS:
+				dialer = &configSingbox.VLESSOptions.DialerOptions
+			case C.TypeVMess:
+				dialer = &configSingbox.VMessOptions.DialerOptions
+			case C.TypeDirect:
+				dialer = &configSingbox.DirectOptions.DialerOptions
+			case C.TypeTrojan:
+				dialer = &configSingbox.TrojanOptions.DialerOptions
+			case C.TypeHysteria:
+				dialer = &configSingbox.HysteriaOptions.DialerOptions
+			case C.TypeHysteria2:
+				dialer = &configSingbox.Hysteria2Options.DialerOptions
+			case C.TypeTUIC:
+				dialer = &configSingbox.TUICOptions.DialerOptions
+			case C.TypeSSH:
+				dialer = &configSingbox.SSHOptions.DialerOptions
+			default:
+				dialer = nil
+			}
+			if dialer != nil {
+				dialer.Detour = detourTag
+				detourTag = configSingbox.Tag
+			}
+
+			outbounds = append(outbounds, *configSingbox)
+			counter += 1
+
 		}
-		configSingbox.Tag += " § " + strconv.Itoa(counter)
-		outbounds = append(outbounds, *configSingbox)
 
 	}
 	if len(outbounds) == 0 {
