@@ -51,7 +51,7 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 	// fmt.Print(userInfo)
 	if err == nil {
 		// If decoding is successful, use the decoded string
-		userDetails := strings.Split(userInfo, ":")
+		userDetails := strings.SplitN(userInfo, ":", 2)
 		if len(userDetails) > 1 {
 			data.Username = userDetails[0]
 			data.Password = userDetails[1]

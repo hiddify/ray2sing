@@ -19,7 +19,7 @@ func parseShadowsocks(configStr string) (map[string]string, error) {
 		password, _ = parsedURL.User.Password()
 	} else {
 		// If decoding is successful, use the decoded string
-		userDetails := strings.Split(userInfo, ":")
+		userDetails := strings.SplitN(userInfo, ":", 2)
 		encryption_method = userDetails[0]
 		password = userDetails[1]
 	}
