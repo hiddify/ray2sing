@@ -16,7 +16,7 @@ func TestBase(t *testing.T) {
 		"outbounds": [
 		  {
 			"type": "ssh",
-			"tag": " § 0",
+			"tag": "ssh § 0",
 			"server": "server",
 			"server_port": 22,
 			"user": "user",

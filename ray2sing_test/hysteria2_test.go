@@ -16,7 +16,7 @@ func TestHysteria2(t *testing.T) {
 		"outbounds": [
 		  {
 			"type": "hysteria2",
-			"tag": " § 0",
+			"tag": "hysteria2 § 0",
 			"server": "example.com",
 			"server_port": 443,
 			"obfs": {

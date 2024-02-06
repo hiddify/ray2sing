@@ -28,10 +28,19 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 	if pk, ok := u.Params["private_key"]; ok {
 		out.WireGuardOptions.PrivateKey = pk
 	}
+	if pk, ok := u.Params["privateKey"]; ok {
+		out.WireGuardOptions.PrivateKey = pk
+	}
 	if pub, ok := u.Params["peer_public_key"]; ok {
 		out.WireGuardOptions.PeerPublicKey = pub
 	}
+	if pub, ok := u.Params["peerPublicKey"]; ok {
+		out.WireGuardOptions.PeerPublicKey = pub
+	}
 	if psk, ok := u.Params["pre_shared_key"]; ok {
+		out.WireGuardOptions.PreSharedKey = psk
+	}
+	if psk, ok := u.Params["presharedKey"]; ok {
 		out.WireGuardOptions.PreSharedKey = psk
 	}
 
