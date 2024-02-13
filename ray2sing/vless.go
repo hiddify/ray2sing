@@ -27,7 +27,7 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 		}
 	}
 
-	packetEncoding := decoded["packetEncoding"]
+	packetEncoding := decoded["packetencoding"]
 	// if packetEncoding==""{
 	// 	packetEncoding="xudp"
 	// }

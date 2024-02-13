@@ -97,20 +97,22 @@ func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
 }
 func getMuxOptions(decoded map[string]string) *option.OutboundMultiplexOptions {
 	mux := option.OutboundMultiplexOptions{}
-	mux.Protocol = decoded["mux"]
+	mux.Protocol = decoded["muxtype"]
 	if mux.Protocol == "" {
 		return nil
 	}
 	mux.Enabled = true
-	mux.MaxConnections = toInt(decoded["mux_max"])
-	mux.MinStreams = toInt(decoded["mux_min"])
-	mux.Padding = decoded["mux_pad"] == "true"
+	mux.MaxConnections = toInt(decoded["muxmaxc"])
+	// mux.MinStreams = toInt(decoded["muxsmin"])
+	mux.MaxStreams = toInt(decoded["muxsmax"])
+	mux.MinStreams = toInt(decoded["mux"])
+	mux.Padding = decoded["muxpad"] == "true"
 
-	if decoded["mux_up"] != "" && decoded["mux_down"] != "" {
+	if decoded["muxup"] != "" && decoded["muxdown"] != "" {
 		mux.Brutal = &option.BrutalOptions{
 			Enabled:  true,
-			UpMbps:   toInt(decoded["mux_up"]),
-			DownMbps: toInt(decoded["mux_down"]),
+			UpMbps:   toInt(decoded["muxup"]),
+			DownMbps: toInt(decoded["muxdown"]),
 		}
 	}
 	return &mux
@@ -122,10 +124,10 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		net = decoded["type"]
 	}
 	if path == "" {
-		path = decoded["serviceName"]
+		path = decoded["servicename"]
 	}
 	// fmoption.Printf("\n\nheaderType:%s, net:%s, type:%s\n\n", decoded["headerType"], net, decoded["type"])
-	if (decoded["type"] == "http" || decoded["headerType"] == "http") && net == "tcp" {
+	if (decoded["type"] == "http" || decoded["headertype"] == "http") && net == "tcp" {
 		net = "http"
 	}
 

@@ -54,7 +54,7 @@ func ShadowsocksSingbox(shadowsocksUrl string) (*T.Outbound, error) {
 			Method:        defaultMethod,
 			Password:      u.Password,
 			Plugin:        decoded["plugin"],
-			PluginOptions: decoded["plugin_opts"],
+			PluginOptions: decoded["pluginopts"],
 		},
 	}
 

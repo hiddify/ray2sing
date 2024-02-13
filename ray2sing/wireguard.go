@@ -20,27 +20,18 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			ServerOptions: u.GetServerOption(),
 
 			PrivateKey:    u.Params["pk"],
-			PeerPublicKey: u.Params["peer_pub"],
+			PeerPublicKey: u.Params["peerpub"],
 			PreSharedKey:  u.Params["psk"],
 			FakePackets:   u.Params["ifp"],
 		},
 	}
-	if pk, ok := u.Params["private_key"]; ok {
+	if pk, ok := u.Params["privatekey"]; ok {
 		out.WireGuardOptions.PrivateKey = pk
 	}
-	if pk, ok := u.Params["privateKey"]; ok {
-		out.WireGuardOptions.PrivateKey = pk
-	}
-	if pub, ok := u.Params["peer_public_key"]; ok {
+	if pub, ok := u.Params["peerpublickey"]; ok {
 		out.WireGuardOptions.PeerPublicKey = pub
 	}
-	if pub, ok := u.Params["peerPublicKey"]; ok {
-		out.WireGuardOptions.PeerPublicKey = pub
-	}
-	if psk, ok := u.Params["pre_shared_key"]; ok {
-		out.WireGuardOptions.PreSharedKey = psk
-	}
-	if psk, ok := u.Params["presharedKey"]; ok {
+	if psk, ok := u.Params["presharedkey"]; ok {
 		out.WireGuardOptions.PreSharedKey = psk
 	}
 
@@ -67,7 +58,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			out.WireGuardOptions.Reserved = append(out.WireGuardOptions.Reserved, uint8(num))
 		}
 	}
-	if localAddressStr, ok := u.Params["local_address"]; ok {
+	if localAddressStr, ok := u.Params["localaddress"]; ok {
 		localAddressParts := strings.Split(localAddressStr, ",")
 		for _, part := range localAddressParts {
 			prefix, err := netip.ParsePrefix(part)
