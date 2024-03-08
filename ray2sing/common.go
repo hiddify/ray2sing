@@ -2,6 +2,7 @@ package ray2sing
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net"
 	"net/url"
 	"strconv"
@@ -232,4 +233,13 @@ func toInt16(s string, defaultPort uint16) uint16 {
 
 func isIPOnly(s string) bool {
 	return net.ParseIP(s) != nil
+}
+
+func getOneOf(dic map[string]string, headers ...string) (string, error) {
+	for _, h := range headers {
+		if str, ok := dic[h]; ok {
+			return str, nil
+		}
+	}
+	return "", fmt.Errorf("not found")
 }

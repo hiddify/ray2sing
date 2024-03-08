@@ -18,20 +18,19 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 		Tag:  u.Name,
 		WireGuardOptions: T.WireGuardOutboundOptions{
 			ServerOptions: u.GetServerOption(),
-
-			PrivateKey:    u.Params["pk"],
-			PeerPublicKey: u.Params["peerpub"],
-			PreSharedKey:  u.Params["psk"],
 			FakePackets:   u.Params["ifp"],
 		},
 	}
-	if pk, ok := u.Params["privatekey"]; ok {
+
+	if pk, err := getOneOf(u.Params, "privatekey", "pk"); err == nil {
 		out.WireGuardOptions.PrivateKey = pk
 	}
-	if pub, ok := u.Params["peerpublickey"]; ok {
+
+	if pub, err := getOneOf(u.Params, "peerpublickey", "publickey", "pub", "peerpub"); err == nil {
 		out.WireGuardOptions.PeerPublicKey = pub
 	}
-	if psk, ok := u.Params["presharedkey"]; ok {
+
+	if psk, err := getOneOf(u.Params, "presharedkey", "psk"); err == nil {
 		out.WireGuardOptions.PreSharedKey = psk
 	}
 
@@ -58,9 +57,13 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			out.WireGuardOptions.Reserved = append(out.WireGuardOptions.Reserved, uint8(num))
 		}
 	}
-	if localAddressStr, ok := u.Params["localaddress"]; ok {
-		localAddressParts := strings.Split(localAddressStr, ",")
+
+	if localAddress, err := getOneOf(u.Params, "localaddress", "ip"); err == nil {
+		localAddressParts := strings.Split(localAddress, ",")
 		for _, part := range localAddressParts {
+			if !strings.Contains(part, "/") {
+				part += "/24"
+			}
 			prefix, err := netip.ParsePrefix(part)
 			if err != nil {
 				return nil, err // Handle the error appropriately
