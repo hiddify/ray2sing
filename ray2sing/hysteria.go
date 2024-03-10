@@ -27,22 +27,21 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 			},
 		},
 	}
-	options := singOut.HysteriaOptions
 
-	options.AuthString = u.Params["auth"]
+	singOut.HysteriaOptions.AuthString = u.Params["auth"]
 
 	upMbps, err := strconv.Atoi(u.Params["upmbps"])
 	if err == nil {
-		options.UpMbps = upMbps
+		singOut.HysteriaOptions.UpMbps = upMbps
 	}
 
 	downMbps, err := strconv.Atoi(u.Params["downmbps"])
 	if err == nil {
-		options.DownMbps = downMbps
+		singOut.HysteriaOptions.DownMbps = downMbps
 	}
 
-	options.Obfs = u.Params["obfsParam"]
-	options.TurnRelay, err = u.GetRelayOptions()
+	singOut.HysteriaOptions.Obfs = u.Params["obfsParam"]
+	singOut.HysteriaOptions.TurnRelay, err = u.GetRelayOptions()
 	if err != nil {
 		return nil, err
 	}

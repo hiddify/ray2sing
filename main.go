@@ -15,6 +15,7 @@ import (
 var examples = map[string][]string{
 	"hysteria": {
 		"hysteria://host:443?protocol=udp&auth=123456&peer=sni.domain&insecure=1&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks",
+		"hysteria://ip:999/?mport=6000-21000&insecure=1&auth=483f8ef7-8480-490d-92fb-1fc392fb34b6&upmbps=30&downmbps=70&alpn=h3",
 	},
 	"ssconf": {
 		"ssconf://s3.amazonaws.com/beedynconprd/ng4lf90ip01zstlyle4r0t56x1qli4cvmt2ws6nh0kdz1jpgzyedogxt3mpxfbxi.json#BeePass",
