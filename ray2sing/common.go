@@ -55,7 +55,12 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
-		tlsOptions.ALPN = strings.Split(alpn, ",")
+		if net, _ := getOneOf(decoded, "type", "net"); net == "ws" {
+			// tlsOptions.ALPN = []string{"http/1.1"}
+		} else {
+			tlsOptions.ALPN = strings.Split(alpn, ",")
+		}
+
 	}
 	return T.OutboundTLSOptionsContainer{
 		TLS: tlsOptions,
