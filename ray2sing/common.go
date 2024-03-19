@@ -87,12 +87,14 @@ func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
 	fragment := decoded["fragment"]
 	if fragment != "" {
 		splt := strings.Split(fragment, ",")
-		if splt[0] == "tlshello" {
-			trick.Size = splt[1]
-			trick.Sleep = splt[2]
-		} else {
-			trick.Size = splt[0]
-			trick.Sleep = splt[1]
+		if len(splt) > 2 {
+			if splt[0] == "tlshello" {
+				trick.Size = splt[1]
+				trick.Sleep = splt[2]
+			} else {
+				trick.Size = splt[0]
+				trick.Sleep = splt[1]
+			}
 		}
 	} else {
 		trick.Size = decoded["fgsize"]
