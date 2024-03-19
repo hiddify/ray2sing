@@ -158,6 +158,33 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 			httpPath = "/"
 		}
 		transportOptions.HTTPOptions.Path = httpPath
+	case "httpupgrade":
+		transportOptions.Type = C.V2RayTransportTypeHTTPUpgrade
+		if host != "" {
+			transportOptions.HTTPUpgradeOptions.Headers = map[string]option.Listable[string]{"Host": {host}}
+		}
+		if path != "" {
+			if !strings.HasPrefix(path, "/") {
+				path = "/" + path
+			}
+			pathURL, err := url.Parse(path)
+			if err != nil {
+				return &option.V2RayTransportOptions{}, err
+			}
+			// pathQuery := pathURL.Query()
+			// transportOptions.HTTPUpgradeOptions.MaxEarlyData = 0
+			// transportOptions.HTTPUpgradeOptions.EarlyDataHeaderName = "Sec-WebSocket-Protocol"
+			// maxEarlyDataString := pathQuery.Get("ed")
+			// if maxEarlyDataString != "" {
+			// 	maxEarlyDate, err := strconv.ParseUint(maxEarlyDataString, 10, 32)
+			// 	if err == nil {
+			// 		// transportOptions.HTTPUpgradeOptions.MaxEarlyData = uint32(maxEarlyDate)
+			// 		pathQuery.Del("ed")
+			// 		pathURL.RawQuery = pathQuery.Encode()
+			// 	}
+			// }
+			transportOptions.HTTPUpgradeOptions.Path = pathURL.String()
+		}
 	case "ws":
 		transportOptions.Type = C.V2RayTransportTypeWebsocket
 		if host != "" {
