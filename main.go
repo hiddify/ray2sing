@@ -49,6 +49,7 @@ var examples = map[string][]string{
 		"wg://server.com:5319?publicKey=verypublicKeyss&privateKey=veryprivatekey&presharedKey=verysharedkey&ip=10.0.0.1&mtu=1380&keepalive=30&udp=1&reserved=0,0,0&ifp=5-10#direct%20WireGuard",
 	},
 	"warp": {
+		"#profile-title: Hiddify WARP\nwarp://p2@auto#Remote&&detour=warp://p1@auto#Local",
 		"warp://key@host:1234/#WARPkey",
 		"warp://engage.cloudflareclient.com:2408#WARPnoKey",
 		"warp://key@engage.cloudflareclient.com:2408/?ifp=5-10#WARPparam",
@@ -57,6 +58,13 @@ var examples = map[string][]string{
 	"chain": {
 		"warp://auto&&detour=warp://auto",
 		"vless://409f106a-b2f2-4416-b186-5429c9979cd9@54.38.144.4:2053?encryption=none&flow=&fp=chrome&pbk=SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc&security=reality&serviceName=xyz&sid=&sni=discordapp.com&type=grpc#رایگان | REALITY | @EliV2ray | FR🇫🇷 | 0️⃣1️⃣&&detour=tuic://3618921b-adeb-4bd3-a2a0-f98b72a674b1:dongtaiwang@108.181.24.7:23450?allow_insecure=1&alpn=h3&congestion_control=bbr&sni=www.google.com&udp_relay_mode=native#رایگان | TUIC | @V2rayCollector | CA🇨🇦 | 0️⃣1️⃣",
+	},
+	"socks": {
+		"socks://a:b@c:80?v=4",
+	},
+	"http": {
+		"phttp://a:b@c:80/?path=ssss",
+		"phttps://a:b@c:80/?path=ssss&sni=d&insecure=1",
 	},
 	"direct": {
 		"direct://?fgsize=10-100&fgsleep=100-200",

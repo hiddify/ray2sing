@@ -29,6 +29,11 @@ var configTypes = map[string]ParserFunc{
 	"ssconf://":    BeepassSingbox,
 	"warp://":      WarpSingbox,
 	"direct://":    DirectSingbox,
+	"socks://":     SocksSingbox,
+	"phttp://":     HttpSingbox,
+	"phttps://":    HttpsSingbox,
+	"http://":      HttpSingbox,
+	"https://":     HttpsSingbox,
 }
 
 func processSingleConfig(config string) (outbound *T.Outbound, err error) {
