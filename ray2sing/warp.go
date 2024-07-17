@@ -21,6 +21,7 @@ func WarpSingbox(url string) (*T.Outbound, error) {
 				"fake_packets":       u.Params["ifp"],
 				"fake_packets_size":  u.Params["ifps"],
 				"fake_packets_delay": u.Params["ifpd"],
+				"fake_packets_mode":  u.Params["ifpm"],
 			},
 		},
 	}

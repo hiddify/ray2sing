@@ -17,10 +17,11 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 		Type: "wireguard",
 		Tag:  u.Name,
 		WireGuardOptions: T.WireGuardOutboundOptions{
-			ServerOptions: u.GetServerOption(),
-			FakePackets:   u.Params["ifp"],
-			FakePacketsSize: u.Params["ifps"],
+			ServerOptions:    u.GetServerOption(),
+			FakePackets:      u.Params["ifp"],
+			FakePacketsSize:  u.Params["ifps"],
 			FakePacketsDelay: u.Params["ifpd"],
+			FakePacketsMode:  u.Params["ifpm"],
 		},
 	}
 
