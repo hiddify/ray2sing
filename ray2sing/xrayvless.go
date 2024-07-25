@@ -38,6 +38,7 @@ func VlessXray(vlessURL string) (*T.Outbound, error) {
 								map[string]string{
 									"id":         u.Username, // Change to your UUID.
 									"encryption": "none",
+									"flow":       decoded["flow"],
 								},
 							},
 						},
