@@ -35,6 +35,12 @@ var configTypes = map[string]ParserFunc{
 	"http://":      HttpSingbox,
 	"https://":     HttpsSingbox,
 }
+var xrayConfigTypes = map[string]ParserFunc{
+	"vmess://":  VmessXray,
+	"vless://":  VlessXray,
+	"trojan://": TrojanXray,
+	"direct://": DirectXray,
+}
 
 func processSingleConfig(config string) (outbound *T.Outbound, err error) {
 	defer func() {
@@ -47,9 +53,17 @@ func processSingleConfig(config string) (outbound *T.Outbound, err error) {
 	}()
 
 	var configSingbox *T.Outbound
-	for k, v := range configTypes {
-		if strings.HasPrefix(config, k) {
-			configSingbox, err = v(config)
+	if strings.Contains(config, "&core=xray") {
+		for k, v := range xrayConfigTypes {
+			if strings.HasPrefix(config, k) {
+				configSingbox, err = v(config)
+			}
+		}
+	} else {
+		for k, v := range configTypes {
+			if strings.HasPrefix(config, k) {
+				configSingbox, err = v(config)
+			}
 		}
 	}
 
