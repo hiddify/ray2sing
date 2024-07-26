@@ -65,7 +65,7 @@ func getRealityOptionsXray(decoded map[string]string) map[string]any {
 
 func getMuxOptionsXray(decoded map[string]string) map[string]any {
 	if decoded["mux"] == "" {
-		return nil
+		return map[string]any{}
 	}
 	return map[string]any{
 		"enabled":     true,

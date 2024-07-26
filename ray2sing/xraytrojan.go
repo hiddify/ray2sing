@@ -28,11 +28,12 @@ func TrojanXray(vlessURL string) (*T.Outbound, error) {
 			// DialerOptions: getDialerOptions(decoded),
 			XrayOutboundJson: map[string]any{
 				"protocol": "trojan",
+
 				"settings": map[string]any{
 					"vnext": []any{
 						map[string]any{
-							"address":  decoded["host"],
-							"port":     decoded["port"],
+							"address":  u.Hostname,
+							"port":     u.Port,
 							"password": u.Username,
 						},
 					},

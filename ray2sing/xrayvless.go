@@ -32,8 +32,8 @@ func VlessXray(vlessURL string) (*T.Outbound, error) {
 				"settings": map[string]any{
 					"vnext": []any{
 						map[string]any{
-							"address": decoded["host"],
-							"port":    decoded["port"],
+							"address": u.Hostname,
+							"port":    u.Port,
 							"users": []any{
 								map[string]string{
 									"id":         u.Username, // Change to your UUID.
