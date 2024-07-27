@@ -26,7 +26,8 @@ func TrojanXray(vlessURL string) (*T.Outbound, error) {
 		Type: "xray",
 		XrayOptions: T.XrayOutboundOptions{
 			// DialerOptions: getDialerOptions(decoded),
-			XrayOutboundJson: map[string]any{
+			Fragment: getXrayFragmentOptions(decoded),
+			XrayOutboundJson: &map[string]any{
 				"protocol": "trojan",
 
 				"settings": map[string]any{

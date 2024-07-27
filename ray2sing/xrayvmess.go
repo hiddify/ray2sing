@@ -26,7 +26,8 @@ func VmessXray(vlessURL string) (*T.Outbound, error) {
 		Type: "xray",
 		XrayOptions: T.XrayOutboundOptions{
 			// DialerOptions: getDialerOptions(decoded),
-			XrayOutboundJson: map[string]any{
+			Fragment:getXrayFragmentOptions(decoded),
+			XrayOutboundJson: &map[string]any{
 
 				"protocol": "vmess",
 				"settings": map[string]any{

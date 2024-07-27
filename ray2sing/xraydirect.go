@@ -31,10 +31,17 @@ func DirectXray(vlessURL string) (*T.Outbound, error) {
 		Type: "xray",
 		XrayOptions: T.XrayOutboundOptions{
 			// DialerOptions: getDialerOptions(decoded),
-			XrayOutboundJson: map[string]any{
-				"protocol": "freedom",
+			XrayOutboundJson: &map[string]any{
+				"protocol":       "freedom",
+				"domainStrategy": "AsIs",
 				"settings": map[string]any{
 					"fragment": fragdata,
+				},
+				"streamSettings": map[string]any{
+					"sockopt": map[string]any{
+						"tcpNoDelay":       true,
+						"tcpKeepAliveIdle": 100,
+					},
 				},
 				"tag": u.Name,
 			},
