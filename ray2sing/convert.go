@@ -18,6 +18,9 @@ var configTypes = map[string]ParserFunc{
 	"vmess://":     VmessSingbox,
 	"vless://":     VlessSingbox,
 	"trojan://":    TrojanSingbox,
+	"svmess://":    VmessSingbox,
+	"svless://":    VlessSingbox,
+	"strojan://":   TrojanSingbox,
 	"ss://":        ShadowsocksSingbox,
 	"tuic://":      TuicSingbox,
 	"hysteria://":  HysteriaSingbox,
@@ -34,6 +37,10 @@ var configTypes = map[string]ParserFunc{
 	"phttps://":    HttpsSingbox,
 	"http://":      HttpSingbox,
 	"https://":     HttpsSingbox,
+	"xvmess://":    VmessXray,
+	"xvless://":    VlessXray,
+	"xtrojan://":   TrojanXray,
+	"xdirect://":   DirectXray,
 }
 var xrayConfigTypes = map[string]ParserFunc{
 	"vmess://":  VmessXray,
