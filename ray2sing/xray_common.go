@@ -208,7 +208,7 @@ func getXrayFragmentOptions(decoded map[string]string) *conf.Fragment {
 	trick := conf.Fragment{}
 	fragment := decoded["fragment"]
 	if fragment == "" {
-		return nil
+		return &trick
 	}
 	splt := strings.Split(fragment, ",")
 	if len(splt) > 2 {

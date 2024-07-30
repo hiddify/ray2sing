@@ -103,9 +103,7 @@ func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
 	if trick.Size != "" {
 		trick.Enabled = true
 	}
-	if !trick.Enabled {
-		return nil
-	}
+
 	return &trick
 }
 func getMuxOptions(decoded map[string]string) *option.OutboundMultiplexOptions {
