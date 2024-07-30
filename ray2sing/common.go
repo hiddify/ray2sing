@@ -55,7 +55,7 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
-		if net, _ := getOneOf(decoded, "type", "net"); net == "ws" {
+		if net, _ := getOneOf(decoded, "type", "net"); net == "httpupgrade" || net == "ws" || net == "grpc" || net == "h2" {
 			// tlsOptions.ALPN = []string{"http/1.1"}
 		} else {
 			tlsOptions.ALPN = strings.Split(alpn, ",")
@@ -159,6 +159,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		}
 		transportOptions.HTTPOptions.Path = httpPath
 	case "httpupgrade":
+		decoded["alpn"] = "http/1.1"
 		transportOptions.Type = C.V2RayTransportTypeHTTPUpgrade
 		if host != "" {
 			transportOptions.HTTPUpgradeOptions.Headers = map[string]option.Listable[string]{"Host": {host}}
@@ -186,6 +187,8 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 			transportOptions.HTTPUpgradeOptions.Path = pathURL.String()
 		}
 	case "ws":
+		decoded["alpn"] = "http/1.1"
+
 		transportOptions.Type = C.V2RayTransportTypeWebsocket
 		if host != "" {
 			transportOptions.WebsocketOptions.Headers = map[string]option.Listable[string]{"Host": {host}}
@@ -213,6 +216,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 			transportOptions.WebsocketOptions.Path = pathURL.String()
 		}
 	case "grpc":
+		decoded["alpn"] = "h2"
 		transportOptions.Type = C.V2RayTransportTypeGRPC
 		transportOptions.GRPCOptions = option.V2RayGRPCOptions{
 			ServiceName:         path,
@@ -221,6 +225,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 			PermitWithoutStream: false,
 		}
 	case "quic":
+		decoded["alpn"] = "h3"
 		transportOptions.Type = C.V2RayTransportTypeQUIC
 	default:
 		return nil, E.New("unknown transport type: " + net)
@@ -229,8 +234,10 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 	return &transportOptions, nil
 }
 func getDialerOptions(decoded map[string]string) option.DialerOptions {
+	fragment := getFragmentOptions(decoded)
 	return T.DialerOptions{
-		TLSFragment: getFragmentOptions(decoded),
+		// TCPFastOpen: !fragment.Enabled,
+		TLSFragment: fragment,
 	}
 }
 

@@ -60,9 +60,9 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 		security = decoded["scy"]
 	}
 	packetEncoding := decoded["packetEncoding"]
-	// if packetEncoding == "" {
-	// 	packetEncoding = "xudp"
-	// }
+	if packetEncoding == "" {
+		packetEncoding = "xudp"
+	}
 	return &T.Outbound{
 		Tag:  decoded["ps"],
 		Type: "vmess",

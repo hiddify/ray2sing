@@ -170,6 +170,32 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 	// 	net = "http"
 	// }
 	res := map[string]any{}
+	
+	res["network"] = net
+	switch net {
+	case "tcp":
+		res[net+"Settings"] = map[string]any{}
+		decoded["alpn"]="http/1.1"
+	case "httpupgrade":
+		res[net+"Settings"] = gethttpupgrade(decoded)
+		decoded["alpn"]="http/1.1"
+	case "ws":
+		res[net+"Settings"] = getwebsocket(decoded)
+		decoded["alpn"]="http/1.1"
+	case "grpc":
+		res[net+"Settings"] = getgrpc(decoded)
+		decoded["alpn"]="h2"
+	case "quic":
+		res[net+"Settings"] = getquic(decoded)
+		decoded["alpn"]="h3"
+	case "splithttp":
+		res[net+"Settings"] = getsplithttp(decoded)
+	case "h2":
+		res[net+"Settings"] = geth2(decoded)
+		decoded["alpn"]="h2"
+	default:
+		return nil, E.New("unknown transport type: " + net)
+	}
 	tls := getTLSOptionsXray(decoded)
 	if tls != nil {
 		res["security"] = "tls"
@@ -180,27 +206,6 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 		res["security"] = "reality"
 		res["realitySettings"] = reality
 	}
-	res["network"] = net
-	switch net {
-	case "tcp":
-		res[net+"Settings"] = map[string]any{}
-
-	case "httpupgrade":
-		res[net+"Settings"] = gethttpupgrade(decoded)
-	case "ws":
-		res[net+"Settings"] = getwebsocket(decoded)
-	case "grpc":
-		res[net+"Settings"] = getgrpc(decoded)
-	case "quic":
-		res[net+"Settings"] = getquic(decoded)
-	case "splithttp":
-		res[net+"Settings"] = getsplithttp(decoded)
-	case "h2":
-		res[net+"Settings"] = geth2(decoded)
-	default:
-		return nil, E.New("unknown transport type: " + net)
-	}
-
 	return res, nil
 }
 
