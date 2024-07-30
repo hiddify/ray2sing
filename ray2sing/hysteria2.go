@@ -37,13 +37,17 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 	if err != nil {
 		return nil, err
 	}
+	pass := u.Username
+	if u.Password != "" {
+		pass += ":" + u.Password
+	}
 	result := T.Outbound{
 		Type: "hysteria2",
 		Tag:  u.Name,
 		Hysteria2Options: T.Hysteria2OutboundOptions{
 			ServerOptions: u.GetServerOption(),
 			Obfs:          ObfsOpts,
-			Password:      u.Username,
+			Password:      pass,
 			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
 				TLS: &T.OutboundTLSOptions{
 					Enabled:    true,
