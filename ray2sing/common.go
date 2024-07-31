@@ -45,7 +45,7 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 		Enabled:    true,
 		ServerName: serverName,
 		Insecure:   decoded["insecure"] == "true",
-		DisableSNI: serverName == "",
+		// DisableSNI: serverName == "",
 		UTLS: &option.OutboundUTLSOptions{
 			Enabled:     true,
 			Fingerprint: fp,
