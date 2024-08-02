@@ -31,7 +31,7 @@ func TrojanXray(vlessURL string) (*T.Outbound, error) {
 				"protocol": "trojan",
 
 				"settings": map[string]any{
-					"vnext": []any{
+					"servers": []any{
 						map[string]any{
 							"address":  u.Hostname,
 							"port":     u.Port,
