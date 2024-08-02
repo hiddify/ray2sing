@@ -93,8 +93,11 @@ func GenerateConfigLite(input string) (string, error) {
 	var outbounds []T.Outbound
 	counter := 0
 	for _, config := range configArray {
-
+		if len(config) < 5 || config[0] == '#' || config[0] == '/' {
+			continue
+		}
 		detourTag := ""
+
 		chains := strings.Split(config, "&&detour=")
 		for _, chain := range chains {
 			fmt.Printf("%s", chain)
