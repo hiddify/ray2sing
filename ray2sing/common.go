@@ -45,13 +45,15 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 		Enabled:    true,
 		ServerName: serverName,
 		Insecure:   decoded["insecure"] == "true",
-		// DisableSNI: serverName == "",
-		UTLS: &option.OutboundUTLSOptions{
+		DisableSNI: serverName == "",
+		ECH:        ECHOpts,
+		TLSTricks:  getTricksOptions(decoded),
+	}
+	if fp != "" &&!tlsOptions.DisableSNI{
+		tlsOptions.UTLS = &option.OutboundUTLSOptions{
 			Enabled:     true,
 			Fingerprint: fp,
-		},
-		ECH:       ECHOpts,
-		TLSTricks: getTricksOptions(decoded),
+		}
 	}
 
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {

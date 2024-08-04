@@ -28,7 +28,7 @@ func getTLSOptionsXray(decoded map[string]string) map[string]any {
 	return map[string]any{
 		"serverName":       serverName,
 		"rejectUnknownSni": false,
-		"allowInsecure":    decoded["insecure"] == "true",
+		"allowInsecure":    decoded["insecure"] == "true" || decoded["insecure"] == "1",
 		"alpn":             alpn,
 		// "minVersion": "1.2",
 		// "maxVersion": "1.3",
@@ -170,29 +170,29 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 	// 	net = "http"
 	// }
 	res := map[string]any{}
-	
+
 	res["network"] = net
 	switch net {
 	case "tcp":
 		res[net+"Settings"] = map[string]any{}
-		decoded["alpn"]="http/1.1"
+		decoded["alpn"] = "http/1.1"
 	case "httpupgrade":
 		res[net+"Settings"] = gethttpupgrade(decoded)
-		decoded["alpn"]="http/1.1"
+		decoded["alpn"] = "http/1.1"
 	case "ws":
 		res[net+"Settings"] = getwebsocket(decoded)
-		decoded["alpn"]="http/1.1"
+		decoded["alpn"] = "http/1.1"
 	case "grpc":
 		res[net+"Settings"] = getgrpc(decoded)
-		decoded["alpn"]="h2"
+		decoded["alpn"] = "h2"
 	case "quic":
 		res[net+"Settings"] = getquic(decoded)
-		decoded["alpn"]="h3"
+		decoded["alpn"] = "h3"
 	case "splithttp":
 		res[net+"Settings"] = getsplithttp(decoded)
 	case "h2":
 		res[net+"Settings"] = geth2(decoded)
-		decoded["alpn"]="h2"
+		decoded["alpn"] = "h2"
 	default:
 		return nil, E.New("unknown transport type: " + net)
 	}
