@@ -49,7 +49,7 @@ var xrayConfigTypes = map[string]ParserFunc{
 	"direct://": DirectXray,
 }
 
-func processSingleConfig(config string) (outbound *T.Outbound, err error) {
+func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.Outbound, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			outbound = nil
@@ -60,13 +60,14 @@ func processSingleConfig(config string) (outbound *T.Outbound, err error) {
 	}()
 
 	var configSingbox *T.Outbound
-	if strings.Contains(config, "&core=xray") {
+	if strings.Contains(config, "&core=xray") || useXrayWhenPossible {
 		for k, v := range xrayConfigTypes {
 			if strings.HasPrefix(config, k) {
 				configSingbox, err = v(config)
 			}
 		}
-	} else {
+	}
+	if configSingbox == nil {
 		for k, v := range configTypes {
 			if strings.HasPrefix(config, k) {
 				configSingbox, err = v(config)
@@ -86,7 +87,7 @@ func processSingleConfig(config string) (outbound *T.Outbound, err error) {
 	json.MarshalIndent(configSingbox, "", "  ")
 	return configSingbox, nil
 }
-func GenerateConfigLite(input string) (string, error) {
+func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) {
 
 	configArray := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
 
@@ -101,7 +102,7 @@ func GenerateConfigLite(input string) (string, error) {
 		chains := strings.Split(config, "&&detour=")
 		for _, chain := range chains {
 			fmt.Printf("%s", chain)
-			configSingbox, err := processSingleConfig(chain)
+			configSingbox, err := processSingleConfig(chain, useXrayWhenPossible)
 
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
@@ -162,7 +163,7 @@ func GenerateConfigLite(input string) (string, error) {
 	return string(jsonOutbound), nil
 }
 
-func Ray2Singbox(configs string) (out string, err error) {
+func Ray2Singbox(configs string, useXrayWhenPossible bool) (out string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""
@@ -174,6 +175,6 @@ func Ray2Singbox(configs string) (out string, err error) {
 
 	configs, _ = decodeBase64IfNeeded(configs)
 
-	convertedData, err := GenerateConfigLite(configs)
+	convertedData, err := GenerateConfigLite(configs, useXrayWhenPossible)
 	return convertedData, err
 }

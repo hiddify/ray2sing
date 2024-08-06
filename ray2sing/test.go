@@ -11,7 +11,7 @@ import (
 )
 
 func CheckUrlAndJson(url string, expectedJSON string, t *testing.T) {
-	configJson, err := Ray2Singbox(url)
+	configJson, err := Ray2Singbox(url, false)
 	if err != nil {
 		t.Fatalf("Error parsing URL: %v", err)
 	}
