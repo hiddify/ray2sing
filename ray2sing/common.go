@@ -40,16 +40,19 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	if fp == "" {
 		fp = "chrome"
 	}
-
+	insecure, err := getOneOf(decoded, "insecure", "allowinsecure")
+	if err != nil {
+		insecure = "false"
+	}
 	tlsOptions := &option.OutboundTLSOptions{
 		Enabled:    true,
 		ServerName: serverName,
-		Insecure:   decoded["insecure"] == "true",
+		Insecure:   insecure == "true" || insecure == "1",
 		DisableSNI: serverName == "",
 		ECH:        ECHOpts,
 		TLSTricks:  getTricksOptions(decoded),
 	}
-	if fp != "" &&!tlsOptions.DisableSNI{
+	if fp != "" && !tlsOptions.DisableSNI {
 		tlsOptions.UTLS = &option.OutboundUTLSOptions{
 			Enabled:     true,
 			Fingerprint: fp,
