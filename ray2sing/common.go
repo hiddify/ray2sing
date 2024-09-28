@@ -87,7 +87,7 @@ func getTricksOptions(decoded map[string]string) *option.TLSTricksOptions {
 	}
 	return &trick
 }
-func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
+func getFragmentOptions(decoded map[string]string) option.TLSFragmentOptions {
 	trick := option.TLSFragmentOptions{}
 	fragment := decoded["fragment"]
 	if fragment != "" {
@@ -107,9 +107,11 @@ func getFragmentOptions(decoded map[string]string) *option.TLSFragmentOptions {
 	}
 	if trick.Size != "" {
 		trick.Enabled = true
+	} else {
+		trick.Enabled = false
 	}
 
-	return &trick
+	return trick
 }
 func getMuxOptions(decoded map[string]string) *option.OutboundMultiplexOptions {
 	mux := option.OutboundMultiplexOptions{}
