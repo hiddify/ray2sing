@@ -85,7 +85,7 @@ func main() {
 	} else {
 		configs = read()
 	}
-	clash_conf, err := ray2sing.Ray2Singbox(configs, true)
+	clash_conf, err := ray2sing.Ray2Singbox(configs, false)
 	if err != nil {
 		log.Fatalf("Failed to parse config: %v", err)
 	}

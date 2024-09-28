@@ -101,7 +101,7 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 
 		chains := strings.Split(config, "&&detour=")
 		for _, chain := range chains {
-			fmt.Printf("%s", chain)
+			// fmt.Printf("%s", chain)
 			configSingbox, err := processSingleConfig(chain, useXrayWhenPossible)
 
 			if err != nil {

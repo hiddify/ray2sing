@@ -26,7 +26,7 @@ func init() {
 }
 
 func convert(link string) error {
-	outbound, err := ray2sing.Ray2Singbox(link)
+	outbound, err := ray2sing.Ray2Singbox(link, false)
 	if err != nil {
 		return err
 	}
