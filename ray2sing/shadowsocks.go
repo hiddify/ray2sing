@@ -17,11 +17,16 @@ func parseShadowsocks(configStr string) (map[string]string, error) {
 		// If there's an error in decoding, use the original string
 		encryption_method = parsedURL.User.Username()
 		password, _ = parsedURL.User.Password()
+
 	} else {
 		// If decoding is successful, use the decoded string
 		userDetails := strings.SplitN(userInfo, ":", 2)
 		encryption_method = userDetails[0]
 		password = userDetails[1]
+	}
+	if password == "" {
+		password = encryption_method
+		encryption_method = "none"
 	}
 
 	server := map[string]string{
@@ -42,6 +47,10 @@ func ShadowsocksSingbox(shadowsocksUrl string) (*T.Outbound, error) {
 	}
 	decoded := u.Params
 	defaultMethod := "chacha20-ietf-poly1305"
+	if u.Password == "" {
+		u.Password = u.Username
+		u.Username = "none"
+	}
 	if u.Username != "" {
 		defaultMethod = u.Username
 	}
