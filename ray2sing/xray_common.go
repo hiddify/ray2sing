@@ -218,8 +218,21 @@ func getXrayFragmentOptions(decoded map[string]string) *conf.Fragment {
 	splt := strings.Split(fragment, ",")
 	if len(splt) > 2 {
 		trick.Packets = splt[0]
-		trick.Length = splt[1]
-		trick.Interval = splt[2]
+		l, r, err := conf.ParseRangeString(splt[1])
+		if err != nil {
+			trick.Length = &conf.Int32Range{
+				From: int32(l),
+				To:   int32(r),
+			}
+		}
+		l, r, err = conf.ParseRangeString(splt[2])
+		if err != nil {
+			trick.Interval = &conf.Int32Range{
+				From: int32(l),
+				To:   int32(r),
+			}
+		}
+
 	}
 
 	return &trick
