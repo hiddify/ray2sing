@@ -170,7 +170,9 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 	// 	net = "http"
 	// }
 	res := map[string]any{}
-
+	if net == "splithttp" {
+		net = "xhttp"
+	}
 	res["network"] = net
 	switch net {
 	case "tcp":
@@ -188,7 +190,7 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 	case "quic":
 		res[net+"Settings"] = getquic(decoded)
 		decoded["alpn"] = "h3"
-	case "splithttp":
+	case "xhttp":
 		res[net+"Settings"] = getsplithttp(decoded)
 	case "h2":
 		res[net+"Settings"] = geth2(decoded)
