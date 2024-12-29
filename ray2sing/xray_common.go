@@ -214,24 +214,30 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 func getXrayFragmentOptions(decoded map[string]string) *conf.Fragment {
 	trick := conf.Fragment{}
 	fragment := decoded["fragment"]
+
 	if fragment == "" {
 		return &trick
 	}
 	splt := strings.Split(fragment, ",")
+
 	if len(splt) > 2 {
 		trick.Packets = splt[0]
 		l, r, err := conf.ParseRangeString(splt[1])
-		if err != nil {
+		if err == nil {
 			trick.Length = &conf.Int32Range{
-				From: int32(l),
-				To:   int32(r),
+				// From: int32(l),
+				// To:   int32(r),
+				Left:  int32(l),
+				Right: int32(r),
 			}
 		}
 		l, r, err = conf.ParseRangeString(splt[2])
-		if err != nil {
+		if err == nil {
 			trick.Interval = &conf.Int32Range{
-				From: int32(l),
-				To:   int32(r),
+				// From: int32(l),
+				// To:   int32(r),
+				Left:  int32(l),
+				Right: int32(r),
 			}
 		}
 

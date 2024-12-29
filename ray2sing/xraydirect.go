@@ -30,6 +30,7 @@ func DirectXray(vlessURL string) (*T.Outbound, error) {
 		Tag:  u.Name,
 		Type: "xray",
 		XrayOptions: T.XrayOutboundOptions{
+			Fragment: getXrayFragmentOptions(decoded),
 			// DialerOptions: getDialerOptions(decoded),
 			XrayOutboundJson: &map[string]any{
 				"protocol":       "freedom",

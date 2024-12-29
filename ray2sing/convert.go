@@ -84,7 +84,8 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 	if configSingbox.Tag == "" {
 		configSingbox.Tag = configSingbox.Type
 	}
-	json.MarshalIndent(configSingbox, "", "  ")
+
+	// json.MarshalIndent(configSingbox, "", "  ")
 	return configSingbox, nil
 }
 func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) {

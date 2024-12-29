@@ -68,7 +68,8 @@ var examples = map[string][]string{
 		"phttps://a:b@c:80/?path=ssss&sni=d&insecure=1",
 	},
 	"direct": {
-		"direct://?fgsize=10-100&fgsleep=100-200",
+		"direct://?fragment=tlshello,1-2,1-4#Fragment",
+		"xdirect://?fragment=tlshello,1-2,1-4#Fragment",
 	},
 }
 

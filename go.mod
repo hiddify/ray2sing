@@ -5,7 +5,7 @@ go 1.21.4
 toolchain go1.22.3
 
 require (
-	github.com/sagernet/sing v0.4.3
+	github.com/sagernet/sing v0.5.1
 	github.com/sagernet/sing-box v1.8.9
 	github.com/spf13/cobra v1.8.0
 	github.com/xtls/xray-core v1.8.21
@@ -37,20 +37,20 @@ require (
 	github.com/xtls/reality v0.0.0-20240712055506-48f0b2d5ed6d // indirect
 	go.uber.org/mock v0.4.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.28.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20240531132922-fd00a4e0eefc // indirect
 	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.30.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
 	google.golang.org/grpc v1.67.1 // indirect
-	google.golang.org/protobuf v1.35.1 // indirect
+	google.golang.org/protobuf v1.36.0 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )
 
 replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.8.9-0.20240928213625-7b79bf0c814d
 
-replace github.com/xtls/xray-core => github.com/hiddify/xray-core v0.0.0-20241110202159-0fd7ffea9361
+replace github.com/xtls/xray-core => github.com/hiddify/xray-core v0.0.0-20241229214239-f398d912c726
