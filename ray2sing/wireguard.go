@@ -1,6 +1,7 @@
 package ray2sing
 
 import (
+	"fmt"
 	"net/netip"
 	"strconv"
 	"strings"
@@ -9,19 +10,41 @@ import (
 )
 
 func WiregaurdSingbox(url string) (*T.Outbound, error) {
+	fmt.Println(url)
 	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
 	}
+	fake_packet_count, err := getOneOf(u.Params, "ifp", "wnoisecount")
+	if err != nil {
+		return nil, err
+	}
+	fake_packet_delay, err := getOneOf(u.Params, "ifpd", "wnoisedelay")
+	if err != nil {
+		return nil, err
+	}
+
+	fake_packet_size, err := getOneOf(u.Params, "ifps", "wpayloadsize")
+	if err != nil {
+		return nil, err
+	}
+	fake_packet_mode := u.Params["ifpm"]
+	if wnoise, ok := u.Params["wnoise"]; ok {
+		switch wnoise {
+		case "quick":
+			fake_packet_mode = "m4"
+		}
+	}
+
 	out := &T.Outbound{
 		Type: "wireguard",
 		Tag:  u.Name,
 		WireGuardOptions: T.WireGuardOutboundOptions{
 			ServerOptions:    u.GetServerOption(),
-			FakePackets:      u.Params["ifp"],
-			FakePacketsSize:  u.Params["ifps"],
-			FakePacketsDelay: u.Params["ifpd"],
-			FakePacketsMode:  u.Params["ifpm"],
+			FakePackets:      fake_packet_count,
+			FakePacketsSize:  fake_packet_size,
+			FakePacketsDelay: fake_packet_delay,
+			FakePacketsMode:  fake_packet_mode,
 		},
 	}
 
@@ -61,7 +84,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 		}
 	}
 
-	if localAddress, err := getOneOf(u.Params, "localaddress", "ip"); err == nil {
+	if localAddress, err := getOneOf(u.Params, "localaddress", "ip", "address"); err == nil {
 		localAddressParts := strings.Split(localAddress, ",")
 		for _, part := range localAddressParts {
 			if !strings.Contains(part, "/") {
