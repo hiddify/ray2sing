@@ -31,7 +31,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 	fake_packet_mode := u.Params["ifpm"]
 	if wnoise, ok := u.Params["wnoise"]; ok {
 		switch wnoise {
-		case "quick":
+		case "quic":
 			fake_packet_mode = "m4"
 		}
 	}
@@ -96,6 +96,24 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			}
 			out.WireGuardOptions.LocalAddress = append(out.WireGuardOptions.LocalAddress, prefix)
 		}
+	}
+
+	if out.WireGuardOptions.PrivateKey == "" { //it is warp
+		return &T.Outbound{
+			Type: "custom",
+			Tag:  u.Name,
+			CustomOptions: map[string]interface{}{
+				"warp": map[string]interface{}{
+					"key":                u.Username,
+					"host":               out.WireGuardOptions.ServerOptions.Server,
+					"port":               out.WireGuardOptions.ServerOptions.ServerPort,
+					"fake_packets":       out.WireGuardOptions.FakePackets,
+					"fake_packets_size":  out.WireGuardOptions.FakePacketsSize,
+					"fake_packets_delay": out.WireGuardOptions.FakePacketsDelay,
+					"fake_packets_mode":  out.WireGuardOptions.FakePacketsMode,
+				},
+			},
+		}, nil
 	}
 
 	return out, nil
