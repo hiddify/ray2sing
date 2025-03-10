@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+const USER_AGENT string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+
 type ParserFunc func(string) (*option.Outbound, error)
 
 func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
@@ -270,7 +272,7 @@ func toInt(s string) int {
 	return i
 }
 
-func toInt16(s string, defaultPort uint16) uint16 {
+func toUInt16(s string, defaultPort uint16) uint16 {
 	val, err := strconv.ParseInt(s, 10, 17)
 	if err != nil {
 		// fmoption.Printf("err %v", err)
@@ -278,6 +280,16 @@ func toInt16(s string, defaultPort uint16) uint16 {
 		return defaultPort
 	}
 	return uint16(val)
+}
+
+func toInt16(s string, defaultPort int16) int16 {
+	val, err := strconv.ParseInt(s, 10, 17)
+	if err != nil {
+		// fmoption.Printf("err %v", err)
+		// handle the error appropriately; here we return 0
+		return defaultPort
+	}
+	return int16(val)
 }
 
 func isIPOnly(s string) bool {

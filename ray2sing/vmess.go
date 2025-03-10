@@ -50,7 +50,7 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 		return nil, err
 	}
 
-	port := toInt16(decoded["port"], 443)
+	port := toUInt16(decoded["port"], 443)
 	transportOptions, err := getTransportOptions(decoded)
 	if err != nil {
 		return nil, err

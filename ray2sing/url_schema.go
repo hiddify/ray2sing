@@ -36,7 +36,7 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 		return nil, err
 	}
 
-	port := toInt16(parsedURL.Port(), defaultPort)
+	port := toUInt16(parsedURL.Port(), defaultPort)
 
 	data := &UrlSchema{
 		Scheme:   parsedURL.Scheme,
