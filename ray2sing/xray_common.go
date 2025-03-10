@@ -133,7 +133,7 @@ import (
 // // 		"path": path,
 // // 		"host": strings.Split(decoded["host"], ","),
 // // 		"headers": map[string]string{
-// // 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+// // 			"User-Agent": USER_AGENT,
 // // 		},
 // // 	}
 // // }
@@ -329,7 +329,7 @@ func getsplithttp(decoded map[string]string) map[string]any {
 		"path": path,
 		"host": decoded["host"],
 		"headers": map[string]string{
-			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+			"User-Agent": USER_AGENT,
 		},
 		// "maxUploadSize": 1000000,
 		// "maxConcurrentUploads": 10
@@ -345,7 +345,7 @@ func gethttpupgrade(decoded map[string]string) map[string]any {
 		"path": path,
 		"host": decoded["host"],
 		"headers": map[string]string{
-			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+			"User-Agent": USER_AGENT,
 		},
 	}
 }
@@ -359,7 +359,7 @@ func getwebsocket(decoded map[string]string) map[string]any {
 		"path": path,
 		"host": decoded["host"],
 		"headers": map[string]string{
-			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+			"User-Agent": USER_AGENT,
 		},
 	}
 }
@@ -374,7 +374,7 @@ func geth2(decoded map[string]string) map[string]any {
 		"path": path,
 		"host": strings.Split(decoded["host"], ","),
 		"headers": map[string]string{
-			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+			"User-Agent": USER_AGENT,
 		},
 	}
 }
@@ -396,7 +396,7 @@ func getgrpc(decoded map[string]string) map[string]any {
 		"authority":   decoded["authority"],
 		"serviceName": decoded["servicename"],
 		"mode":        decoded["mode"],
-		"user_agent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+		"user_agent":  USER_AGENT,
 	}
 }
 
