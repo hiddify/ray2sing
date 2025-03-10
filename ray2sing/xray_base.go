@@ -133,7 +133,7 @@ func makeXrayOptions(decoded map[string]string, detour map[string]any) (*T.Outbo
 		xrayConfig["outbounds"] = append([]interface{}{detour}, outbounds...)
 	}
 	uot := T.UDPOverTCPOptions{
-		Enabled: true,
+		Enabled: false,
 	}
 
 	xray := T.Outbound{
