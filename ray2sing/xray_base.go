@@ -1,9 +1,6 @@
 package ray2sing
 
 import (
-	"encoding/json"
-	"strings"
-
 	T "github.com/sagernet/sing-box/option"
 
 	// Mandatory features. Can't remove unless there are replacements.
@@ -120,18 +117,56 @@ import (
 func makeXrayOptions(decoded map[string]string, detour map[string]any) (*T.Outbound, error) {
 
 	tag, _ := detour["tag"].(string) // Proper type assertion
-	jsonConfig := strings.ReplaceAll(defaultXrayConfigStr, "proxy", tag)
+	// jsonConfig := strings.ReplaceAll(defaultXrayConfigStr, "proxy", tag)
 
-	var xrayConfig map[string]interface{}
-	err := json.Unmarshal([]byte(jsonConfig), &xrayConfig)
-	if err != nil {
-		return nil, err
+	xrayConfig := make(map[string]any)
+
+	// err := json.Unmarshal([]byte(jsonConfig), &xrayConfig)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// xrayConfig["outbounds"] = []any{detour}
+	xrayConfig = detour
+
+	fragment := getXrayFragmentOptions(decoded)
+	if fragment != nil {
+		streamSettings, ok := detour["streamSettings"].(map[string]any)
+		if !ok {
+			streamSettings = make(map[string]any)
+		}
+		socketOpt, ok := streamSettings["sockopt"].(map[string]any)
+		if !ok {
+			socketOpt = make(map[string]any)
+		}
+
+		// Set "dialerProxy" safely
+		socketOpt["dialerProxy"] = "xray_internal_fragment"
+
+		// Update nested structures
+		streamSettings["sockopt"] = socketOpt
+		detour["streamSettings"] = streamSettings
+
+		xrayConfig = map[string]any{
+			"outbounds": []any{
+				detour,
+				map[string]any{
+					"tag":      "xray_internal_fragment",
+					"protocol": "freedom",
+					"settings": map[string]any{
+						"domainStrategy": "ForceIP",
+					},
+					"streamSettings": map[string]any{
+						"sockopt": map[string]any{
+							"tcpNoDelay": true,
+						},
+					},
+				},
+			},
+		}
+
 	}
 
-	if outbounds, ok := xrayConfig["outbounds"].([]interface{}); ok {
-		// Append detour to the list of outbounds
-		xrayConfig["outbounds"] = append([]interface{}{detour}, outbounds...)
-	}
 	uot := T.UDPOverTCPOptions{
 		Enabled: false,
 	}
@@ -152,71 +187,10 @@ const defaultXrayConfigStr = `{
 	  "log": {
 		"loglevel": "warning", "dnsLog": false, "access": "none"
 	  },
-	  "dns": {
-		"hosts": {
-		  "dns.cloudflare.com": "cloudflare.com"
-		},
-		"servers": [
-		  "https://dns.cloudflare.com/dns-query",
-		  {"address": "localhost", "domains": ["full:cloudflare.com"]}
-		],
-		"tag": "dns-query",
-		"disableFallback": true
-	  },
+	  
 	  "outbounds": [    
 		{
-		  "tag": "block",
-		  "protocol": "blackhole"      
-		},
-		{
-		  "tag": "direct",
-		  "protocol": "freedom",      
-		  "settings": {"domainStrategy": "ForceIP"}
-		},
-		{
-		  "tag": "dns-out",
-		  "protocol": "dns",      
-		  "settings": {"nonIPQuery": "skip", "network": "tcp", "address": "1.1.1.1", "port": 53},
-		  "streamSettings": {
-			"sockopt": {
-			  "dialerProxy": "chain1-fragment"
-			}
-		  }
-		},
-		{
-		  "tag": "super-fragment",
-		  "protocol": "freedom",
-		  "settings": {
-			"fragment": {
-			  "packets": "tlshello",
-			  "length": "6",
-			  "interval": "0"
-			}
-		  },
-		  "streamSettings": {
-			"sockopt": {
-			  "dialerProxy": "chain1-fragment"
-			}
-		  }            
-		},
-		{
-		  "tag": "chain1-fragment",
-		  "protocol": "freedom",
-		  "settings": {
-			"fragment": {
-			  "packets": "1-3",
-			  "length": "517",
-			  "interval": "1"
-			}
-		  },
-		  "streamSettings": {
-			"sockopt": {
-			  "dialerProxy": "chain2-fragment"
-			}
-		  }            
-		},
-		{
-		  "tag": "chain2-fragment",
+		  "tag": "fragment",
 		  "protocol": "freedom",
 		  "settings": {
 			"domainStrategy": "ForceIP",
@@ -237,7 +211,8 @@ const defaultXrayConfigStr = `{
 		"domainStrategy": "IPOnDemand",
 		"rules": [                  
 		  {"outboundTag": "chain1-fragment",  
-		   "inboundTag": ["dns-query"]
+		   "inboundTag": ["dns-query"],
+		   "network":"tcp"
 		  },
 		  {"outboundTag": "block",
 		   "ip": ["10.10.34.0/24", "2001:4188:2:600:10:10:34:36", "2001:4188:2:600:10:10:34:35", "2001:4188:2:600:10:10:34:34"]
