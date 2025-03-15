@@ -8,7 +8,7 @@ require (
 	github.com/sagernet/sing v0.5.1
 	github.com/sagernet/sing-box v1.8.9
 	github.com/spf13/cobra v1.8.1
-	github.com/xtls/xray-core v1.8.21
+	github.com/xtls/xray-core v0.0.0-00010101000000-000000000000
 )
 
 require (
