@@ -60,7 +60,7 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 	}()
 
 	var configSingbox *T.Outbound
-	if strings.Contains(config, "&core=xray") || useXrayWhenPossible {
+	if strings.Contains(config, "&core=xray") || useXrayWhenPossible || strings.Contains(config, "type=xhttp") {
 		for k, v := range xrayConfigTypes {
 			if strings.HasPrefix(config, k) {
 				configSingbox, err = v(config)
@@ -103,6 +103,7 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 		chains := strings.Split(config, "&&detour=")
 		for _, chain := range chains {
 			// fmt.Printf("%s", chain)
+			chain, _ = decodeBase64IfNeeded(chain)
 			configSingbox, err := processSingleConfig(chain, useXrayWhenPossible)
 
 			if err != nil {
