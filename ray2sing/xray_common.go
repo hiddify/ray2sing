@@ -1,6 +1,8 @@
 package ray2sing
 
 import (
+	"encoding/json"
+
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/xtls/xray-core/infra/conf"
 
@@ -324,16 +326,32 @@ func getsplithttp(decoded map[string]string) map[string]any {
 	if path == "" {
 		path = "/"
 	}
-
-	return map[string]any{
+	res := map[string]any{
 		"path": path,
 		"host": decoded["host"],
 		"headers": map[string]string{
 			"User-Agent": USER_AGENT,
-		},
-		// "maxUploadSize": 1000000,
-		// "maxConcurrentUploads": 10
+		}}
+	if extra, ok := decoded["extra"]; ok {
+
+		var extraConfig map[string]any
+		err := json.Unmarshal([]byte(extra), &extraConfig)
+		if err != nil {
+			return map[string]any{}
+		}
+
+		res["extra"] = extraConfig
 	}
+
+	return res
+
+}
+func convertJsonToRawMessage(v any) (json.RawMessage, error) {
+	vBytes, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(vBytes), nil
 }
 func gethttpupgrade(decoded map[string]string) map[string]any {
 	path := decoded["path"]
@@ -417,9 +435,12 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 	if net == "splithttp" {
 		net = "xhttp"
 	}
+	if net == "tcp" {
+		net = "raw"
+	}
 	res["network"] = net
 	switch net {
-	case "tcp":
+	case "raw":
 		res[net+"Settings"] = map[string]any{}
 		decoded["alpn"] = "http/1.1"
 	case "httpupgrade":

@@ -1,5 +1,7 @@
 package ray2sing
 
+//based on https://github.com/XTLS/Xray-core/issues/91
+//todo merge with https://github.com/XTLS/libXray/
 import (
 	"encoding/base64"
 	"fmt"
