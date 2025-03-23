@@ -49,6 +49,14 @@ var xrayConfigTypes = map[string]ParserFunc{
 	"direct://": DirectXray,
 }
 
+func decodeUrlBase64IfNeeded(config string) string {
+	splt := strings.SplitN(config, "://", 2)
+
+	rest, err := decodeBase64IfNeeded(splt[1])
+	fmt.Println(rest, err)
+	return splt[0] + "://" + rest
+}
+
 func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.Outbound, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -58,9 +66,9 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 			err = E.New("Error in Parsing:", r, "Stack trace:", stackTrace)
 		}
 	}()
-
+	configDecoded := decodeUrlBase64IfNeeded(config)
 	var configSingbox *T.Outbound
-	if strings.Contains(config, "&core=xray") || useXrayWhenPossible || strings.Contains(config, "type=xhttp") {
+	if useXrayWhenPossible || strings.Contains(config, "&core=xray") || strings.Contains(configDecoded, "\"xhttp\"") || strings.Contains(config, "type=xhttp") {
 		for k, v := range xrayConfigTypes {
 			if strings.HasPrefix(config, k) {
 				configSingbox, err = v(config)

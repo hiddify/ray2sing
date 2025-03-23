@@ -457,6 +457,9 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 		decoded["alpn"] = "h3"
 	case "xhttp":
 		res[net+"Settings"] = getsplithttp(decoded)
+		if _, ok := decoded["alpn"]; !ok {
+			decoded["alpn"] = "h2"
+		}
 	case "h2":
 		res[net+"Settings"] = geth2(decoded)
 		decoded["alpn"] = "h2"
