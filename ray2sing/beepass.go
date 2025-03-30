@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	T "github.com/sagernet/sing-box/option"
 )
@@ -61,7 +62,7 @@ func BeepassSingbox(beepassUrl string) (*T.Outbound, error) {
 	}
 	decoded, err := parseAndFetchBeePass(body)
 	if err != nil {
-		return ShadowsocksSingbox(string(body))
+		return ShadowsocksSingbox(strings.TrimSpace(string(body)))
 		// return nil, err
 	}
 	if decoded.Name == "" {
