@@ -31,8 +31,7 @@ func VmessXray(vmessURL string) (*T.Outbound, error) {
 	if decoded["scy"] != "" {
 		security = decoded["scy"]
 	}
-
-	return makeXrayOptions(decoded, map[string]any{
+	res := map[string]any{
 
 		"protocol": "vmess",
 		"settings": map[string]any{
@@ -51,8 +50,11 @@ func VmessXray(vmessURL string) (*T.Outbound, error) {
 		},
 		"tag":            decoded["ps"],
 		"streamSettings": streamSettings,
-		"mux":            getMuxOptionsXray(decoded),
-	})
+	}
+	if mux := getMuxOptionsXray(decoded); mux != nil {
+		res["mux"] = mux
+	}
+	return makeXrayOptions(decoded, res)
 }
 
 // func VmessXray(vmessURL string) (*T.Outbound, error) {

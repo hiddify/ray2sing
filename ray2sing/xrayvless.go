@@ -20,29 +20,30 @@ func VlessXray(vlessURL string) (*T.Outbound, error) {
 	// if packetEncoding==""{
 	// 	packetEncoding="xudp"
 	// }
+	user := map[string]string{
+		"id":         u.Username, // Change to your UUID.
+		"encryption": "none",
+	}
+	if flow := decoded["flow"]; flow != "" {
+		user["flow"] = flow
+	}
 
-	return makeXrayOptions(decoded, map[string]any{
+	res := map[string]any{
 
 		"protocol": "vless",
 		"settings": map[string]any{
 			"vnext": []any{
-				map[string]any{
-					"address": u.Hostname,
-					"port":    u.Port,
-					"users": []any{
-						map[string]string{
-							"id":         u.Username, // Change to your UUID.
-							"encryption": "none",
-							"flow":       decoded["flow"],
-						},
-					},
-				},
+				user,
 			},
 		},
 		"tag":            u.Name,
 		"streamSettings": streamSettings,
-		"mux":            getMuxOptionsXray(decoded),
-	})
+	}
+	if mux := getMuxOptionsXray(decoded); mux != nil {
+		res["mux"] = mux
+	}
+	return makeXrayOptions(decoded, res)
+
 }
 
 // func VlessXray(vlessURL string) (*T.Outbound, error) {

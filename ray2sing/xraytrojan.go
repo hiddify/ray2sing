@@ -20,8 +20,7 @@ func TrojanXray(vlessURL string) (*T.Outbound, error) {
 	// if packetEncoding==""{
 	// 	packetEncoding="xudp"
 	// }
-
-	return makeXrayOptions(decoded, map[string]any{
+	res := map[string]any{
 
 		"protocol": "trojan",
 
@@ -36,8 +35,11 @@ func TrojanXray(vlessURL string) (*T.Outbound, error) {
 		},
 		"tag":            u.Name,
 		"streamSettings": streamSettings,
-		"mux":            getMuxOptionsXray(decoded),
-	})
+	}
+	if mux := getMuxOptionsXray(decoded); mux != nil {
+		res["mux"] = mux
+	}
+	return makeXrayOptions(decoded, res)
 }
 
 // func TrojanXray(vlessURL string) (*T.Outbound, error) {

@@ -310,11 +310,11 @@ func getRealityOptionsXray(decoded map[string]string) map[string]any {
 	}
 }
 
-func getMuxOptionsXray(decoded map[string]string) map[string]any {
+func getMuxOptionsXray(decoded map[string]string) *map[string]any {
 	if decoded["mux"] == "" {
-		return map[string]any{}
+		return nil
 	}
-	return map[string]any{
+	return &map[string]any{
 		"enabled":     true,
 		"concurrency": toInt(decoded["mux"]),
 		// "xudpConcurrency": 16,
@@ -329,9 +329,14 @@ func getsplithttp(decoded map[string]string) map[string]any {
 	res := map[string]any{
 		"path": path,
 		"host": decoded["host"],
-		"headers": map[string]string{
-			"User-Agent": USER_AGENT,
-		}}
+
+		// "headers": map[string]string{
+		// 	"User-Agent": USER_AGENT,
+		// }
+	}
+	if mode := decoded["mode"]; mode != "" {
+		res["mode"] = decoded["mode"]
+	}
 	if extra, ok := decoded["extra"]; ok {
 
 		var extraConfig map[string]any
@@ -362,9 +367,9 @@ func gethttpupgrade(decoded map[string]string) map[string]any {
 	return map[string]any{
 		"path": path,
 		"host": decoded["host"],
-		"headers": map[string]string{
-			"User-Agent": USER_AGENT,
-		},
+		// "headers": map[string]string{
+		// 	"User-Agent": USER_AGENT,
+		// },
 	}
 }
 func getwebsocket(decoded map[string]string) map[string]any {
@@ -376,9 +381,9 @@ func getwebsocket(decoded map[string]string) map[string]any {
 	return map[string]any{
 		"path": path,
 		"host": decoded["host"],
-		"headers": map[string]string{
-			"User-Agent": USER_AGENT,
-		},
+		// "headers": map[string]string{
+		// 	"User-Agent": USER_AGENT,
+		// },
 	}
 }
 
@@ -391,9 +396,9 @@ func geth2(decoded map[string]string) map[string]any {
 	return map[string]any{
 		"path": path,
 		"host": strings.Split(decoded["host"], ","),
-		"headers": map[string]string{
-			"User-Agent": USER_AGENT,
-		},
+		// "headers": map[string]string{
+		// 	"User-Agent": USER_AGENT,
+		// },
 	}
 }
 
@@ -414,7 +419,7 @@ func getgrpc(decoded map[string]string) map[string]any {
 		"authority":   decoded["authority"],
 		"serviceName": decoded["servicename"],
 		"mode":        decoded["mode"],
-		"user_agent":  USER_AGENT,
+		// "user_agent":  USER_AGENT,
 	}
 }
 

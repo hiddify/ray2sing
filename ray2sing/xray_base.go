@@ -114,6 +114,17 @@ import (
 // 	return &xrayConfig, nil
 // }
 
+func removeEmptyNullRecursive(detour map[string]any) map[string]any {
+	for key, value := range detour {
+		if value == nil || value == "" {
+			delete(detour, key)
+		} else if nestedMap, ok := value.(map[string]any); ok {
+			detour[key] = removeEmptyNullRecursive(nestedMap)
+		}
+	}
+	return detour
+}
+
 func makeXrayOptions(decoded map[string]string, detour map[string]any) (*T.Outbound, error) {
 
 	tag, _ := detour["tag"].(string) // Proper type assertion
