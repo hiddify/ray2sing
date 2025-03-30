@@ -2,6 +2,7 @@ package ray2sing
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -17,12 +18,7 @@ type beepassData struct {
 	Name       string `json:"name"`
 }
 
-func parseAndFetchBeePass(customURL string) (*beepassData, error) {
-	// Parse the custom URL
-	parsedURL, err := url.Parse(customURL)
-	if err != nil {
-		return nil, err
-	}
+func fetchSSConf(parsedURL *url.URL) ([]byte, error) {
 
 	// Construct the HTTP URL
 	httpURL := "https://" + parsedURL.Host + parsedURL.Path
@@ -34,25 +30,43 @@ func parseAndFetchBeePass(customURL string) (*beepassData, error) {
 	}
 	defer resp.Body.Close()
 
-	// Decode JSON
-	var config beepassData
-	err = json.NewDecoder(resp.Body).Decode(&config)
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	if config.Name == "" {
-		config.Name = parsedURL.Fragment
+
+	return body, nil
+}
+func parseAndFetchBeePass(body []byte) (*beepassData, error) {
+
+	// Decode JSON
+	var config beepassData
+	err := json.Unmarshal(body, &config)
+	if err != nil {
+		return nil, err
 	}
 
 	return &config, nil
 }
 
 func BeepassSingbox(beepassUrl string) (*T.Outbound, error) {
-	decoded, err := parseAndFetchBeePass(beepassUrl)
+	parsedURL, err := url.Parse(beepassUrl)
 	if err != nil {
 		return nil, err
 	}
-
+	body, err := fetchSSConf(parsedURL)
+	if err != nil {
+		return nil, err
+	}
+	decoded, err := parseAndFetchBeePass(body)
+	if err != nil {
+		return ShadowsocksSingbox(string(body))
+		// return nil, err
+	}
+	if decoded.Name == "" {
+		decoded.Name = parsedURL.Fragment
+	}
 	result := T.Outbound{
 		Type: "shadowsocks",
 		Tag:  decoded.Name,

@@ -480,12 +480,12 @@ func getStreamSettingsXray(decoded map[string]string) (map[string]any, error) {
 }
 
 func getXrayFragmentOptions(decoded map[string]string) *conf.Fragment {
-	trick := conf.Fragment{}
 	fragment := decoded["fragment"]
 
 	if fragment == "" {
-		return &trick
+		return nil
 	}
+	trick := conf.Fragment{}
 	splt := strings.Split(fragment, ",")
 
 	if len(splt) > 2 {
