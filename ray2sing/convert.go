@@ -52,8 +52,8 @@ var xrayConfigTypes = map[string]ParserFunc{
 func decodeUrlBase64IfNeeded(config string) string {
 	splt := strings.SplitN(config, "://", 2)
 
-	rest, err := decodeBase64IfNeeded(splt[1])
-	fmt.Println(rest, err)
+	rest, _ := decodeBase64IfNeeded(splt[1])
+	// fmt.Println(rest, err)
 	return splt[0] + "://" + rest
 }
 
