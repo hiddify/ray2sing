@@ -21,7 +21,7 @@ func VlessXray(vlessURL string) (*T.Outbound, error) {
 	// 	packetEncoding="xudp"
 	// }
 	user := map[string]string{
-		"id":         u.Username, // Change to your UUID.
+		"id":         u.Username,
 		"encryption": "none",
 	}
 	if flow := decoded["flow"]; flow != "" {
@@ -33,7 +33,13 @@ func VlessXray(vlessURL string) (*T.Outbound, error) {
 		"protocol": "vless",
 		"settings": map[string]any{
 			"vnext": []any{
-				user,
+				map[string]any{
+					"address": u.Hostname,
+					"port":    u.Port,
+					"users": []any{
+						user,
+					},
+				},
 			},
 		},
 		"tag":            u.Name,
