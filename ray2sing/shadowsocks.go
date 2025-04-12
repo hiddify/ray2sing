@@ -45,6 +45,7 @@ func ShadowsocksSingbox(shadowsocksUrl string) (*T.Outbound, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	decoded := u.Params
 	defaultMethod := "chacha20-ietf-poly1305"
 	if u.Password == "" {

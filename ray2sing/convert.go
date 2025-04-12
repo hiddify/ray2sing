@@ -52,8 +52,8 @@ var xrayConfigTypes = map[string]ParserFunc{
 func decodeUrlBase64IfNeeded(config string) string {
 	splt := strings.SplitN(config, "://", 2)
 
-	rest, err := decodeBase64IfNeeded(splt[1])
-	fmt.Println(rest, err)
+	rest, _ := decodeBase64IfNeeded(splt[1])
+	// fmt.Println(rest, err)
 	return splt[0] + "://" + rest
 }
 
@@ -98,7 +98,7 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 }
 func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) {
 
-	configArray := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	configArray := strings.Split(strings.ReplaceAll(input, "\r", "\n"), "\n")
 
 	var outbounds []T.Outbound
 	counter := 0
@@ -109,13 +109,14 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 		detourTag := ""
 
 		chains := strings.Split(config, "&&detour=")
-		for _, chain := range chains {
+		for _, chain1 := range chains {
 			// fmt.Printf("%s", chain)
-			chain, _ = decodeBase64IfNeeded(chain)
+			chain, _ := decodeBase64IfNeeded(chain1)
 			configSingbox, err := processSingleConfig(chain, useXrayWhenPossible)
 
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
+
 				continue
 			}
 			configSingbox.Tag += " § " + strconv.Itoa(counter)
@@ -140,6 +141,10 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 				dialer = &configSingbox.TUICOptions.DialerOptions
 			case C.TypeSSH:
 				dialer = &configSingbox.SSHOptions.DialerOptions
+			case C.TypeShadowsocks:
+				dialer = &configSingbox.ShadowsocksOptions.DialerOptions
+			case C.TypeXray:
+				dialer = &configSingbox.XrayOptions.DialerOptions
 			default:
 				dialer = nil
 			}

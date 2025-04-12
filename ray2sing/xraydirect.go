@@ -1,7 +1,6 @@
 package ray2sing
 
 import (
-	"fmt"
 	"strings"
 
 	T "github.com/sagernet/sing-box/option"
@@ -13,7 +12,7 @@ func DirectXray(vlessURL string) (*T.Outbound, error) {
 		return nil, err
 	}
 	decoded := u.Params
-	fmt.Println(u)
+	// fmt.Println(u)
 	// packetEncoding := decoded["packetencoding"]
 	// if packetEncoding==""{
 	// 	packetEncoding="xudp"

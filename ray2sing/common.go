@@ -148,6 +148,9 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 	if path == "" {
 		path = decoded["servicename"]
 	}
+	if net == "raw" || net == "" {
+		net = "tcp"
+	}
 	// fmoption.Printf("\n\nheaderType:%s, net:%s, type:%s\n\n", decoded["headerType"], net, decoded["type"])
 	if (decoded["type"] == "http" || decoded["headertype"] == "http") && net == "tcp" {
 		net = "http"

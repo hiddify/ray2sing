@@ -1,7 +1,6 @@
 package ray2sing
 
 import (
-	"fmt"
 	"net/netip"
 	"strconv"
 	"strings"
@@ -10,7 +9,7 @@ import (
 )
 
 func WiregaurdSingbox(url string) (*T.Outbound, error) {
-	fmt.Println(url)
+	// fmt.Println(url)
 	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
