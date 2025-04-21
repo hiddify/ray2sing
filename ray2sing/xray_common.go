@@ -270,11 +270,15 @@ func getTLSOptionsXray(decoded map[string]string) map[string]any {
 	if fp == "" {
 		// fp = "chrome"
 	}
+	allowInsecure := false
+	if insecure, err := getOneOf(decoded, "insecure", "allowinsecure"); err == nil {
+		allowInsecure = insecure == "true" || insecure == "1"
+	}
 
 	return map[string]any{
 		"serverName":       serverName,
 		"rejectUnknownSni": false,
-		"allowInsecure":    decoded["insecure"] == "true" || decoded["insecure"] == "1",
+		"allowInsecure":    allowInsecure,
 		"alpn":             alpn,
 		// "minVersion": "1.2",
 		// "maxVersion": "1.3",
