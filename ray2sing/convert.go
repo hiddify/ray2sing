@@ -51,7 +51,9 @@ var xrayConfigTypes = map[string]ParserFunc{
 
 func decodeUrlBase64IfNeeded(config string) string {
 	splt := strings.SplitN(config, "://", 2)
-
+    if len(splt)<2{
+		//return config   
+	}
 	rest, _ := decodeBase64IfNeeded(splt[1])
 	// fmt.Println(rest, err)
 	return splt[0] + "://" + rest
@@ -62,8 +64,9 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 		if r := recover(); r != nil {
 			outbound = nil
 			stackTrace := make([]byte, 1024)
-			runtime.Stack(stackTrace, false)
-			err = E.New("Error in Parsing:", r, "Stack trace:", stackTrace)
+			s:=runtime.Stack(stackTrace, false)
+			stackStr:=fmt.Sprint(string(stackTrace[:s]))
+			err = E.New("Error in Parsing:", r, "Stack trace:", stackStr)
 		}
 	}()
 	configDecoded := decodeUrlBase64IfNeeded(config)
@@ -183,8 +186,11 @@ func Ray2Singbox(configs string, useXrayWhenPossible bool) (out string, err erro
 		if r := recover(); r != nil {
 			out = ""
 			stackTrace := make([]byte, 1024)
-			runtime.Stack(stackTrace, false)
-			err = E.New("Error in Parsing", configs, r, "Stack trace:", stackTrace)
+			s:=runtime.Stack(stackTrace, false)
+			stackStr:=fmt.Sprint(string(stackTrace[:s]))
+			err = E.New("Error in Parsing", configs, r, "Stack trace:", stackStr)
+			
+			
 		}
 	}()
 
