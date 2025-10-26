@@ -3,7 +3,6 @@ package ray2sing
 //based on https://github.com/XTLS/Xray-core/issues/91
 //todo merge with https://github.com/XTLS/libXray/
 import (
-	"encoding/base64"
 	"fmt"
 	"net"
 	"net/url"
@@ -256,14 +255,8 @@ func getDialerOptions(decoded map[string]string) option.DialerOptions {
 }
 
 func decodeBase64IfNeeded(b64string string) (string, error) {
-	b64string = strings.TrimSpace(b64string)
 
-	padding := len(b64string) % 4
-	b64stringFix := b64string
-	if padding != 0 {
-		b64stringFix += string("===="[:4-padding])
-	}
-	decodedBytes, err := base64.StdEncoding.DecodeString(b64stringFix)
+	decodedBytes, err := decodeBase64FaultTolerant(b64string)
 
 	if err != nil {
 		return b64string, err

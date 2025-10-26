@@ -6,18 +6,17 @@ import (
 
 	T "github.com/sagernet/sing-box/option"
 
-	"encoding/base64"
 	"encoding/json"
 )
 
 func decodeVmess(vmessConfig string) (map[string]string, error) {
 	vmessData := vmessConfig[8:]
-	decodedData, err := base64.StdEncoding.DecodeString(vmessData)
+	decodedData, err := decodeBase64FaultTolerant(vmessData)
 	if err != nil {
 		return nil, err
 	}
 	var data map[string]interface{}
-	err = json.Unmarshal(decodedData, &data)
+	err = json.Unmarshal([]byte(decodedData), &data)
 	if err != nil {
 		return nil, err
 	}
