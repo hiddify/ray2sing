@@ -2,6 +2,7 @@ package ray2sing
 
 import (
 	T "github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/json/badoption"
 
 	"time"
 )
@@ -21,21 +22,21 @@ func TuicSingbox(tuicUrl string) (*T.Outbound, error) {
 			Enabled: hasECH,
 		}
 	}
-	turnRelay, err := ParseTurnURL(decoded["relay"])
-	if err != nil {
-		return nil, err
-	}
+	// turnRelay, err := ParseTurnURL(decoded["relay"])
+	// if err != nil {
+	// 	return nil, err
+	// }
 	result := T.Outbound{
 		Type: "tuic",
 		Tag:  u.Name,
-		TUICOptions: T.TUICOutboundOptions{
+		Options: T.TUICOutboundOptions{
 			ServerOptions:     u.GetServerOption(),
 			UUID:              u.Username,
 			Password:          u.Password,
 			CongestionControl: decoded["congestioncontrol"],
 			UDPRelayMode:      decoded["udprelaymode"],
 			ZeroRTTHandshake:  false,
-			Heartbeat:         T.Duration(10 * time.Second),
+			Heartbeat:         badoption.Duration(10 * time.Second),
 			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
 				TLS: &T.OutboundTLSOptions{
 					Enabled:    true,
@@ -46,7 +47,7 @@ func TuicSingbox(tuicUrl string) (*T.Outbound, error) {
 					ECH:        ECHOpts,
 				},
 			},
-			TurnRelay: turnRelay,
+			// TurnRelay: turnRelay,
 		},
 	}
 

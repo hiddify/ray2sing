@@ -25,9 +25,9 @@ func (u UrlSchema) GetServerOption() T.ServerOptions {
 	}
 }
 
-func (u UrlSchema) GetRelayOptions() (*T.TurnRelayOptions, error) {
-	return ParseTurnURL(u.Params["relay"])
-}
+// func (u UrlSchema) GetRelayOptions() (*T.TurnRelayOptions, error) {
+// 	return ParseTurnURL(u.Params["relay"])
+// }
 
 // parseHysteria2 parses a given URL and returns a HysteriaURLData struct.
 func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {

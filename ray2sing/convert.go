@@ -5,11 +5,11 @@ import (
 	"os"
 	"runtime"
 
-	"encoding/json"
 	"strconv"
 	"strings"
 
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/experimental/libbox"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 )
@@ -51,8 +51,8 @@ var xrayConfigTypes = map[string]ParserFunc{
 
 func decodeUrlBase64IfNeeded(config string) string {
 	splt := strings.SplitN(config, "://", 2)
-    if len(splt)<2{
-		//return config   
+	if len(splt) < 2 {
+		//return config
 	}
 	rest, _ := decodeBase64IfNeeded(splt[1])
 	// fmt.Println(rest, err)
@@ -64,8 +64,8 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 		if r := recover(); r != nil {
 			outbound = nil
 			stackTrace := make([]byte, 1024)
-			s:=runtime.Stack(stackTrace, false)
-			stackStr:=fmt.Sprint(string(stackTrace[:s]))
+			s := runtime.Stack(stackTrace, false)
+			stackStr := fmt.Sprint(string(stackTrace[:s]))
 			err = E.New("Error in Parsing:", r, "Stack trace:", stackStr)
 		}
 	}()
@@ -125,29 +125,52 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 			configSingbox.Tag += " § " + strconv.Itoa(counter)
 
 			var dialer *T.DialerOptions
+
 			switch configSingbox.Type {
 			case C.TypeWireGuard:
-				dialer = &configSingbox.WireGuardOptions.DialerOptions
+				opts := configSingbox.Options.(T.WireGuardEndpointOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeVLESS:
-				dialer = &configSingbox.VLESSOptions.DialerOptions
+				opts := configSingbox.Options.(T.VLESSOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeVMess:
-				dialer = &configSingbox.VMessOptions.DialerOptions
+				opts := configSingbox.Options.(T.VMessOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeDirect:
-				dialer = &configSingbox.DirectOptions.DialerOptions
+				opts := configSingbox.Options.(T.DirectOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeTrojan:
-				dialer = &configSingbox.TrojanOptions.DialerOptions
+				opts := configSingbox.Options.(T.TrojanOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeHysteria:
-				dialer = &configSingbox.HysteriaOptions.DialerOptions
+				opts := configSingbox.Options.(T.HysteriaOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeHysteria2:
-				dialer = &configSingbox.Hysteria2Options.DialerOptions
+				opts := configSingbox.Options.(T.Hysteria2OutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeTUIC:
-				dialer = &configSingbox.TUICOptions.DialerOptions
+				opts := configSingbox.Options.(T.TUICOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeSSH:
-				dialer = &configSingbox.SSHOptions.DialerOptions
+				opts := configSingbox.Options.(T.SSHOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeShadowsocks:
-				dialer = &configSingbox.ShadowsocksOptions.DialerOptions
+				opts := configSingbox.Options.(T.ShadowsocksOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			case C.TypeXray:
-				dialer = &configSingbox.XrayOptions.DialerOptions
+				opts := configSingbox.Options.(T.XrayOutboundOptions)
+				dialer = &opts.DialerOptions
+
 			default:
 				dialer = nil
 			}
@@ -155,7 +178,8 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 				dialer.Detour = detourTag
 			}
 			if C.TypeCustom == configSingbox.Type {
-				if warp, ok := configSingbox.CustomOptions["warp"].(map[string]interface{}); ok {
+				opts := configSingbox.Options.(map[string]any)
+				if warp, ok := opts["warp"].(map[string]any); ok {
 					warp["detour"] = detourTag
 				}
 			}
@@ -170,15 +194,12 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 	if len(outbounds) == 0 {
 		return "", E.New("No outbounds found")
 	}
+	ctx := libbox.BaseContext(nil)
 	fullConfig := T.Options{
 		Outbounds: outbounds,
 	}
 
-	jsonOutbound, err := json.MarshalIndent(fullConfig, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(jsonOutbound), nil
+	return fullConfig.MarshalJSONContext(ctx)
 }
 
 func Ray2Singbox(configs string, useXrayWhenPossible bool) (out string, err error) {
@@ -186,11 +207,10 @@ func Ray2Singbox(configs string, useXrayWhenPossible bool) (out string, err erro
 		if r := recover(); r != nil {
 			out = ""
 			stackTrace := make([]byte, 1024)
-			s:=runtime.Stack(stackTrace, false)
-			stackStr:=fmt.Sprint(string(stackTrace[:s]))
+			s := runtime.Stack(stackTrace, false)
+			stackStr := fmt.Sprint(string(stackTrace[:s]))
 			err = E.New("Error in Parsing", configs, r, "Stack trace:", stackStr)
-			
-			
+
 		}
 	}()
 

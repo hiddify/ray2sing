@@ -185,7 +185,7 @@ func makeXrayOptions(decoded map[string]string, detour map[string]any) (*T.Outbo
 	xray := T.Outbound{
 		Type: "xray",
 		Tag:  tag,
-		XrayOptions: T.XrayOutboundOptions{
+		Options: T.XrayOutboundOptions{
 			UDPOverTCP: &uot,
 			XConfig:    &xrayConfig,
 		},

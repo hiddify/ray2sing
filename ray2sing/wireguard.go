@@ -34,41 +34,44 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			fake_packet_mode = "m4"
 		}
 	}
+	peer := T.WireGuardPeer{
+		Address: u.Hostname,
+		Port:    u.Port,
+	}
+	opts := T.WireGuardEndpointOptions{
 
-	out := &T.Outbound{
-		Type: "wireguard",
-		Tag:  u.Name,
-		WireGuardOptions: T.WireGuardOutboundOptions{
-			ServerOptions:    u.GetServerOption(),
-			FakePackets:      fake_packet_count,
-			FakePacketsSize:  fake_packet_size,
-			FakePacketsDelay: fake_packet_delay,
-			FakePacketsMode:  fake_packet_mode,
+		Peers: []T.WireGuardPeer{
+			peer,
 		},
+		// ServerOptions:    u.GetServerOption(),
+		// FakePackets:      fake_packet_count,
+		// FakePacketsSize:  fake_packet_size,
+		// FakePacketsDelay: fake_packet_delay,
+		// FakePacketsMode:  fake_packet_mode,
 	}
-
 	if pk, err := getOneOf(u.Params, "privatekey", "pk"); err == nil {
-		out.WireGuardOptions.PrivateKey = pk
+		opts.PrivateKey = pk
 	}
+	
 
 	if pub, err := getOneOf(u.Params, "peerpublickey", "publickey", "pub", "peerpub"); err == nil {
-		out.WireGuardOptions.PeerPublicKey = pub
+		peer.PublicKey = pub
 	}
 
 	if psk, err := getOneOf(u.Params, "presharedkey", "psk"); err == nil {
-		out.WireGuardOptions.PreSharedKey = psk
+		peer.PreSharedKey = psk
 	}
 
 	// Parse Workers
 	if workerStr, ok := u.Params["workers"]; ok {
 		if workers, err := strconv.Atoi(workerStr); err == nil {
-			out.WireGuardOptions.Workers = workers
+			opts.Workers = workers
 		}
 	}
 
 	if mtuStr, ok := u.Params["mtu"]; ok {
 		if mtu, err := strconv.ParseUint(mtuStr, 10, 32); err == nil {
-			out.WireGuardOptions.MTU = uint32(mtu)
+			opts.MTU = uint32(mtu)
 		}
 	}
 	if reservedStr, ok := u.Params["reserved"]; ok {
@@ -79,7 +82,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			if err != nil {
 				return nil, err // Handle the error appropriately
 			}
-			out.WireGuardOptions.Reserved = append(out.WireGuardOptions.Reserved, uint8(num))
+			peer.Reserved = append(peer.Reserved, uint8(num))
 		}
 	}
 
@@ -93,26 +96,32 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			if err != nil {
 				return nil, err // Handle the error appropriately
 			}
-			out.WireGuardOptions.LocalAddress = append(out.WireGuardOptions.LocalAddress, prefix)
+			opts.Address = append(opts.Address, prefix)
 		}
 	}
 
-	if out.WireGuardOptions.PrivateKey == "" { //it is warp
+	if opts.PrivateKey == "" { //it is warp
 		return &T.Outbound{
 			Type: "custom",
 			Tag:  u.Name,
-			CustomOptions: map[string]interface{}{
-				"warp": map[string]interface{}{
+			Options: map[string]any{
+				"warp": map[string]any{
 					"key":                u.Username,
-					"host":               out.WireGuardOptions.ServerOptions.Server,
-					"port":               out.WireGuardOptions.ServerOptions.ServerPort,
-					"fake_packets":       out.WireGuardOptions.FakePackets,
-					"fake_packets_size":  out.WireGuardOptions.FakePacketsSize,
-					"fake_packets_delay": out.WireGuardOptions.FakePacketsDelay,
-					"fake_packets_mode":  out.WireGuardOptions.FakePacketsMode,
+					"host":               u.Hostname,
+					"port":               u.Port,
+					"fake_packets":       fake_packet_count,
+					"fake_packets_size":  fake_packet_size,
+					"fake_packets_delay": fake_packet_delay,
+					"fake_packets_mode":  fake_packet_mode,
 				},
 			},
 		}, nil
+	}
+	out := &T.Outbound{
+		Type: "wireguard",
+		Tag:  u.Name,
+
+		Options: opts,
 	}
 
 	return out, nil

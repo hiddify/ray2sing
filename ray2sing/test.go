@@ -1,6 +1,7 @@
 package ray2sing
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -34,7 +35,7 @@ func CheckUrlAndJson(url string, expectedJSON string, t *testing.T) {
 
 func json2map_prettystr(injson string) ([]T.Outbound, string, error) {
 	var conf T.Options
-	if err := conf.UnmarshalJSON([]byte(injson)); err != nil {
+	if err := conf.UnmarshalJSONContext(context.Background(), []byte(injson)); err != nil {
 		return conf.Outbounds, "", err
 	}
 	if len(conf.Outbounds) == 0 {

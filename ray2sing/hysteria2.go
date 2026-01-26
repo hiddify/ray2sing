@@ -33,10 +33,10 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 	if SNI == "" {
 		SNI = decoded["hostname"]
 	}
-	turnRelay, err := u.GetRelayOptions()
-	if err != nil {
-		return nil, err
-	}
+	// turnRelay, err := u.GetRelayOptions()
+	// if err != nil {
+	// 	return nil, err
+	// }
 	pass := u.Username
 	if u.Password != "" {
 		pass += ":" + u.Password
@@ -44,7 +44,7 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 	result := T.Outbound{
 		Type: "hysteria2",
 		Tag:  u.Name,
-		Hysteria2Options: T.Hysteria2OutboundOptions{
+		Options: T.Hysteria2OutboundOptions{
 			ServerOptions: u.GetServerOption(),
 			Obfs:          ObfsOpts,
 			Password:      pass,
@@ -57,7 +57,7 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 					ECH:        ECHOpts,
 				},
 			},
-			TurnRelay: turnRelay,
+			// TurnRelay: turnRelay,
 		},
 	}
 

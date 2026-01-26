@@ -90,7 +90,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to parse config: %v", err)
 	}
-
+	
 	fmt.Printf("Parsed config: \n%+v\n", clash_conf)
 	fmt.Printf("==============\n===========\n=============")
 

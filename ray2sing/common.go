@@ -8,13 +8,14 @@ import (
 	"net/url"
 	"strconv"
 
+	"strings"
+	"time"
+
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
-
-	"strings"
-	"time"
+	"github.com/sagernet/sing/common/json/badoption"
 )
 
 const USER_AGENT string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
@@ -53,7 +54,7 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 		Insecure:   insecure == "true" || insecure == "1",
 		DisableSNI: serverName == "",
 		ECH:        ECHOpts,
-		TLSTricks:  getTricksOptions(decoded),
+		// TLSTricks:  getTricksOptions(decoded),
 	}
 	if fp != "" && !tlsOptions.DisableSNI {
 		tlsOptions.UTLS = &option.OutboundUTLSOptions{
@@ -164,7 +165,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 			transportOptions.HTTPOptions.Method = "GET"
 		}
 		if host != "" {
-			transportOptions.HTTPOptions.Host = option.Listable[string]{host}
+			transportOptions.HTTPOptions.Host = badoption.Listable[string]{host}
 		}
 		httpPath := path
 		if httpPath == "" {
@@ -175,7 +176,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		decoded["alpn"] = "http/1.1"
 		transportOptions.Type = C.V2RayTransportTypeHTTPUpgrade
 		if host != "" {
-			transportOptions.HTTPUpgradeOptions.Headers = map[string]option.Listable[string]{"Host": {host}}
+			transportOptions.HTTPUpgradeOptions.Headers = badoption.HTTPHeader{"Host": {host}}
 		}
 		if path != "" {
 			if !strings.HasPrefix(path, "/") {
@@ -204,7 +205,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 
 		transportOptions.Type = C.V2RayTransportTypeWebsocket
 		if host != "" {
-			transportOptions.WebsocketOptions.Headers = map[string]option.Listable[string]{"Host": {host}}
+			transportOptions.WebsocketOptions.Headers = badoption.HTTPHeader{"Host": {host}}
 		}
 		if path != "" {
 			if !strings.HasPrefix(path, "/") {
@@ -233,8 +234,8 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		transportOptions.Type = C.V2RayTransportTypeGRPC
 		transportOptions.GRPCOptions = option.V2RayGRPCOptions{
 			ServiceName:         path,
-			IdleTimeout:         option.Duration(15 * time.Second),
-			PingTimeout:         option.Duration(15 * time.Second),
+			IdleTimeout:         badoption.Duration(15 * time.Second),
+			PingTimeout:         badoption.Duration(15 * time.Second),
 			PermitWithoutStream: false,
 		}
 	case "quic":

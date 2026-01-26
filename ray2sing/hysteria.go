@@ -12,36 +12,37 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 		return nil, err
 	}
 	SNI := u.Params["peer"]
-	singOut := &T.Outbound{
-		Type: u.Scheme,
-		Tag:  u.Name,
-		HysteriaOptions: T.HysteriaOutboundOptions{
-			ServerOptions: u.GetServerOption(),
-			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
-				TLS: &T.OutboundTLSOptions{
-					Enabled:    true,
-					DisableSNI: isIPOnly(SNI),
-					ServerName: SNI,
-					Insecure:   u.Params["insecure"] == "1",
-				},
+	opts := T.HysteriaOutboundOptions{
+		ServerOptions: u.GetServerOption(),
+		OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
+			TLS: &T.OutboundTLSOptions{
+				Enabled:    true,
+				DisableSNI: isIPOnly(SNI),
+				ServerName: SNI,
+				Insecure:   u.Params["insecure"] == "1",
 			},
 		},
 	}
+	singOut := &T.Outbound{
+		Type:    u.Scheme,
+		Tag:     u.Name,
+		Options: opts,
+	}
 
-	singOut.HysteriaOptions.AuthString = u.Params["auth"]
+	opts.AuthString = u.Params["auth"]
 
 	upMbps, err := strconv.Atoi(u.Params["upmbps"])
 	if err == nil {
-		singOut.HysteriaOptions.UpMbps = upMbps
+		opts.UpMbps = upMbps
 	}
 
 	downMbps, err := strconv.Atoi(u.Params["downmbps"])
 	if err == nil {
-		singOut.HysteriaOptions.DownMbps = downMbps
+		opts.DownMbps = downMbps
 	}
 
-	singOut.HysteriaOptions.Obfs = u.Params["obfsParam"]
-	singOut.HysteriaOptions.TurnRelay, err = u.GetRelayOptions()
+	opts.Obfs = u.Params["obfsParam"]
+	// opts.TurnRelay, err = u.GetRelayOptions()
 	if err != nil {
 		return nil, err
 	}
