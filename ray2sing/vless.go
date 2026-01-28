@@ -35,7 +35,7 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 	return &T.Outbound{
 		Tag:  u.Name,
 		Type: "vless",
-		Options: T.VLESSOutboundOptions{
+		Options: &T.VLESSOutboundOptions{
 			DialerOptions:               getDialerOptions(decoded),
 			ServerOptions:               u.GetServerOption(),
 			UUID:                        u.Username,

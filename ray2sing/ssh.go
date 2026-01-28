@@ -28,7 +28,7 @@ func SSHSingbox(sshURL string) (*T.Outbound, error) {
 	result := T.Outbound{
 		Type: "ssh",
 		Tag:  u.Name,
-		Options: T.SSHOutboundOptions{
+		Options: &T.SSHOutboundOptions{
 			ServerOptions: u.GetServerOption(),
 			User:          u.Username,
 			Password:      u.Password,

@@ -26,7 +26,7 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 	singOut := &T.Outbound{
 		Type:    u.Scheme,
 		Tag:     u.Name,
-		Options: opts,
+		Options: &opts,
 	}
 
 	opts.AuthString = u.Params["auth"]

@@ -98,8 +98,8 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hdevalence/ed25519consensus v0.2.0 h1:37ICyZqdyj0lAZ8P4D1d1id3HqbbG1N3iBb1Tb4rdcU=
 github.com/hdevalence/ed25519consensus v0.2.0/go.mod h1:w3BHWjwJbFU29IRHL1Iqkw3sus+7FctEyM4RqDxYNzo=
-github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260128175253-bb68d27f0713 h1:ALPLBVIyCRNG91126qvxoWBfBtU1fuRJhjJ7ZdRzj4w=
-github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260128175253-bb68d27f0713/go.mod h1:D1FsHB4RuRewbQN/xIv25m9gJw0PXY5kfQP4Jo8L/mM=
+github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260128191021-811cbed8be5f h1:Ie/CRS59KT/q3C5OUyPpuX2qhRu/MujoZJWSUJJBjII=
+github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260128191021-811cbed8be5f/go.mod h1:D1FsHB4RuRewbQN/xIv25m9gJw0PXY5kfQP4Jo8L/mM=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9 h1:VsDNLON3v+dg8Z0Nupt+EZMD6Gw/GZGqAZiru94RuzM=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9/go.mod h1:f7uZpbAtx6HeSRPpSZDhpEFDCO116c2BKin0aa2DEC8=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=

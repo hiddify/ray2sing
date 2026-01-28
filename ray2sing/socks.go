@@ -18,7 +18,7 @@ func SocksSingbox(url string) (*T.Outbound, error) {
 	out := &T.Outbound{
 		Type:    C.TypeSOCKS,
 		Tag:     u.Name,
-		Options: opts,
+		Options: &opts,
 	}
 	if version, err := getOneOf(u.Params, "v", "ver", "version"); err == nil {
 		opts.Version = version

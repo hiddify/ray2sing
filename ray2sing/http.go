@@ -18,7 +18,7 @@ func HttpSingbox(url string) (*T.Outbound, error) {
 	out := &T.Outbound{
 		Type:    C.TypeHTTP,
 		Tag:     u.Name,
-		Options: opts,
+		Options: &opts,
 	}
 	if _, err := getOneOf(u.Params, "tls", "sni", "insecure"); err == nil {
 		opts.OutboundTLSOptionsContainer.TLS = &T.OutboundTLSOptions{
@@ -53,7 +53,7 @@ func HttpsSingbox(url string) (*T.Outbound, error) {
 	out := &T.Outbound{
 		Type:    C.TypeHTTP,
 		Tag:     u.Name,
-		Options: opts,
+		Options: &opts,
 	}
 	opts.OutboundTLSOptionsContainer.TLS = &T.OutboundTLSOptions{
 		Enabled: true,

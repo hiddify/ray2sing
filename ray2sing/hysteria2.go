@@ -44,7 +44,7 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 	result := T.Outbound{
 		Type: "hysteria2",
 		Tag:  u.Name,
-		Options: T.Hysteria2OutboundOptions{
+		Options: &T.Hysteria2OutboundOptions{
 			ServerOptions: u.GetServerOption(),
 			Obfs:          ObfsOpts,
 			Password:      pass,

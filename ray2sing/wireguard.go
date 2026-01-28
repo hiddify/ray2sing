@@ -52,7 +52,6 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 	if pk, err := getOneOf(u.Params, "privatekey", "pk"); err == nil {
 		opts.PrivateKey = pk
 	}
-	
 
 	if pub, err := getOneOf(u.Params, "peerpublickey", "publickey", "pub", "peerpub"); err == nil {
 		peer.PublicKey = pub
@@ -104,7 +103,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 		return &T.Outbound{
 			Type: "custom",
 			Tag:  u.Name,
-			Options: map[string]any{
+			Options: &map[string]any{
 				"warp": map[string]any{
 					"key":                u.Username,
 					"host":               u.Hostname,
@@ -121,7 +120,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 		Type: "wireguard",
 		Tag:  u.Name,
 
-		Options: opts,
+		Options: &opts,
 	}
 
 	return out, nil

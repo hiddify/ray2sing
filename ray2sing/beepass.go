@@ -71,7 +71,7 @@ func BeepassSingbox(beepassUrl string) (*T.Outbound, error) {
 	result := T.Outbound{
 		Type: "shadowsocks",
 		Tag:  decoded.Name,
-		Options: T.ShadowsocksOutboundOptions{
+		Options: &T.ShadowsocksOutboundOptions{
 			ServerOptions: T.ServerOptions{
 				Server:     decoded.Server,
 				ServerPort: toUInt16(decoded.ServerPort, 443),

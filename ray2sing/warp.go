@@ -13,7 +13,7 @@ func WarpSingbox(url string) (*T.Outbound, error) {
 	out := &T.Outbound{
 		Type: "custom",
 		Tag:  u.Name,
-		Options: map[string]any{
+		Options: &map[string]any{
 			"warp": map[string]any{
 				"key":                u.Username,
 				"host":               u.Hostname,

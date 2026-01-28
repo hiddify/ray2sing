@@ -59,7 +59,7 @@ func ShadowsocksSingbox(shadowsocksUrl string) (*T.Outbound, error) {
 	result := T.Outbound{
 		Type: "shadowsocks",
 		Tag:  u.Name,
-		Options: T.ShadowsocksOutboundOptions{
+		Options: &T.ShadowsocksOutboundOptions{
 			ServerOptions: u.GetServerOption(),
 			Method:        defaultMethod,
 			Password:      u.Password,

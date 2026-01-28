@@ -34,7 +34,7 @@ package ray2sing
 
 // 	// Create a TurnRelayOptions struct
 // 	relayOptions := &T.TurnRelayOptions{
-// 		ServerOptions: T.ServerOptions{
+// 		ServerOptions: &T.ServerOptions{
 // 			Server:     server,
 // 			ServerPort: uint16(serverPort),
 // 		},

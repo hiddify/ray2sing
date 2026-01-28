@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	C "github.com/sagernet/sing-box/constant"
+	"github.com/sagernet/sing-box/experimental/libbox"
 	"github.com/sagernet/sing-box/option"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -158,6 +159,10 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 
 func Ray2Singbox(ctx context.Context, configs string, useXrayWhenPossible bool) (out []byte, err error) {
 	convertedData, err := Ray2SingboxOptions(ctx, configs, useXrayWhenPossible)
+	err = libbox.CheckConfigOptions(ctx, convertedData)
+	if err != nil {
+		return nil, err
+	}
 	return convertedData.MarshalJSONContext(ctx)
 }
 func Ray2SingboxOptions(ctx context.Context, configs string, useXrayWhenPossible bool) (out *option.Options, err error) {

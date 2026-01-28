@@ -29,7 +29,7 @@ func TuicSingbox(tuicUrl string) (*T.Outbound, error) {
 	result := T.Outbound{
 		Type: "tuic",
 		Tag:  u.Name,
-		Options: T.TUICOutboundOptions{
+		Options: &T.TUICOutboundOptions{
 			ServerOptions:     u.GetServerOption(),
 			UUID:              u.Username,
 			Password:          u.Password,

@@ -77,7 +77,7 @@ func TrojanXray(vlessURL string) (*T.Outbound, error) {
 
 // 	return makeXrayOptions(decoded, &xout)
 
-// 	// 	XrayOptions: T.XrayOutboundOptions{
+// 	// 	XrayOptions: &T.XrayOutboundOptions{
 // 	// 		// DialerOptions: getDialerOptions(decoded),
 
 // 	// 		XrayOutboundJson: &map[string]any{

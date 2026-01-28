@@ -66,7 +66,7 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 	return &T.Outbound{
 		Tag:  decoded["ps"],
 		Type: "vmess",
-		Options: T.VMessOutboundOptions{
+		Options: &T.VMessOutboundOptions{
 			DialerOptions: getDialerOptions(decoded),
 			ServerOptions: T.ServerOptions{
 				Server:     decoded["add"],
