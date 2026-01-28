@@ -8,11 +8,12 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/sagernet/sing-box/experimental/libbox"
 	T "github.com/sagernet/sing-box/option"
 )
 
 func CheckUrlAndJson(url string, expectedJSON string, t *testing.T) {
-	configJson, err := Ray2Singbox(url, false)
+	configJson, err := Ray2Singbox(libbox.BaseContext(nil), url, false)
 	if err != nil {
 		t.Fatalf("Error parsing URL: %v", err)
 	}

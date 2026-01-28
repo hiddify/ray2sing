@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/hiddify/ray2sing/ray2sing"
+	"github.com/sagernet/sing-box/experimental/libbox"
 )
 
 var examples = map[string][]string{
@@ -86,11 +87,11 @@ func main() {
 	} else {
 		configs = read()
 	}
-	clash_conf, err := ray2sing.Ray2Singbox(configs, false)
+	clash_conf, err := ray2sing.Ray2Singbox(libbox.BaseContext(nil), configs, false)
 	if err != nil {
 		log.Fatalf("Failed to parse config: %v", err)
 	}
-	
+
 	fmt.Printf("Parsed config: \n%+v\n", clash_conf)
 	fmt.Printf("==============\n===========\n=============")
 
