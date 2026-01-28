@@ -1,6 +1,7 @@
 package ray2sing
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"runtime"
@@ -9,7 +10,7 @@ import (
 	"strings"
 
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/experimental/libbox"
+	"github.com/sagernet/sing-box/option"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 )
@@ -99,7 +100,7 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 	// json.MarshalIndent(configSingbox, "", "  ")
 	return configSingbox, nil
 }
-func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) {
+func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options, error) {
 
 	configArray := strings.Split(strings.ReplaceAll(input, "\r", "\n"), "\n")
 
@@ -124,59 +125,12 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 			}
 			configSingbox.Tag += " § " + strconv.Itoa(counter)
 
-			var dialer *T.DialerOptions
-
-			switch configSingbox.Type {
-			case C.TypeWireGuard:
-				opts := configSingbox.Options.(T.WireGuardEndpointOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeVLESS:
-				opts := configSingbox.Options.(T.VLESSOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeVMess:
-				opts := configSingbox.Options.(T.VMessOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeDirect:
-				opts := configSingbox.Options.(T.DirectOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeTrojan:
-				opts := configSingbox.Options.(T.TrojanOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeHysteria:
-				opts := configSingbox.Options.(T.HysteriaOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeHysteria2:
-				opts := configSingbox.Options.(T.Hysteria2OutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeTUIC:
-				opts := configSingbox.Options.(T.TUICOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeSSH:
-				opts := configSingbox.Options.(T.SSHOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeShadowsocks:
-				opts := configSingbox.Options.(T.ShadowsocksOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			case C.TypeXray:
-				opts := configSingbox.Options.(T.XrayOutboundOptions)
-				dialer = &opts.DialerOptions
-
-			default:
-				dialer = nil
+			if dialerOpt, ok := configSingbox.Options.(T.DialerOptionsWrapper); ok {
+				d := dialerOpt.TakeDialerOptions()
+				d.Detour = detourTag
+				dialerOpt.ReplaceDialerOptions(d)
 			}
-			if dialer != nil {
-				dialer.Detour = detourTag
-			}
+
 			if C.TypeCustom == configSingbox.Type {
 				opts := configSingbox.Options.(map[string]any)
 				if warp, ok := opts["warp"].(map[string]any); ok {
@@ -192,20 +146,24 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (string, error) 
 
 	}
 	if len(outbounds) == 0 {
-		return "", E.New("No outbounds found")
+		return nil, E.New("No outbounds found")
 	}
-	ctx := libbox.BaseContext(nil)
+
 	fullConfig := T.Options{
 		Outbounds: outbounds,
 	}
 
-	return fullConfig.MarshalJSONContext(ctx)
+	return &fullConfig, nil
 }
 
-func Ray2Singbox(configs string, useXrayWhenPossible bool) (out string, err error) {
+func Ray2Singbox(ctx context.Context, configs string, useXrayWhenPossible bool) (out string, err error) {
+	convertedData, err := Ray2SingboxOptions(ctx, configs, useXrayWhenPossible)
+	return convertedData.MarshalJSONContext(ctx)
+}
+func Ray2SingboxOptions(ctx context.Context, configs string, useXrayWhenPossible bool) (out *option.Options, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			out = ""
+			out = nil
 			stackTrace := make([]byte, 1024)
 			s := runtime.Stack(stackTrace, false)
 			stackStr := fmt.Sprint(string(stackTrace[:s]))
