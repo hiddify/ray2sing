@@ -156,7 +156,7 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 	return &fullConfig, nil
 }
 
-func Ray2Singbox(ctx context.Context, configs string, useXrayWhenPossible bool) (out string, err error) {
+func Ray2Singbox(ctx context.Context, configs string, useXrayWhenPossible bool) (out []byte, err error) {
 	convertedData, err := Ray2SingboxOptions(ctx, configs, useXrayWhenPossible)
 	return convertedData.MarshalJSONContext(ctx)
 }

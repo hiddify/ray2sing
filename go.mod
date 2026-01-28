@@ -113,7 +113,7 @@ require (
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 // indirect
-	github.com/sagernet/sing-tun v0.8.0-beta.11.0.20260107060547-525f783d005b // indirect
+	github.com/sagernet/sing-tun v0.8.0-beta.12 // indirect
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1 // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
 	github.com/sagernet/tailscale v1.92.4-sing-box-1.13-mod.6 // indirect
@@ -165,6 +165,6 @@ require (
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260126181328-74e9f8fea217
+replace github.com/sagernet/sing-box => github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260128175253-bb68d27f0713
 
 replace github.com/xtls/xray-core => github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9

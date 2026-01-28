@@ -98,8 +98,8 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hdevalence/ed25519consensus v0.2.0 h1:37ICyZqdyj0lAZ8P4D1d1id3HqbbG1N3iBb1Tb4rdcU=
 github.com/hdevalence/ed25519consensus v0.2.0/go.mod h1:w3BHWjwJbFU29IRHL1Iqkw3sus+7FctEyM4RqDxYNzo=
-github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260126181328-74e9f8fea217 h1:G8SDQOxe6A1uwE32h2l1VE49WKmC6VDjT6yeDfXdbTk=
-github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260126181328-74e9f8fea217/go.mod h1:WK7w7tj0Msfnco24Q26s9n5noLeqRF3LSVV++1o+A4Q=
+github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260128175253-bb68d27f0713 h1:ALPLBVIyCRNG91126qvxoWBfBtU1fuRJhjJ7ZdRzj4w=
+github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260128175253-bb68d27f0713/go.mod h1:D1FsHB4RuRewbQN/xIv25m9gJw0PXY5kfQP4Jo8L/mM=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9 h1:VsDNLON3v+dg8Z0Nupt+EZMD6Gw/GZGqAZiru94RuzM=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9/go.mod h1:f7uZpbAtx6HeSRPpSZDhpEFDCO116c2BKin0aa2DEC8=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
@@ -240,8 +240,8 @@ github.com/sagernet/sing-shadowsocks2 v0.2.1 h1:dWV9OXCeFPuYGHb6IRqlSptVnSzOelnq
 github.com/sagernet/sing-shadowsocks2 v0.2.1/go.mod h1:RnXS0lExcDAovvDeniJ4IKa2IuChrdipolPYWBv9hWQ=
 github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 h1:tK+75l64tm9WvEFrYRE1t0YxoFdWQqw/h7Uhzj0vJ+w=
 github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11/go.mod h1:sWqKnGlMipCHaGsw1sTTlimyUpgzP4WP3pjhCsYt9oA=
-github.com/sagernet/sing-tun v0.8.0-beta.11.0.20260107060547-525f783d005b h1:MqPEFejgxqechqBn1OkL+9JPW0W4AiGCI0Y1JhglIlQ=
-github.com/sagernet/sing-tun v0.8.0-beta.11.0.20260107060547-525f783d005b/go.mod h1:+HAK/y9GZljdT0KYKMYDR8MjjqnqDDQZYp5ZZQoRzS8=
+github.com/sagernet/sing-tun v0.8.0-beta.12 h1:bKEIXkzMkFCiXD9yswXrKnDT7LzcetQylaemWbuGei8=
+github.com/sagernet/sing-tun v0.8.0-beta.12/go.mod h1:+HAK/y9GZljdT0KYKMYDR8MjjqnqDDQZYp5ZZQoRzS8=
 github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1 h1:aSwUNYUkVyVvdmBSufR8/nRFonwJeKSIROxHcm5br9o=
 github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1/go.mod h1:P11scgTxMxVVQ8dlM27yNm3Cro40mD0+gHbnqrNGDuY=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1 h1:XkJcivBC9V4wBjiGXIXZ229aZCU1hzcbp6kSkkyQ478=

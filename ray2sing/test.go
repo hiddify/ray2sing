@@ -23,7 +23,7 @@ func CheckUrlAndJson(url string, expectedJSON string, t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to unmarshal expected JSON: %v \n%v", err, expectedPretty)
 	}
-	config, configPretty, err := json2map_prettystr(configJson)
+	config, configPretty, err := json2map_prettystr(string(configJson))
 	if err != nil {
 		t.Fatalf("Failed to unmarshal config JSON: %v \n%v", err, configPretty)
 	}
