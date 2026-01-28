@@ -62,7 +62,6 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 	if packetEncoding == "" {
 		packetEncoding = "xudp"
 	}
-	fmt.Println("=========sadasdsad")
 	return &T.Outbound{
 		Tag:  decoded["ps"],
 		Type: "vmess",
