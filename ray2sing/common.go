@@ -69,6 +69,9 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 			// tlsOptions.ALPN = []string{"http/1.1"}
 		} else {
 			tlsOptions.ALPN = strings.Split(alpn, ",")
+			if getALPNversion(tlsOptions.ALPN) == 3 && getOneOfN(decoded, "", "type", "net") == "xhttp" {
+				tlsOptions.UTLS = nil //TODO utls quic has bug
+			}
 		}
 
 	}
@@ -260,11 +263,11 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 				return nil, err
 			}
 			transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions = x.V2RayXHTTPBaseOptions
-			if transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Host != "" {
-				transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Host = host
+			if transportOptions.XHTTPOptions.Host == "" {
+				transportOptions.XHTTPOptions.Host = host
 			}
-			if transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Path != "" {
-				transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Path = path
+			if transportOptions.XHTTPOptions.Path == "" {
+				transportOptions.XHTTPOptions.Path = path
 			}
 			if dl := x.DownloadSettings; dl != nil {
 				transportOptions.XHTTPOptions.Download = &option.V2RayXHTTPDownloadOptions{
@@ -274,6 +277,9 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 						ServerPort: uint16(dl.Port),
 					},
 				}
+				if transportOptions.XHTTPOptions.Download.Path == "" {
+					transportOptions.XHTTPOptions.Download.Path = path
+				}
 				if dl.Security == "tls" && dl.TLSSettings != nil {
 					transportOptions.XHTTPOptions.Download.TLS = &option.OutboundTLSOptions{
 						Enabled:    true,
@@ -281,7 +287,8 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 						Insecure:   dl.TLSSettings.Insecure,
 						ServerName: dl.TLSSettings.ServerName,
 					}
-					if dl.TLSSettings.Fingerprint != "" {
+
+					if dl.TLSSettings.Fingerprint != "" && getALPNversion(dl.TLSSettings.ALPN) != 3 {
 						transportOptions.XHTTPOptions.Download.TLS.UTLS = &option.OutboundUTLSOptions{
 							Enabled:     true,
 							Fingerprint: dl.TLSSettings.Fingerprint,
@@ -367,6 +374,18 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 	}
 
 	return &transportOptions, nil
+}
+func getALPNversion(s []string) int {
+	if len(s) == 0 {
+		return 1
+	}
+	if s[0] == "h3" {
+		return 3
+	}
+	if s[0] == "h2" {
+		return 2
+	}
+	return 1
 }
 
 // func getV2RayXHTTPBaseOptions(extraConfig map[string]any) option.V2RayXHTTPBaseOptions {
