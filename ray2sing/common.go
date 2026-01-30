@@ -278,7 +278,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 					transportOptions.XHTTPOptions.Download.TLS = &option.OutboundTLSOptions{
 						Enabled:    true,
 						ALPN:       dl.TLSSettings.ALPN,
-						Insecure:   !dl.TLSSettings.RejectUnknownSNI,
+						Insecure:   dl.TLSSettings.Insecure,
 						ServerName: dl.TLSSettings.ServerName,
 					}
 					if dl.TLSSettings.Fingerprint != "" {
