@@ -4,7 +4,7 @@ go 1.25.6
 
 require (
 	github.com/sagernet/sing v0.8.0-beta.10
-	github.com/sagernet/sing-box v1.8.9
+	github.com/sagernet/sing-box v1.13.0
 	github.com/spf13/cobra v1.10.2
 	github.com/xtls/xray-core v0.0.0-00010101000000-000000000000
 )
@@ -170,7 +170,7 @@ require (
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/hiddify/h-sing-box v1.13.0-beta.6.0.20260130104904-7b58cfb39356
+replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.8.9-0.20260130174138-38fc36b05baa
 
 replace github.com/xtls/xray-core => github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9
 
