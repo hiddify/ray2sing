@@ -3,6 +3,7 @@ package ray2sing
 //based on https://github.com/XTLS/Xray-core/issues/91
 //todo merge with https://github.com/XTLS/libXray/
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -241,12 +242,157 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 	case "quic":
 		decoded["alpn"] = "h3"
 		transportOptions.Type = C.V2RayTransportTypeQUIC
+
+	case "xhttp":
+		transportOptions.Type = C.V2RayTransportTypeXHTTP
+		transportOptions.XHTTPOptions = option.V2RayXHTTPOptions{
+			Mode: getOneOfN(decoded, "auto", "mode"),
+			V2RayXHTTPBaseOptions: option.V2RayXHTTPBaseOptions{
+				Host: host,
+				Path: path,
+			},
+		}
+
+		if extra, ok := decoded["extra"]; ok {
+			x := XHTTPExtra{}
+			err := json.Unmarshal([]byte(extra), &x)
+			if err != nil {
+				return nil, err
+			}
+			transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions = x.V2RayXHTTPBaseOptions
+			if transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Host != "" {
+				transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Host = host
+			}
+			if transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Path != "" {
+				transportOptions.XHTTPOptions.V2RayXHTTPBaseOptions.Path = path
+			}
+			if dl := x.DownloadSettings; dl != nil {
+				transportOptions.XHTTPOptions.Download = &option.V2RayXHTTPDownloadOptions{
+					V2RayXHTTPBaseOptions: dl.V2RayXHTTPBaseOptions,
+					ServerOptions: option.ServerOptions{
+						Server:     dl.Address,
+						ServerPort: uint16(dl.Port),
+					},
+				}
+				if dl.Security == "tls" && dl.TLSSettings != nil {
+					transportOptions.XHTTPOptions.Download.TLS = &option.OutboundTLSOptions{
+						Enabled:  true,
+						ALPN:     dl.TLSSettings.ALPN,
+						Insecure: !dl.TLSSettings.RejectUnknownSNI,
+					}
+					if dl.TLSSettings.Fingerprint != "" {
+						transportOptions.XHTTPOptions.Download.TLS.UTLS = &option.OutboundUTLSOptions{
+							Enabled:     true,
+							Fingerprint: dl.TLSSettings.Fingerprint,
+						}
+					}
+				}
+				if dl.Security == "reality" && dl.REALITYSettings != nil {
+					transportOptions.XHTTPOptions.Download.TLS = &option.OutboundTLSOptions{
+						Enabled: true,
+						Reality: &option.OutboundRealityOptions{
+							Enabled:   true,
+							PublicKey: dl.REALITYSettings.PublicKey,
+							ShortID:   dl.REALITYSettings.ShortId,
+						},
+						ServerName: dl.REALITYSettings.ServerName,
+					}
+					if dl.REALITYSettings.Fingerprint != "" {
+						transportOptions.XHTTPOptions.Download.TLS.UTLS = &option.OutboundUTLSOptions{
+							Enabled:     true,
+							Fingerprint: dl.REALITYSettings.Fingerprint,
+						}
+					}
+				}
+
+			}
+
+		}
+
+		// 	var extraConfig option.V2RayXHTTPBaseOptions
+		// 	err := json.Unmarshal([]byte(extra), &extraConfig)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	if headers, ok := extraConfig["headers"]; ok {
+		// 		if headersMap, ok := headers.(map[string]string); ok {
+		// 			transportOptions.XHTTPOptions.Headers = make(badoption.HTTPHeader, len(headersMap))
+		// 			for k, v := range headersMap {
+		// 				transportOptions.XHTTPOptions.Headers[k] = badoption.Listable[string]{v}
+		// 			}
+		// 		}
+		// 	}
+		// 	if dlsettings, ok := extraConfig["downloadSettings"]; ok {
+		// 		if dlsettingsMap, ok := dlsettings.(map[string]any); ok {
+		// 			if addr, ok := dlsettingsMap["address"]; ok {
+		// 				if addrs, ok := addr.(string); ok {
+		// 					transportOptions.XHTTPOptions.DownloadServer = addrs
+		// 				}
+		// 			}
+		// 			if port, ok := dlsettingsMap["port"]; ok {
+		// 				if portInt, ok := port.(int); ok {
+		// 					transportOptions.XHTTPOptions.DownloadServerPort = uint16(portInt)
+		// 				} else if portuInt, ok := port.(uint16); ok {
+		// 					transportOptions.XHTTPOptions.DownloadServerPort = portuInt
+		// 				} else if ports, ok := port.(string); ok {
+		// 					transportOptions.XHTTPOptions.DownloadServerPort = toUInt16(ports, 0)
+		// 				}
+		// 			}
+
+		// 		}
+		// 	}
+		// 	if noGRPCHeader, ok := extraConfig["noGRPCHeader"]; ok {
+		// 		if noGRPCHeaderb, ok := noGRPCHeader.(bool); ok {
+		// 			transportOptions.XHTTPOptions.NoGRPCHeader = noGRPCHeaderb
+		// 		}
+		// 	}
+		// 	if noSSEHeader, ok := extraConfig["noSSEHeader"]; ok {
+		// 		if noSSEHeaderb, ok := noSSEHeader.(bool); ok {
+		// 			transportOptions.XHTTPOptions.NoGRPCHeader = noSSEHeaderb
+		// 		}
+		// 	}
+
+		// 	if scMaxBufferedPosts, ok := extraConfig["scMaxBufferedPosts"]; ok {
+		// 		if scMaxBufferedPosti, ok := scMaxBufferedPosts.(int); ok {
+		// 			transportOptions.XHTTPOptions.MaxEachPostBytes = uint64(scMaxBufferedPosti)
+		// 		}
+		// 	}
+
+		// res["extra"] = extraConfig
+		// }
+
 	default:
 		return nil, E.New("unknown transport type: " + net)
 	}
 
 	return &transportOptions, nil
 }
+
+// func getV2RayXHTTPBaseOptions(extraConfig map[string]any) option.V2RayXHTTPBaseOptions {
+// 	opts := option.V2RayXHTTPBaseOptions{}
+// 	if headers, ok := extraConfig["headers"]; ok {
+// 		if headersMap, ok := headers.(map[string]string); ok {
+// 			opts.Headers = headersMap
+// 		}
+// 	}
+
+// 	if noGRPCHeader, ok := extraConfig["noGRPCHeader"]; ok {
+// 		if noGRPCHeaderb, ok := noGRPCHeader.(bool); ok {
+// 			opts.NoGRPCHeader = noGRPCHeaderb
+// 		}
+// 	}
+// 	if noSSEHeader, ok := extraConfig["noSSEHeader"]; ok {
+// 		if noSSEHeaderb, ok := noSSEHeader.(bool); ok {
+// 			opts.NoGRPCHeader = noSSEHeaderb
+// 		}
+// 	}
+
+//		if scMaxBufferedPosts, ok := extraConfig["scMaxBufferedPosts"]; ok {
+//			if scMaxBufferedPosti, ok := scMaxBufferedPosts.(int); ok {
+//				opts.ScMaxBufferedPosts = int64(scMaxBufferedPosti)
+//			}
+//		}
+//	}
 func getDialerOptions(decoded map[string]string) option.DialerOptions {
 	fragment := getFragmentOptions(decoded)
 	return T.DialerOptions{
@@ -302,4 +448,13 @@ func getOneOf(dic map[string]string, headers ...string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("not found")
+}
+
+func getOneOfN(dic map[string]string, defaultval string, headers ...string) string {
+	for _, h := range headers {
+		if str, ok := dic[h]; ok {
+			return str
+		}
+	}
+	return defaultval
 }

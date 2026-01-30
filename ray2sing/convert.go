@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/experimental/libbox"
 	"github.com/sagernet/sing-box/option"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -71,9 +70,9 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outbound *T.O
 			err = E.New("Error in Parsing:", r, "Stack trace:", stackStr)
 		}
 	}()
-	configDecoded := decodeUrlBase64IfNeeded(config)
+	// configDecoded := decodeUrlBase64IfNeeded(config)
 	var configSingbox *T.Outbound
-	if useXrayWhenPossible || strings.Contains(config, "&core=xray") || strings.Contains(configDecoded, "\"xhttp\"") || strings.Contains(config, "type=xhttp") {
+	if useXrayWhenPossible || strings.Contains(config, "&core=xray") {
 		for k, v := range xrayConfigTypes {
 			if strings.HasPrefix(config, k) {
 				configSingbox, err = v(config)
@@ -159,10 +158,10 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 
 func Ray2Singbox(ctx context.Context, configs string, useXrayWhenPossible bool) (out []byte, err error) {
 	convertedData, err := Ray2SingboxOptions(ctx, configs, useXrayWhenPossible)
-	err = libbox.CheckConfigOptions(convertedData)
-	if err != nil {
-		return nil, err
-	}
+	// err = libbox.CheckConfigOptions(convertedData)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return convertedData.MarshalJSONContext(ctx)
 }
 func Ray2SingboxOptions(ctx context.Context, configs string, useXrayWhenPossible bool) (out *option.Options, err error) {
