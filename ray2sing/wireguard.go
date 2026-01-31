@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
 )
 
@@ -37,6 +38,12 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 	peer := T.WireGuardPeer{
 		Address: u.Hostname,
 		Port:    u.Port,
+		WireGuardHiddify: T.WireGuardHiddify{
+			FakePackets:      fake_packet_count,
+			FakePacketsSize:  fake_packet_size,
+			FakePacketsDelay: fake_packet_delay,
+			FakePacketsMode:  fake_packet_mode,
+		},
 	}
 	opts := T.WireGuardEndpointOptions{
 
@@ -44,10 +51,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			peer,
 		},
 		// ServerOptions:    u.GetServerOption(),
-		// FakePackets:      fake_packet_count,
-		// FakePacketsSize:  fake_packet_size,
-		// FakePacketsDelay: fake_packet_delay,
-		// FakePacketsMode:  fake_packet_mode,
+
 	}
 	if pk, err := getOneOf(u.Params, "privatekey", "pk"); err == nil {
 		opts.PrivateKey = pk
@@ -101,7 +105,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 
 	if opts.PrivateKey == "" { //it is warp
 		return &T.Outbound{
-			Type: "custom",
+			Type: C.TypeCustom,
 			Tag:  u.Name,
 			Options: &map[string]any{
 				"warp": map[string]any{
