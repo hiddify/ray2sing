@@ -105,17 +105,19 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 
 	if opts.PrivateKey == "" { //it is warp
 		return &T.Outbound{
-			Type: C.TypeCustom,
+			Type: C.TypeWARP,
 			Tag:  u.Name,
-			Options: &map[string]any{
-				"warp": map[string]any{
-					"key":                u.Username,
-					"host":               u.Hostname,
-					"port":               u.Port,
-					"fake_packets":       fake_packet_count,
-					"fake_packets_size":  fake_packet_size,
-					"fake_packets_delay": fake_packet_delay,
-					"fake_packets_mode":  fake_packet_mode,
+			Options: &T.WireGuardWARPEndpointOptions{
+				ServerOptions: T.ServerOptions{
+					Server:     u.Hostname,
+					ServerPort: u.Port,
+				},
+				UniqueIdentifier: u.Username,
+				WireGuardHiddify: T.WireGuardHiddify{
+					FakePackets:      fake_packet_count,
+					FakePacketsSize:  fake_packet_size,
+					FakePacketsDelay: fake_packet_delay,
+					FakePacketsMode:  fake_packet_mode,
 				},
 			},
 		}, nil

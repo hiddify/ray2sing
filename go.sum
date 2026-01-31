@@ -50,8 +50,8 @@ github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140 h1:y7y0Oa6UawqTFP
 github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140/go.mod h1:c9O8+fpSOX1DM8cPNSkX/qsBWdkD4yd2dpciOWQjpBw=
 github.com/ebitengine/purego v0.9.1 h1:a/k2f2HQU3Pi399RPW1MOaZyhKJL9w/xFpKAg4q1s0A=
 github.com/ebitengine/purego v0.9.1/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
-github.com/enfein/mieru/v3 v3.17.1 h1:pIKbspsKRYNyUrORVI33t1/yz2syaaUkIanskAbGBHY=
-github.com/enfein/mieru/v3 v3.17.1/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
+github.com/enfein/mieru/v3 v3.27.0 h1:+E/1TF7OfimS2h582atEXQxPtJMyvqUTFBJUgzn1rxg=
+github.com/enfein/mieru/v3 v3.27.0/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
 github.com/florianl/go-nfqueue/v2 v2.0.2 h1:FL5lQTeetgpCvac1TRwSfgaXUn0YSO7WzGvWNIp3JPE=
 github.com/florianl/go-nfqueue/v2 v2.0.2/go.mod h1:VA09+iPOT43OMoCKNfXHyzujQUty2xmzyCRkBOlmabc=
 github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
@@ -104,8 +104,8 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hdevalence/ed25519consensus v0.2.0 h1:37ICyZqdyj0lAZ8P4D1d1id3HqbbG1N3iBb1Tb4rdcU=
 github.com/hdevalence/ed25519consensus v0.2.0/go.mod h1:w3BHWjwJbFU29IRHL1Iqkw3sus+7FctEyM4RqDxYNzo=
-github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131115318-2c3f6ae5087c h1:4JYXjqe29btOKZ9QACpgo6ce7eS/LRegN5Co2jsNLJY=
-github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131115318-2c3f6ae5087c/go.mod h1:w7rpn9RizlfaMj8aB8nj8jSYQCVQNepLwX0bpU9SatY=
+github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131145203-bd8a2843b84a h1:Rhaud57SM1dB4kMdaYTE8HApJggzClYV+HgDO8Ny2Zw=
+github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131145203-bd8a2843b84a/go.mod h1:cXDQteIVhnQMAQUL2Bh7EZ0e3rkyyMV/ad05i4Rio/o=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9 h1:VsDNLON3v+dg8Z0Nupt+EZMD6Gw/GZGqAZiru94RuzM=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9/go.mod h1:f7uZpbAtx6HeSRPpSZDhpEFDCO116c2BKin0aa2DEC8=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=

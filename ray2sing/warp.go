@@ -1,6 +1,7 @@
 package ray2sing
 
 import (
+	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
 )
 
@@ -11,20 +12,23 @@ func WarpSingbox(url string) (*T.Outbound, error) {
 	}
 
 	out := &T.Outbound{
-		Type: "custom",
+		Type: C.TypeWARP,
 		Tag:  u.Name,
-		Options: &map[string]any{
-			"warp": map[string]any{
-				"key":                u.Username,
-				"host":               u.Hostname,
-				"port":               u.Port,
-				"fake_packets":       u.Params["ifp"],
-				"fake_packets_size":  u.Params["ifps"],
-				"fake_packets_delay": u.Params["ifpd"],
-				"fake_packets_mode":  u.Params["ifpm"],
+		Options: &T.WireGuardWARPEndpointOptions{
+			ServerOptions: T.ServerOptions{
+				Server:     u.Hostname,
+				ServerPort: u.Port,
+			},
+			UniqueIdentifier: u.Username,
+			WireGuardHiddify: T.WireGuardHiddify{
+				FakePackets:      u.Params["ifp"],
+				FakePacketsSize:  u.Params["ifps"],
+				FakePacketsDelay: u.Params["ifpd"],
+				FakePacketsMode:  u.Params["ifpm"],
 			},
 		},
 	}
+
 	if out.Tag == "" {
 		out.Tag = "WARP"
 	}
