@@ -9,7 +9,7 @@ import (
 	T "github.com/sagernet/sing-box/option"
 )
 
-func WiregaurdSingbox(url string) (*T.Outbound, error) {
+func WiregaurdSingbox(url string) (*T.Endpoint, error) {
 	// fmt.Println(url)
 	u, err := ParseUrl(url, 0)
 	if err != nil {
@@ -104,7 +104,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 	}
 
 	if opts.PrivateKey == "" { //it is warp
-		return &T.Outbound{
+		return &T.Endpoint{
 			Type: C.TypeWARP,
 			Tag:  u.Name,
 			Options: &T.WireGuardWARPEndpointOptions{
@@ -122,7 +122,7 @@ func WiregaurdSingbox(url string) (*T.Outbound, error) {
 			},
 		}, nil
 	}
-	out := &T.Outbound{
+	out := &T.Endpoint{
 		Type: "wireguard",
 		Tag:  u.Name,
 

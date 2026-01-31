@@ -5,13 +5,13 @@ import (
 	T "github.com/sagernet/sing-box/option"
 )
 
-func WarpSingbox(url string) (*T.Outbound, error) {
+func WarpSingbox(url string) (*T.Endpoint, error) {
 	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	out := &T.Outbound{
+	out := &T.Endpoint{
 		Type: C.TypeWARP,
 		Tag:  u.Name,
 		Options: &T.WireGuardWARPEndpointOptions{
