@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -112,8 +111,10 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 		}
 		detourTag := ""
 
-		chains := strings.Split(config, "&&detour=")
-		for _, chain1 := range chains {
+		chains := strings.Split(config, " -> ")
+		for i := len(chains) - 1; i >= 0; i-- {
+			chain1 := chains[i]
+
 			// fmt.Printf("%s", chain)
 			chain, _ := decodeBase64IfNeeded(chain1)
 			configSingbox, err := processSingleConfig(chain, useXrayWhenPossible)
@@ -131,12 +132,6 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 				dialerOpt.ReplaceDialerOptions(d)
 			}
 
-			if C.TypeCustom == configSingbox.Type {
-				opts := configSingbox.Options.(map[string]any)
-				if warp, ok := opts["warp"].(map[string]any); ok {
-					warp["detour"] = detourTag
-				}
-			}
 			detourTag = configSingbox.Tag
 
 			outbounds = append(outbounds, *configSingbox)
