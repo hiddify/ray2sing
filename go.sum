@@ -104,8 +104,8 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hdevalence/ed25519consensus v0.2.0 h1:37ICyZqdyj0lAZ8P4D1d1id3HqbbG1N3iBb1Tb4rdcU=
 github.com/hdevalence/ed25519consensus v0.2.0/go.mod h1:w3BHWjwJbFU29IRHL1Iqkw3sus+7FctEyM4RqDxYNzo=
-github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131145203-bd8a2843b84a h1:Rhaud57SM1dB4kMdaYTE8HApJggzClYV+HgDO8Ny2Zw=
-github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131145203-bd8a2843b84a/go.mod h1:cXDQteIVhnQMAQUL2Bh7EZ0e3rkyyMV/ad05i4Rio/o=
+github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131155447-5e44c10fb3ea h1:J4AcWAtyr+OkxmxiOD00y9v+aXmytB901IQO22SDDZw=
+github.com/hiddify/hiddify-sing-box v1.8.9-0.20260131155447-5e44c10fb3ea/go.mod h1:cXDQteIVhnQMAQUL2Bh7EZ0e3rkyyMV/ad05i4Rio/o=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9 h1:VsDNLON3v+dg8Z0Nupt+EZMD6Gw/GZGqAZiru94RuzM=
 github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9/go.mod h1:f7uZpbAtx6HeSRPpSZDhpEFDCO116c2BKin0aa2DEC8=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=

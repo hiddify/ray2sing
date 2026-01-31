@@ -41,6 +41,8 @@ var configTypes = map[string]ParserFunc{
 	"xvless://":    VlessXray,
 	"xtrojan://":   TrojanXray,
 	"xdirect://":   DirectXray,
+	"mieru://":     MieruSingbox,
+	"mierus://":    MieruSingbox,
 }
 var xrayConfigTypes = map[string]ParserFunc{
 	"vmess://":  VmessXray,
