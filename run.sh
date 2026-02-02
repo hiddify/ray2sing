@@ -1,1 +1,1 @@
-go run -tags with_utls $*
+go run -tags with_utls,with_wiregaurd $*
