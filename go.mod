@@ -5,6 +5,7 @@ go 1.25.6
 require (
 	github.com/sagernet/sing v0.8.0-beta.10
 	github.com/sagernet/sing-box v1.13.0
+	github.com/sagernet/wireguard-go v0.0.2-beta.1.0.20250917110311-16510ac47288
 	github.com/spf13/cobra v1.10.2
 // github.com/xtls/xray-core v0.0.0-00010101000000-000000000000
 )
@@ -17,6 +18,7 @@ require (
 	github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa // indirect
 	github.com/ameshkov/dnscrypt/v2 v2.4.0 // indirect
 	github.com/ameshkov/dnsstamps v1.0.3 // indirect
+	github.com/amnezia-vpn/amneziawg-go v0.2.16 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/anthropics/anthropic-sdk-go v1.19.0 // indirect
 	github.com/anytls/sing-anytls v0.0.11 // indirect
@@ -112,7 +114,6 @@ require (
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1 // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
 	github.com/sagernet/tailscale v1.92.4-sing-box-1.13-mod.6 // indirect
-	github.com/sagernet/wireguard-go v0.0.2-beta.1.0.20250917110311-16510ac47288 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tailscale/certstore v0.1.1-0.20231202035212-d3fa0460f47e // indirect
@@ -152,12 +153,14 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
+	gvisor.dev/gvisor v0.0.0-20231202080848-1f7806d17489 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.8.9-0.20260202134040-f87a77cc6e13
+replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.8.9-0.20260202224159-b45f64cc236d
 
 // replace github.com/xtls/xray-core => github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9
+replace github.com/sagernet/wireguard-go => github.com/hiddify/wireguard-go v0.0.0-20260202221310-b94beca5cb72
 
 replace github.com/sagernet/sing-dns => github.com/shtorm-7/sing-dns v0.4.6-extended-1.0.0
 

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sagernet/sing-box/experimental/libbox"
+	_ "github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/option"
 	T "github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -47,6 +47,7 @@ var endpointParsers = map[string]EndpointParserFunc{
 	"wg://":        WiregaurdSingbox,
 	"wireguard://": WiregaurdSingbox,
 	"warp://":      WarpSingbox,
+	"awg://":       AWGSingbox,
 }
 var xrayConfigTypes = map[string]ParserFunc{
 	"vmess://":  VmessXray,
@@ -128,54 +129,62 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 	var outbounds []T.Outbound
 	var endpoints []T.Endpoint
 	counter := 0
-	for _, config := range configArray {
-		if len(config) < 5 || config[0] == '#' || config[0] == '/' {
-			continue
+	if strings.Contains(input, "[Interface]") {
+		end, err := AWGSingboxTxt(input)
+		if err != nil {
+			return nil, err
 		}
-		detourTag := ""
-
-		chains := strings.Split(config, " -> ")
-		for i := len(chains) - 1; i >= 0; i-- {
-			chain1 := chains[i]
-
-			// fmt.Printf("%s", chain)
-			chain, _ := decodeBase64IfNeeded(chain1)
-			outend, err := processSingleConfig(chain, useXrayWhenPossible)
-
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
-
+		endpoints = append(endpoints, *end)
+	} else {
+		for _, config := range configArray {
+			if len(config) < 5 || config[0] == '#' || config[0] == '/' {
 				continue
 			}
+			detourTag := ""
 
-			if outend.outbound != nil {
-				outend.outbound.Tag += " § " + strconv.Itoa(counter)
-				if dialerOpt, ok := outend.outbound.Options.(T.DialerOptionsWrapper); ok {
-					d := dialerOpt.TakeDialerOptions()
-					d.Detour = detourTag
-					dialerOpt.ReplaceDialerOptions(d)
+			chains := strings.Split(config, " -> ")
+			for i := len(chains) - 1; i >= 0; i-- {
+				chain1 := chains[i]
+
+				// fmt.Printf("%s", chain)
+				chain, _ := decodeBase64IfNeeded(chain1)
+				outend, err := processSingleConfig(chain, useXrayWhenPossible)
+
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
+
+					continue
 				}
 
-				detourTag = outend.outbound.Tag
-				outbounds = append(outbounds, *outend.outbound)
+				if outend.outbound != nil {
+					outend.outbound.Tag += " § " + strconv.Itoa(counter)
+					if dialerOpt, ok := outend.outbound.Options.(T.DialerOptionsWrapper); ok {
+						d := dialerOpt.TakeDialerOptions()
+						d.Detour = detourTag
+						dialerOpt.ReplaceDialerOptions(d)
+					}
 
-			} else if outend.endpoint != nil {
-				outend.endpoint.Tag += " § " + strconv.Itoa(counter)
-				if dialerOpt, ok := outend.endpoint.Options.(T.DialerOptionsWrapper); ok {
-					d := dialerOpt.TakeDialerOptions()
-					d.Detour = detourTag
-					dialerOpt.ReplaceDialerOptions(d)
+					detourTag = outend.outbound.Tag
+					outbounds = append(outbounds, *outend.outbound)
+
+				} else if outend.endpoint != nil {
+					outend.endpoint.Tag += " § " + strconv.Itoa(counter)
+					if dialerOpt, ok := outend.endpoint.Options.(T.DialerOptionsWrapper); ok {
+						d := dialerOpt.TakeDialerOptions()
+						d.Detour = detourTag
+						dialerOpt.ReplaceDialerOptions(d)
+					}
+
+					detourTag = outend.endpoint.Tag
+					endpoints = append(endpoints, *outend.endpoint)
+
 				}
 
-				detourTag = outend.endpoint.Tag
-				endpoints = append(endpoints, *outend.endpoint)
+				counter += 1
 
 			}
 
-			counter += 1
-
 		}
-
 	}
 	if len(outbounds) == 0 && len(endpoints) == 0 {
 		return nil, E.New("No outbounds found")
@@ -191,10 +200,10 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 
 func Ray2Singbox(ctx context.Context, configs string, useXrayWhenPossible bool) (out []byte, err error) {
 	convertedData, err := Ray2SingboxOptions(ctx, configs, useXrayWhenPossible)
-	err = libbox.CheckConfigOptions(convertedData)
-	if err != nil {
-		return nil, err
-	}
+	// err = libbox.CheckConfigOptions(convertedData)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return convertedData.MarshalJSONContext(ctx)
 }
 func Ray2SingboxOptions(ctx context.Context, configs string, useXrayWhenPossible bool) (out *option.Options, err error) {

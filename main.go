@@ -11,6 +11,7 @@ import (
 
 	"github.com/hiddify/ray2sing/ray2sing"
 	"github.com/sagernet/sing-box/experimental/libbox"
+	_ "github.com/sagernet/sing-box/include"
 )
 
 var examples = map[string][]string{
@@ -51,7 +52,7 @@ var examples = map[string][]string{
 		"wg://server.com:5319?publicKey=verypublicKeyss&privateKey=veryprivatekey&presharedKey=verysharedkey&ip=10.0.0.1&mtu=1380&keepalive=30&udp=1&reserved=0,0,0&ifp=5-10#direct%20WireGuard",
 	},
 	"warp": {
-		"#profile-title: Hiddify WARP\nwarp://p2@auto#Remote&&detour=warp://p1@auto#Local",
+		"#profile-title: Hiddify WARP\nwarp://p1@auto#Local -> warp://p2@auto#Remote",
 		"warp://key@host:1234/#WARPkey",
 		"warp://engage.cloudflareclient.com:2408#WARPnoKey",
 		"warp://key@engage.cloudflareclient.com:2408/?ifp=5-10#WARPparam",
@@ -72,6 +73,45 @@ var examples = map[string][]string{
 		"direct://?fragment=tlshello,1-2,1-4#Fragment",
 		"xdirect://?fragment=tlshello,1-2,1-4#Fragment",
 	},
+	"awg": {`
+[Interface]
+PrivateKey = private=
+Jc = 1
+Jmin = 1
+Jmax = 2
+S1 = 0
+S2 = 0
+S3 = 0
+S4 = 0
+Address = 10.20.33.158/32
+DNS = 10.20.128.1
+
+[Peer]
+PublicKey = pub=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 81.24.100.226:8080
+PersistentKeepalive = 15
+
+`},
+	"awg2": {
+		"awg://W0ludGVyZmFjZV0KUHJpdmF0ZUtleSA9IG1BVEVmbDVRUWJwZFliZWNFa0lSSnRCZHhMcEtZSSt0bmdvN3pNRUtqWDA9CkpjID0gMQpKbWluID0gMQpKbWF4ID0gMgpTMSA9IDAKUzIgPSAwClMzID0gMApTNCA9IDAKQWRkcmVzcyA9IDEwLjIwLjMzLjE1OC8zMgpETlMgPSAxMC4yMC4xMjguMQoKW1BlZXJdClB1YmxpY0tleSA9IDVGOGUzNWdaUUxzeG1kd1JLWldERFN3Uzh5RTZKMTZPUFd0Z09uSE4xVUk9CkFsbG93ZWRJUHMgPSAwLjAuMC4wLzAKRW5kcG9pbnQgPSAxODEuMjE0LjEwMC4yMjY6ODA4MApQZXJzaXN0ZW50S2VlcGFsaXZlID0gMTUK",
+	},
+	"wg2": {
+
+		`
+[Interface]
+PrivateKey = PK=
+
+Address = 10.20.33.158/32
+DNS = 10.20.128.1
+
+[Peer]
+PublicKey = pub=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 8.1.10.26:8080
+PersistentKeepalive = 15
+
+`},
 }
 
 func main() {

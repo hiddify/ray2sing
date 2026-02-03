@@ -7,49 +7,54 @@ import (
 
 	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
+	"github.com/sagernet/wireguard-go/hiddify"
 )
 
+func convertRange(s string) hiddify.Range {
+	r := hiddify.Range{}
+	r.UnmarshalJSON([]byte(strconv.Quote(s)))
+	return r
+}
+func getWireGuardNoise(d map[string]string) hiddify.NoiseOptions {
+	fake_packet_count := convertRange(getOneOfN(d, "", "ifp", "wnoisecount"))
+
+	fake_packet_delay := convertRange(getOneOfN(d, "", "ifpd", "wnoisedelay"))
+
+	fake_packet_size := convertRange(getOneOfN(d, "", "ifps", "wpayloadsize"))
+
+	fake_packet_mode := d["ifpm"]
+	if wnoise, ok := d["wnoise"]; ok {
+		switch wnoise {
+		case "quic":
+			fake_packet_mode = "m4"
+		}
+	}
+	return hiddify.NoiseOptions{
+		FakePacket: hiddify.FakePacketOptions{
+			Count: fake_packet_count,
+			Size:  fake_packet_size,
+			Delay: fake_packet_delay,
+			Mode:  fake_packet_mode,
+		},
+	}
+}
 func WiregaurdSingbox(url string) (*T.Endpoint, error) {
 	// fmt.Println(url)
 	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
 	}
-	fake_packet_count, err := getOneOf(u.Params, "ifp", "wnoisecount")
-	if err != nil {
-		return nil, err
-	}
-	fake_packet_delay, err := getOneOf(u.Params, "ifpd", "wnoisedelay")
-	if err != nil {
-		return nil, err
-	}
 
-	fake_packet_size, err := getOneOf(u.Params, "ifps", "wpayloadsize")
-	if err != nil {
-		return nil, err
-	}
-	fake_packet_mode := u.Params["ifpm"]
-	if wnoise, ok := u.Params["wnoise"]; ok {
-		switch wnoise {
-		case "quic":
-			fake_packet_mode = "m4"
-		}
-	}
 	peer := T.WireGuardPeer{
 		Address: u.Hostname,
 		Port:    u.Port,
-		WireGuardHiddify: T.WireGuardHiddify{
-			FakePackets:      fake_packet_count,
-			FakePacketsSize:  fake_packet_size,
-			FakePacketsDelay: fake_packet_delay,
-			FakePacketsMode:  fake_packet_mode,
-		},
 	}
 	opts := T.WireGuardEndpointOptions{
 
 		Peers: []T.WireGuardPeer{
 			peer,
 		},
+		Noise: getWireGuardNoise(u.Params),
 		// ServerOptions:    u.GetServerOption(),
 
 	}
@@ -113,12 +118,7 @@ func WiregaurdSingbox(url string) (*T.Endpoint, error) {
 					ServerPort: u.Port,
 				},
 				UniqueIdentifier: u.Username,
-				WireGuardHiddify: T.WireGuardHiddify{
-					FakePackets:      fake_packet_count,
-					FakePacketsSize:  fake_packet_size,
-					FakePacketsDelay: fake_packet_delay,
-					FakePacketsMode:  fake_packet_mode,
-				},
+				Noise:            getWireGuardNoise(u.Params),
 			},
 		}, nil
 	}

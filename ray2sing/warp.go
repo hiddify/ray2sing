@@ -1,6 +1,8 @@
 package ray2sing
 
 import (
+	"fmt"
+
 	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
 )
@@ -10,8 +12,8 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	out := &T.Endpoint{
+	fmt.Println(u.Username, "-", u.Password, "-", u.Params)
+	out := T.Endpoint{
 		Type: C.TypeWARP,
 		Tag:  u.Name,
 		Options: &T.WireGuardWARPEndpointOptions{
@@ -20,17 +22,12 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 				ServerPort: u.Port,
 			},
 			UniqueIdentifier: u.Username,
-			WireGuardHiddify: T.WireGuardHiddify{
-				FakePackets:      u.Params["ifp"],
-				FakePacketsSize:  u.Params["ifps"],
-				FakePacketsDelay: u.Params["ifpd"],
-				FakePacketsMode:  u.Params["ifpm"],
-			},
+			Noise:            getWireGuardNoise(u.Params),
 		},
 	}
 
 	if out.Tag == "" {
 		out.Tag = "WARP"
 	}
-	return out, nil
+	return &out, nil
 }

@@ -10,6 +10,8 @@ github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7V
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/ameshkov/dnsstamps v1.0.3 h1:Srzik+J9mivH1alRACTbys2xOxs0lRH9qnTA7Y1OYVo=
 github.com/ameshkov/dnsstamps v1.0.3/go.mod h1:Ii3eUu73dx4Vw5O4wjzmT5+lkCwovjzaEZZ4gKyIH5A=
+github.com/amnezia-vpn/amneziawg-go v0.2.16 h1:XY6HOq/xtqH8ZXMncRWkjFs85EKdN10NLNnw23kTpE0=
+github.com/amnezia-vpn/amneziawg-go v0.2.16/go.mod h1:nRkPpIzjCxMW8pZKXTRkpqAQVlmFJdVOGkeQSC7wbms=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
 github.com/andybalholm/brotli v1.1.0/go.mod h1:sms7XGricyQI9K10gOSf56VKKWS4oLer58Q+mhRPtnY=
 github.com/anthropics/anthropic-sdk-go v1.19.0 h1:mO6E+ffSzLRvR/YUH9KJC0uGw0uV8GjISIuzem//3KE=
@@ -90,8 +92,10 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hdevalence/ed25519consensus v0.2.0 h1:37ICyZqdyj0lAZ8P4D1d1id3HqbbG1N3iBb1Tb4rdcU=
 github.com/hdevalence/ed25519consensus v0.2.0/go.mod h1:w3BHWjwJbFU29IRHL1Iqkw3sus+7FctEyM4RqDxYNzo=
-github.com/hiddify/hiddify-sing-box v1.8.9-0.20260202134040-f87a77cc6e13 h1:1BnMdx0rkRpP/jpjeLpxST+Xcex2rE7ochdTStY/7Fk=
-github.com/hiddify/hiddify-sing-box v1.8.9-0.20260202134040-f87a77cc6e13/go.mod h1:cXDQteIVhnQMAQUL2Bh7EZ0e3rkyyMV/ad05i4Rio/o=
+github.com/hiddify/hiddify-sing-box v1.8.9-0.20260202224159-b45f64cc236d h1:hwFMN4tNmaB/quCQw3s4xUul2kx8oQvUBimaKp9prB4=
+github.com/hiddify/hiddify-sing-box v1.8.9-0.20260202224159-b45f64cc236d/go.mod h1:zNbauSedGJwsraWyJkMtwhsKO2AuTX4PaQzFJG5XIhc=
+github.com/hiddify/wireguard-go v0.0.0-20260202221310-b94beca5cb72 h1:l4zZiMU4Ly2ZK27hlX6EjSUDZXFSaQgVmAaJHt32VEM=
+github.com/hiddify/wireguard-go v0.0.0-20260202221310-b94beca5cb72/go.mod h1:hEqi4y5czEg6LYtX2Bpjg+lV0b/J1n+5rA885Z66Mx0=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/insomniacslk/dhcp v0.0.0-20251020182700-175e84fbb167 h1:MEufgJohwIjFi2n3eJv4c/8UdRLQVUwPwSWQPoER+eU=
@@ -224,8 +228,6 @@ github.com/sagernet/smux v1.5.50-sing-box-mod.1 h1:XkJcivBC9V4wBjiGXIXZ229aZCU1h
 github.com/sagernet/smux v1.5.50-sing-box-mod.1/go.mod h1:NjhsCEWedJm7eFLyhuBgIEzwfhRmytrUoiLluxs5Sk8=
 github.com/sagernet/tailscale v1.92.4-sing-box-1.13-mod.6 h1:eYz/OpMqWCvO2++iw3dEuzrlfC2xv78GdlGvprIM6O8=
 github.com/sagernet/tailscale v1.92.4-sing-box-1.13-mod.6/go.mod h1:m87GAn4UcesHQF3leaPFEINZETO5za1LGn1GJdNDgNc=
-github.com/sagernet/wireguard-go v0.0.2-beta.1.0.20250917110311-16510ac47288 h1:E2tZFeg9mGYGQ7E7BbxMv1cU35HxwgRm6tPKI2Pp7DA=
-github.com/sagernet/wireguard-go v0.0.2-beta.1.0.20250917110311-16510ac47288/go.mod h1:WUxgxUDZoCF2sxVmW+STSxatP02Qn3FcafTiI2BLtE0=
 github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 h1:6uUiZcDRnZSAegryaUGwPC/Fj13JSHwiTftrXhMmYOc=
 github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854/go.mod h1:LtfoSK3+NG57tvnVEHgcuBW9ujgE8enPSgzgwStwCAA=
 github.com/shtorm-7/dnscrypt/v2 v2.4.0-extended-1.0.0 h1:e5s7RKBd2rIPR0StbvZ2vTVtJ5jDTsTk5wtIIapZTRg=
@@ -289,6 +291,8 @@ go.opentelemetry.io/otel/sdk/metric v1.38.0 h1:aSH66iL0aZqo//xXzQLYozmWrXxyFkBJ6
 go.opentelemetry.io/otel/sdk/metric v1.38.0/go.mod h1:dg9PBnW9XdQ1Hd6ZnRz689CbtrUp0wMMs9iPcgT9EZA=
 go.opentelemetry.io/otel/trace v1.38.0 h1:Fxk5bKrDZJUH+AMyyIXGcFAPah0oRcT+LuNtJrmcNLE=
 go.opentelemetry.io/otel/trace v1.38.0/go.mod h1:j1P9ivuFsTceSWe1oY+EeW3sc+Pp42sO++GHkg4wwhs=
+go.uber.org/atomic v1.11.0 h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=
+go.uber.org/atomic v1.11.0/go.mod h1:LUxbIzbOniOlMKjJjyPfpl4v+PKK2cNJn91OQbhoJI0=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
@@ -358,6 +362,8 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gvisor.dev/gvisor v0.0.0-20231202080848-1f7806d17489 h1:ze1vwAdliUAr68RQ5NtufWaXaOg8WUO2OACzEV+TNdE=
+gvisor.dev/gvisor v0.0.0-20231202080848-1f7806d17489/go.mod h1:10sU+Uh5KKNv1+2x2A0Gvzt8FjD3ASIhorV3YsauXhk=
 lukechampine.com/blake3 v1.4.1 h1:I3Smz7gso8w4/TunLKec6K2fn+kyKtDxr/xcQEN84Wg=
 lukechampine.com/blake3 v1.4.1/go.mod h1:QFosUxmjB8mnrWFSNwKmvxHpfY72bmD2tQ0kBMM3kwo=
 software.sslmate.com/src/go-pkcs12 v0.4.0 h1:H2g08FrTvSFKUj+D309j1DPfk5APnIdAQAB8aEykJ5k=
