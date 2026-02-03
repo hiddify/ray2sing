@@ -44,8 +44,8 @@ var configTypes = map[string]ParserFunc{
 	"mierus://":  MieruSingbox,
 }
 var endpointParsers = map[string]EndpointParserFunc{
-	"wg://":        WiregaurdSingbox,
-	"wireguard://": WiregaurdSingbox,
+	"wg://":        AWGSingbox,
+	"wireguard://": AWGSingbox,
 	"warp://":      WarpSingbox,
 	"awg://":       AWGSingbox,
 }

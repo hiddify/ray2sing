@@ -1,8 +1,6 @@
 package ray2sing
 
 import (
-	"fmt"
-
 	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
 )
@@ -12,7 +10,7 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(u.Username, "-", u.Password, "-", u.Params)
+	// fmt.Println(u.Username, "-", u.Password, "-", u.Params)
 	out := T.Endpoint{
 		Type: C.TypeWARP,
 		Tag:  u.Name,

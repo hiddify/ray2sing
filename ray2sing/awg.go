@@ -135,7 +135,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		return nil, errors.New("missing peer Endpoint")
 	}
 	if jc+jmin+jmax+s1+s2+s3+s4 == 0 && h1+h2+h3+h4+i1+i2+i3+i4 == "" {
-		fmt.Println(">>out", C.TypeAwg)
+		// fmt.Println(">>out", C.TypeAwg)
 		return &T.Endpoint{
 			Type: C.TypeWireGuard,
 			Tag:  "wiregaurd",
@@ -190,17 +190,16 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 }
 
 func AWGSingbox(raw string) (*T.Endpoint, error) {
-
+	splt := strings.SplitN(raw, "://", 2)
+	if len(splt) == 2 {
+		d, _ := decodeBase64IfNeeded(splt[1])
+		raw = splt[0] + "://" + d
+	}
 	u, err := ParseUrl(raw, 0)
-	fmt.Println("u", len(u.Params), "e", err)
-	if err != nil || len(u.Params) == 0 {
-		splt := strings.SplitN(raw, "://", 2)
-		if len(splt) == 2 {
-			d, _ := decodeBase64IfNeeded(splt[1])
 
-			if end, err2 := AWGSingboxTxt(d); err2 == nil {
-				return end, nil
-			}
+	if err != nil || len(u.Params) == 0 {
+		if end, err2 := AWGSingboxTxt(raw); err2 == nil {
+			return end, nil
 		}
 		return nil, err
 	}
@@ -221,81 +220,124 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		return 0
 	}
 
-	parsePrefixes := func(key string) (badoption.Listable[netip.Prefix], error) {
-		raw, ok := u.Params[key]
-		if !ok || raw == "" {
-			return nil, nil
-		}
-
+	parsePrefixes := func(raw string) (badoption.Listable[netip.Prefix], error) {
 		var out []netip.Prefix
 		for _, s := range strings.Split(raw, ",") {
-			p, err := netip.ParsePrefix(strings.TrimSpace(s))
-			if err != nil {
-				return nil, fmt.Errorf("invalid %s: %w", key, err)
+			if s != "" {
+				p, err := netip.ParsePrefix(strings.TrimSpace(s))
+				if err != nil {
+					return nil, fmt.Errorf("invalid %s: %w", raw, err)
+				}
+				out = append(out, p)
 			}
-			out = append(out, p)
 		}
 		return badoption.Listable[netip.Prefix](out), nil
 	}
 
-	addresses, err := parsePrefixes("address")
+	addresses, err := parsePrefixes(getOneOfN(u.Params, "", "ip", "address"))
 	if err != nil {
 		return nil, err
 	}
 
-	allowedIPs, err := parsePrefixes("allowedips")
+	allowedIPs, err := parsePrefixes(getOneOfN(u.Params, "", "localaddress"))
 	if err != nil {
 		return nil, err
 	}
 
 	peer := T.AwgPeerOptions{
-		Address: u.Hostname,
-		Port:    u.Port,
-
-		PublicKey:                   getOneOfN(u.Params, "", "peerpublickey"),
-		PresharedKey:                getOneOfN(u.Params, "", "preshared_key"),
+		Address:                     u.Hostname,
+		Port:                        u.Port,
+		PublicKey:                   getOneOfN(u.Params, "", "peerpublickey", "publickey", "pub", "peerpub"),
+		PresharedKey:                getOneOfN(u.Params, "", "presharedkey", "psk"),
 		AllowedIPs:                  allowedIPs,
 		PersistentKeepaliveInterval: getUint16("keepalive"),
 	}
-	pk := getOneOfN(u.Params, "", "privatekey")
+	pk := getOneOfN(u.Params, "", "privatekey", "pk")
 	if pk == "" {
 		return nil, errors.New("missing private_key")
 	}
 	if peer.PublicKey == "" {
 		return nil, errors.New("missing peer_public_key")
 	}
-	out := &T.Endpoint{
-		Type: C.TypeAwg,
-		Tag:  u.Name,
-		Options: &T.AwgEndpointOptions{
+	opts := T.AwgEndpointOptions{
 
-			PrivateKey: pk,
-			Address:    addresses,
+		PrivateKey: pk,
+		Address:    addresses,
 
-			Jc:   getInt("jc"),
-			Jmin: getInt("jmin"),
-			Jmax: getInt("jmax"),
+		Jc:   getInt("jc"),
+		Jmin: getInt("jmin"),
+		Jmax: getInt("jmax"),
 
-			S1: getInt("s1"),
-			S2: getInt("s2"),
-			S3: getInt("s3"),
-			S4: getInt("s4"),
-			H1: getOneOfN(u.Params, "", "h1"),
-			H2: getOneOfN(u.Params, "", "h2"),
-			H3: getOneOfN(u.Params, "", "h3"),
-			H4: getOneOfN(u.Params, "", "h4"),
+		S1: getInt("s1"),
+		S2: getInt("s2"),
+		S3: getInt("s3"),
+		S4: getInt("s4"),
+		H1: getOneOfN(u.Params, "", "h1"),
+		H2: getOneOfN(u.Params, "", "h2"),
+		H3: getOneOfN(u.Params, "", "h3"),
+		H4: getOneOfN(u.Params, "", "h4"),
 
-			I1: getOneOfN(u.Params, "", "i1"),
-			I2: getOneOfN(u.Params, "", "i2"),
-			I3: getOneOfN(u.Params, "", "i3"),
-			I4: getOneOfN(u.Params, "", "i4"),
+		I1: getOneOfN(u.Params, "", "i1"),
+		I2: getOneOfN(u.Params, "", "i2"),
+		I3: getOneOfN(u.Params, "", "i3"),
+		I4: getOneOfN(u.Params, "", "i4"),
 
-			Peers: []T.AwgPeerOptions{peer},
-		},
+		Peers: []T.AwgPeerOptions{peer},
 	}
-
-	if out.Tag == "" {
-		out.Tag = "AWG"
+	if mtuStr, ok := u.Params["mtu"]; ok {
+		if mtu, err := strconv.ParseUint(mtuStr, 10, 32); err == nil {
+			opts.MTU = uint32(mtu)
+		}
+	}
+	var out *T.Endpoint
+	if opts.Jc+opts.Jmin+opts.Jmax+opts.S1+opts.S2+opts.S3+opts.S4 == 0 && opts.H1+opts.H2+opts.H3+opts.H4+opts.I1+opts.I2+opts.I3+opts.I4 == "" {
+		wgopts := T.WireGuardEndpointOptions{
+			PrivateKey: opts.PrivateKey,
+			Address:    opts.Address,
+			Peers: []T.WireGuardPeer{
+				T.WireGuardPeer{
+					Address:                     peer.Address,
+					Port:                        peer.Port,
+					PreSharedKey:                peer.PresharedKey,
+					PublicKey:                   peer.PublicKey,
+					AllowedIPs:                  peer.AllowedIPs,
+					PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
+				},
+			},
+			Noise: getWireGuardNoise(u.Params),
+		}
+		if reservedStr, ok := u.Params["reserved"]; ok {
+			reservedParts := strings.Split(reservedStr, ",")
+			for _, part := range reservedParts {
+				num, err := strconv.ParseUint(part, 10, 8)
+				if err != nil {
+					return nil, err // Handle the error appropriately
+				}
+				wgopts.Peers[0].Reserved = append(wgopts.Peers[0].Reserved, uint8(num))
+			}
+		}
+		if workerStr, ok := u.Params["workers"]; ok {
+			if workers, err := strconv.Atoi(workerStr); err == nil {
+				wgopts.Workers = workers
+			}
+		}
+		out = &T.Endpoint{
+			Type:    C.TypeWireGuard,
+			Tag:     u.Name,
+			Options: &wgopts,
+		}
+		if out.Tag == "" {
+			out.Tag = "WG"
+		}
+	} else {
+		out = &T.Endpoint{
+			Type:    C.TypeAwg,
+			Tag:     u.Name,
+			Options: &opts,
+		}
+		if out.Tag == "" {
+			out.Tag = "AWG"
+		}
 	}
 
 	return out, nil

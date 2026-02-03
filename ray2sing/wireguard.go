@@ -1,12 +1,8 @@
 package ray2sing
 
 import (
-	"net/netip"
 	"strconv"
-	"strings"
 
-	C "github.com/sagernet/sing-box/constant"
-	T "github.com/sagernet/sing-box/option"
 	"github.com/sagernet/wireguard-go/hiddify"
 )
 
@@ -38,96 +34,97 @@ func getWireGuardNoise(d map[string]string) hiddify.NoiseOptions {
 		},
 	}
 }
-func WiregaurdSingbox(url string) (*T.Endpoint, error) {
-	// fmt.Println(url)
-	u, err := ParseUrl(url, 0)
-	if err != nil {
-		return nil, err
-	}
 
-	peer := T.WireGuardPeer{
-		Address: u.Hostname,
-		Port:    u.Port,
-	}
-	opts := T.WireGuardEndpointOptions{
+// func WiregaurdSingbox(url string) (*T.Endpoint, error) {
+// 	// fmt.Println(url)
+// 	u, err := ParseUrl(url, 0)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-		Peers: []T.WireGuardPeer{
-			peer,
-		},
-		Noise: getWireGuardNoise(u.Params),
-		// ServerOptions:    u.GetServerOption(),
+// 	peer := T.WireGuardPeer{
+// 		Address: u.Hostname,
+// 		Port:    u.Port,
+// 	}
+// 	opts := T.WireGuardEndpointOptions{
 
-	}
-	if pk, err := getOneOf(u.Params, "privatekey", "pk"); err == nil {
-		opts.PrivateKey = pk
-	}
+// 		Peers: []T.WireGuardPeer{
+// 			peer,
+// 		},
+// 		Noise: getWireGuardNoise(u.Params),
+// 		// ServerOptions:    u.GetServerOption(),
 
-	if pub, err := getOneOf(u.Params, "peerpublickey", "publickey", "pub", "peerpub"); err == nil {
-		peer.PublicKey = pub
-	}
+// 	}
+// 	if pk, err := getOneOf(u.Params, "privatekey", "pk"); err == nil {
+// 		opts.PrivateKey = pk
+// 	}
 
-	if psk, err := getOneOf(u.Params, "presharedkey", "psk"); err == nil {
-		peer.PreSharedKey = psk
-	}
+// 	if pub, err := getOneOf(u.Params, "peerpublickey", "publickey", "pub", "peerpub"); err == nil {
+// 		peer.PublicKey = pub
+// 	}
 
-	// Parse Workers
-	if workerStr, ok := u.Params["workers"]; ok {
-		if workers, err := strconv.Atoi(workerStr); err == nil {
-			opts.Workers = workers
-		}
-	}
+// 	if psk, err := getOneOf(u.Params, "presharedkey", "psk"); err == nil {
+// 		peer.PreSharedKey = psk
+// 	}
 
-	if mtuStr, ok := u.Params["mtu"]; ok {
-		if mtu, err := strconv.ParseUint(mtuStr, 10, 32); err == nil {
-			opts.MTU = uint32(mtu)
-		}
-	}
-	if reservedStr, ok := u.Params["reserved"]; ok {
-		reservedParts := strings.Split(reservedStr, ",")
+// 	// Parse Workers
+// 	if workerStr, ok := u.Params["workers"]; ok {
+// 		if workers, err := strconv.Atoi(workerStr); err == nil {
+// 			opts.Workers = workers
+// 		}
+// 	}
 
-		for _, part := range reservedParts {
-			num, err := strconv.ParseUint(part, 10, 8)
-			if err != nil {
-				return nil, err // Handle the error appropriately
-			}
-			peer.Reserved = append(peer.Reserved, uint8(num))
-		}
-	}
+// 	if mtuStr, ok := u.Params["mtu"]; ok {
+// 		if mtu, err := strconv.ParseUint(mtuStr, 10, 32); err == nil {
+// 			opts.MTU = uint32(mtu)
+// 		}
+// 	}
+// 	if reservedStr, ok := u.Params["reserved"]; ok {
+// 		reservedParts := strings.Split(reservedStr, ",")
 
-	if localAddress, err := getOneOf(u.Params, "localaddress", "ip", "address"); err == nil {
-		localAddressParts := strings.Split(localAddress, ",")
-		for _, part := range localAddressParts {
-			if !strings.Contains(part, "/") {
-				part += "/24"
-			}
-			prefix, err := netip.ParsePrefix(part)
-			if err != nil {
-				return nil, err // Handle the error appropriately
-			}
-			opts.Address = append(opts.Address, prefix)
-		}
-	}
+// 		for _, part := range reservedParts {
+// 			num, err := strconv.ParseUint(part, 10, 8)
+// 			if err != nil {
+// 				return nil, err // Handle the error appropriately
+// 			}
+// 			peer.Reserved = append(peer.Reserved, uint8(num))
+// 		}
+// 	}
 
-	if opts.PrivateKey == "" { //it is warp
-		return &T.Endpoint{
-			Type: C.TypeWARP,
-			Tag:  u.Name,
-			Options: &T.WireGuardWARPEndpointOptions{
-				ServerOptions: T.ServerOptions{
-					Server:     u.Hostname,
-					ServerPort: u.Port,
-				},
-				UniqueIdentifier: u.Username,
-				Noise:            getWireGuardNoise(u.Params),
-			},
-		}, nil
-	}
-	out := &T.Endpoint{
-		Type: "wireguard",
-		Tag:  u.Name,
+// 	if localAddress, err := getOneOf(u.Params, "localaddress", "ip", "address"); err == nil {
+// 		localAddressParts := strings.Split(localAddress, ",")
+// 		for _, part := range localAddressParts {
+// 			if !strings.Contains(part, "/") {
+// 				part += "/24"
+// 			}
+// 			prefix, err := netip.ParsePrefix(part)
+// 			if err != nil {
+// 				return nil, err // Handle the error appropriately
+// 			}
+// 			opts.Address = append(opts.Address, prefix)
+// 		}
+// 	}
 
-		Options: &opts,
-	}
+// 	if opts.PrivateKey == "" { //it is warp
+// 		return &T.Endpoint{
+// 			Type: C.TypeWARP,
+// 			Tag:  u.Name,
+// 			Options: &T.WireGuardWARPEndpointOptions{
+// 				ServerOptions: T.ServerOptions{
+// 					Server:     u.Hostname,
+// 					ServerPort: u.Port,
+// 				},
+// 				UniqueIdentifier: u.Username,
+// 				Noise:            getWireGuardNoise(u.Params),
+// 			},
+// 		}, nil
+// 	}
+// 	out := &T.Endpoint{
+// 		Type: "wireguard",
+// 		Tag:  u.Name,
 
-	return out, nil
-}
+// 		Options: &opts,
+// 	}
+
+// 	return out, nil
+// }
