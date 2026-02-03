@@ -239,7 +239,7 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		return nil, err
 	}
 
-	allowedIPs, err := parsePrefixes(getOneOfN(u.Params, "", "localaddress"))
+	allowedIPs, err := parsePrefixes(getOneOfN(u.Params, "", "localaddress", "allowedips"))
 	if err != nil {
 		return nil, err
 	}
