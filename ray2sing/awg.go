@@ -16,11 +16,11 @@ import (
 func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 
 	var (
-		privateKey                     string
-		addresses                      []netip.Prefix
-		jc, jmin, jmax                 int
-		s1, s2, s3, s4                 int
-		h1, h2, h3, h4, i1, i2, i3, i4 string
+		privateKey                         string
+		addresses                          []netip.Prefix
+		jc, jmin, jmax                     int
+		s1, s2, s3, s4                     int
+		h1, h2, h3, h4, i1, i2, i3, i4, i5 string
 
 		peer T.AwgPeerOptions
 	)
@@ -92,6 +92,8 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 				i3 = val
 			case "I4":
 				i4 = val
+			case "I5":
+				i5 = val
 			}
 
 		case "peer":
@@ -181,6 +183,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 			I2: i2,
 			I3: i3,
 			I4: i4,
+			I5: i5,
 
 			Peers: []T.AwgPeerOptions{peer},
 		},
@@ -281,6 +284,7 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		I2: getOneOfN(u.Params, "", "i2"),
 		I3: getOneOfN(u.Params, "", "i3"),
 		I4: getOneOfN(u.Params, "", "i4"),
+		I5: getOneOfN(u.Params, "", "i5"),
 
 		Peers: []T.AwgPeerOptions{peer},
 	}
