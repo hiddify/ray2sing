@@ -229,7 +229,11 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 			if s != "" {
 				p, err := netip.ParsePrefix(strings.TrimSpace(s))
 				if err != nil {
-					return nil, fmt.Errorf("invalid %s: %w", raw, err)
+					p2, err2 := netip.ParsePrefix(strings.TrimSpace(s) + "/24")
+					if err2 != nil {
+						return nil, fmt.Errorf("invalid %s: %w", raw, err)
+					}
+					p = p2
 				}
 				out = append(out, p)
 			}

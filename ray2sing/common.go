@@ -66,8 +66,12 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
-		if net, _ := getOneOf(decoded, "net", "type"); net == "httpupgrade" || net == "ws" || net == "grpc" || net == "h2" {
-			// tlsOptions.ALPN = []string{"http/1.1"}
+		net := getOneOfN(decoded, "net")
+		if net == "" {
+			net = getOneOfN(decoded, "type")
+		}
+		if net == "httpupgrade" || net == "ws" || net == "grpc" || net == "h2" {
+			tlsOptions.ALPN = []string{"h2", "http/1.1"}
 		} else {
 			tlsOptions.ALPN = strings.Split(alpn, ",")
 			if getALPNversion(tlsOptions.ALPN) == 3 && getOneOfN(decoded, "", "type") == "xhttp" || getOneOfN(decoded, "", "net") == "xhttp" {
