@@ -42,6 +42,7 @@ var configTypes = map[string]ParserFunc{
 	"xdirect://": DirectXray,
 	"mieru://":   MieruSingbox,
 	"mierus://":  MieruSingbox,
+	"psiphon://": PsiphonSingbox,
 }
 var endpointParsers = map[string]EndpointParserFunc{
 	"wg://":        AWGSingbox,
