@@ -28,6 +28,7 @@ var configTypes = map[string]ParserFunc{
 	"hysteria2://": Hysteria2Singbox,
 	"hy2://":       Hysteria2Singbox,
 	"ssh://":       SSHSingbox,
+	"naive://":     NaiveSingbox,
 
 	"ssconf://":  BeepassSingbox,
 	"direct://":  DirectSingbox,
