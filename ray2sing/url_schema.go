@@ -2,6 +2,7 @@ package ray2sing
 
 import (
 	"net/url"
+	"regexp"
 	"strings"
 
 	T "github.com/sagernet/sing-box/option"
@@ -46,14 +47,17 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 		Name:     parsedURL.Fragment,
 		Params:   make(map[string]string),
 	}
-	userInfo, err := decodeBase64IfNeeded(data.Username)
-	// fmt.Print(userInfo)
-	if err == nil {
-		// If decoding is successful, use the decoded string
-		userDetails := strings.SplitN(userInfo, ":", 2)
-		if len(userDetails) > 1 {
-			data.Username = userDetails[0]
-			data.Password = userDetails[1]
+	if !isBase64CharsOnly(data.Username) {
+		userInfo, err := decodeBase64IfNeeded(data.Username)
+
+		// fmt.Print(userInfo)
+		if err == nil && isValidChar(userInfo) {
+			// If decoding is successful, use the decoded string
+			userDetails := strings.Split(userInfo, ":")
+			if len(userDetails) == 2 {
+				data.Username = userDetails[0]
+				data.Password = userDetails[1]
+			}
 		}
 	}
 
@@ -69,4 +73,16 @@ func getPassword(u *url.URL) string {
 		return password
 	}
 	return ""
+}
+
+var base64CharRegex = regexp.MustCompile(`^[A-Za-z0-9+/=]+$`)
+
+func isBase64CharsOnly(s string) bool {
+	return base64CharRegex.MatchString(s)
+}
+
+var validCharRegex = regexp.MustCompile(`^[A-Za-z0-9+/=_)( !~@#$%^&*]+$`)
+
+func isValidChar(s string) bool {
+	return validCharRegex.MatchString(s)
 }
