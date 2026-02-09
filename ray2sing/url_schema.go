@@ -47,7 +47,7 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 		Name:     parsedURL.Fragment,
 		Params:   make(map[string]string),
 	}
-	if !isBase64CharsOnly(data.Username) {
+	if isBase64CharsOnly(data.Username) {
 		userInfo, err := decodeBase64IfNeeded(data.Username)
 
 		// fmt.Print(userInfo)
@@ -81,8 +81,9 @@ func isBase64CharsOnly(s string) bool {
 	return base64CharRegex.MatchString(s)
 }
 
-var validCharRegex = regexp.MustCompile(`^[A-Za-z0-9+/=_)( !~@#$%^&*]+$`)
+var validCharRegex = regexp.MustCompile(`^[A-Za-z0-9+/=_)(: !~@#$%^&*-]+$`)
 
 func isValidChar(s string) bool {
+
 	return validCharRegex.MatchString(s)
 }
