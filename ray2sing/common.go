@@ -250,7 +250,13 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 	case "quic":
 		decoded["alpn"] = "h3"
 		transportOptions.Type = C.V2RayTransportTypeQUIC
-
+	case "dnstt":
+		transportOptions.Type= C.V2RayTransportTypeDNSTT
+		transportOptions.DNSTTOptions = option.DnsttOptions{
+			PublicKey: getOneOfN(decoded,"","pubkey","publickey","serverpublickey"),
+			Domain: getOneOfN(decoded,"","domain","serveraddress","address"),
+			Resolvers: strings.Split(getOneOfN(decoded, "", "resolver"), ","),
+		}
 	case "xhttp":
 		transportOptions.Type = C.V2RayTransportTypeXHTTP
 		transportOptions.XHTTPOptions = option.V2RayXHTTPOptions{
