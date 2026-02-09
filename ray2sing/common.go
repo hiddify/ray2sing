@@ -43,9 +43,9 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 
 	fp := decoded["fp"]
-	if fp == "" {
-		fp = "chrome"
-	}
+	// if fp == "" {
+	// 	fp = "chrome"
+	// }
 	insecure, err := getOneOf(decoded, "insecure", "allowinsecure")
 	if err != nil {
 		insecure = "false"
@@ -54,7 +54,7 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 		Enabled:    true,
 		ServerName: serverName,
 		Insecure:   insecure == "true" || insecure == "1",
-		DisableSNI: serverName == "",
+		DisableSNI: getOneOfN(decoded, "", "nosni") != "",
 		ECH:        ECHOpts,
 		// TLSTricks:  getTricksOptions(decoded),
 	}
@@ -251,10 +251,10 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		decoded["alpn"] = "h3"
 		transportOptions.Type = C.V2RayTransportTypeQUIC
 	case "dnstt":
-		transportOptions.Type= C.V2RayTransportTypeDNSTT
+		transportOptions.Type = C.V2RayTransportTypeDNSTT
 		transportOptions.DNSTTOptions = option.DnsttOptions{
-			PublicKey: getOneOfN(decoded,"","pubkey","publickey","serverpublickey"),
-			Domain: getOneOfN(decoded,"","domain","serveraddress","address"),
+			PublicKey: getOneOfN(decoded, "", "pubkey", "publickey", "serverpublickey"),
+			Domain:    getOneOfN(decoded, "", "domain", "serveraddress", "address"),
 			Resolvers: strings.Split(getOneOfN(decoded, "", "resolver"), ","),
 		}
 	case "xhttp":
