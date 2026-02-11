@@ -14,6 +14,10 @@ func NaiveSingbox(vlessURL string) (*T.Outbound, error) {
 		return nil, err
 	}
 	decoded := u.Params
+	if decoded["security"] == "" {
+		decoded["security"] = "tls"
+	}
+
 	// fmt.Printf("Port %v deco=%v", port, decoded)
 	tlsOptions := getTLSOptions(decoded)
 	if tlsOptions.TLS != nil {

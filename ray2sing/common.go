@@ -43,9 +43,9 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 
 	fp := decoded["fp"]
-	// if fp == "" {
-	// 	fp = "chrome"
-	// }
+	if fp == "" && decoded["security"] == "reality" {
+		fp = "chrome"
+	}
 	insecure, err := getOneOf(decoded, "insecure", "allowinsecure")
 	if err != nil {
 		insecure = "false"
