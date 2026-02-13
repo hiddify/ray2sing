@@ -55,12 +55,13 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 				privateKey = val
 
 			case "Address":
-				pfx, err := netip.ParsePrefix(val)
-				if err != nil {
-					return nil, fmt.Errorf("invalid Address: %w", err)
+				for _, add := range strings.Split(val, ",") {
+					pfx, err := netip.ParsePrefix(strings.TrimSpace(add))
+					if err != nil {
+						return nil, fmt.Errorf("invalid Address: %w", err)
+					}
+					addresses = append(addresses, pfx)
 				}
-				addresses = append(addresses, pfx)
-
 			case "Jc":
 				jc, _ = strconv.Atoi(val)
 			case "Jmin":
@@ -136,7 +137,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 	if peer.Address == "" || peer.Port == 0 {
 		return nil, errors.New("missing peer Endpoint")
 	}
-	if jc+jmin+jmax+s1+s2+s3+s4 == 0 && h1+h2+h3+h4+i1+i2+i3+i4 == "" {
+	if true || jc+jmin+jmax+s1+s2+s3+s4 == 0 && h1+h2+h3+h4+i1+i2+i3+i4 == "" {
 		// fmt.Println(">>out", C.TypeAwg)
 		return &T.Endpoint{
 			Type: C.TypeWireGuard,
@@ -298,7 +299,7 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		}
 	}
 	var out *T.Endpoint
-	if opts.Jc+opts.Jmin+opts.Jmax+opts.S1+opts.S2+opts.S3+opts.S4 == 0 && opts.H1+opts.H2+opts.H3+opts.H4+opts.I1+opts.I2+opts.I3+opts.I4 == "" {
+	if true || opts.Jc+opts.Jmin+opts.Jmax+opts.S1+opts.S2+opts.S3+opts.S4 == 0 && opts.H1+opts.H2+opts.H3+opts.H4+opts.I1+opts.I2+opts.I3+opts.I4 == "" {
 		wgopts := T.WireGuardEndpointOptions{
 			PrivateKey: opts.PrivateKey,
 			Address:    opts.Address,

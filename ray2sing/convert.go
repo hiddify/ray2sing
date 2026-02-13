@@ -50,6 +50,7 @@ var endpointParsers = map[string]EndpointParserFunc{
 	"wireguard://": AWGSingbox,
 	"warp://":      WarpSingbox,
 	"awg://":       AWGSingbox,
+	"[Interface]":  AWGSingboxTxt,
 }
 var xrayConfigTypes = map[string]ParserFunc{
 	"vmess://":  VmessXray,
@@ -124,70 +125,65 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outend *OutEn
 	// json.MarshalIndent(configSingbox, "", "  ")
 	return outend, nil
 }
+
 func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options, error) {
 
-	configArray := strings.Split(strings.ReplaceAll(input, "\r", "\n"), "\n")
+	configArray := expandDecodedConfig(input)
 
 	var outbounds []T.Outbound
 	var endpoints []T.Endpoint
 	counter := 0
-	if strings.Contains(input, "[Interface]") {
-		end, err := AWGSingboxTxt(input)
-		if err != nil {
-			return nil, err
+
+	for _, config := range configArray {
+		if len(config) < 5 || config[0] == '#' || config[0] == '/' {
+			continue
 		}
-		endpoints = append(endpoints, *end)
-	} else {
-		for _, config := range configArray {
-			if len(config) < 5 || config[0] == '#' || config[0] == '/' {
+		detourTag := ""
+
+		chains := strings.Split(config, " -> ")
+		for i := len(chains) - 1; i >= 0; i-- {
+			chain1 := chains[i]
+
+			// fmt.Printf("%s", chain)
+			chain, _ := decodeBase64IfNeeded(chain1)
+			outend, err := processSingleConfig(chain, useXrayWhenPossible)
+
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
+
 				continue
 			}
-			detourTag := ""
 
-			chains := strings.Split(config, " -> ")
-			for i := len(chains) - 1; i >= 0; i-- {
-				chain1 := chains[i]
-
-				// fmt.Printf("%s", chain)
-				chain, _ := decodeBase64IfNeeded(chain1)
-				outend, err := processSingleConfig(chain, useXrayWhenPossible)
-
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error in %s \n %v\n", config, err)
-
-					continue
+			if outend.outbound != nil {
+				outend.outbound.Tag += " § " + strconv.Itoa(counter)
+				if dialerOpt, ok := outend.outbound.Options.(T.DialerOptionsWrapper); ok {
+					d := dialerOpt.TakeDialerOptions()
+					d.Detour = detourTag
+					dialerOpt.ReplaceDialerOptions(d)
 				}
 
-				if outend.outbound != nil {
-					outend.outbound.Tag += " § " + strconv.Itoa(counter)
-					if dialerOpt, ok := outend.outbound.Options.(T.DialerOptionsWrapper); ok {
-						d := dialerOpt.TakeDialerOptions()
-						d.Detour = detourTag
-						dialerOpt.ReplaceDialerOptions(d)
-					}
+				detourTag = outend.outbound.Tag
+				outbounds = append(outbounds, *outend.outbound)
 
-					detourTag = outend.outbound.Tag
-					outbounds = append(outbounds, *outend.outbound)
-
-				} else if outend.endpoint != nil {
-					outend.endpoint.Tag += " § " + strconv.Itoa(counter)
-					if dialerOpt, ok := outend.endpoint.Options.(T.DialerOptionsWrapper); ok {
-						d := dialerOpt.TakeDialerOptions()
-						d.Detour = detourTag
-						dialerOpt.ReplaceDialerOptions(d)
-					}
-
-					detourTag = outend.endpoint.Tag
-					endpoints = append(endpoints, *outend.endpoint)
-
+			} else if outend.endpoint != nil {
+				outend.endpoint.Tag += " § " + strconv.Itoa(counter)
+				if dialerOpt, ok := outend.endpoint.Options.(T.DialerOptionsWrapper); ok {
+					d := dialerOpt.TakeDialerOptions()
+					d.Detour = detourTag
+					dialerOpt.ReplaceDialerOptions(d)
 				}
 
-				counter += 1
+				detourTag = outend.endpoint.Tag
+				endpoints = append(endpoints, *outend.endpoint)
 
 			}
 
+			counter += 1
+
 		}
+
 	}
+
 	if len(outbounds) == 0 && len(endpoints) == 0 {
 		return nil, E.New("No outbounds found")
 	}
