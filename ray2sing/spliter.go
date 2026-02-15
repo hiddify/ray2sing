@@ -1,7 +1,6 @@
 package ray2sing
 
 import (
-	"fmt"
 	"regexp"
 	"sort"
 	"strings"
@@ -36,7 +35,6 @@ func buildRegex() *regexp.Regexp {
 	// pattern := `(` + strings.Join(prefixes, "|") + `)`
 	pattern := `(?m)^(?:` + strings.Join(prefixes, "|") + `)`
 
-	fmt.Println("Split pattern:", pattern)
 	return regexp.MustCompile(pattern)
 }
 

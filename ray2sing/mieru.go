@@ -47,7 +47,7 @@ func MieruSingbox(uri string) (*T.Outbound, error) {
 			},
 			UserName:      u.Username,
 			Password:      u.Password,
-			TransportInfo: transports,
+			PortBindings:  transports,
 			Multiplexing:  getOneOfN(decoded, "", "multiplexing"),
 			HandshakeMode: getOneOfN(decoded, "", "handshakemode"),
 		},
