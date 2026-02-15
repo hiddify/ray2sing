@@ -41,6 +41,9 @@ func SSHSingbox(sshURL string) (*T.Outbound, error) {
 			Password:      u.Password,
 			PrivateKey:    privkeys,
 			HostKey:       hostkeys,
+			UDPOverTCP: &T.UDPOverTCPOptions{
+				Enabled: true,
+			},
 		},
 	}
 	return &result, nil
