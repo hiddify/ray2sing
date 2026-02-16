@@ -54,7 +54,7 @@ func NaiveSingbox(vlessURL string) (*T.Outbound, error) {
 func GetHttpHeaders(header string) badoption.HTTPHeader {
 	kvs := strings.Split(header, ",")
 	res := badoption.HTTPHeader{}
-	res["D"] = []string{}
+
 	for _, raw := range kvs {
 		splt := strings.SplitN(raw, ":", 2)
 		if len(splt) != 2 {
