@@ -232,7 +232,8 @@ require (
 	tailscale.com v1.58.2 // indirect
 )
 
-replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.13.0-rc.2.0.20260215114412-cabace8fd3ce
+//replace github.com/sagernet/sing-box => github.com/hiddify/hiddify-sing-box v1.13.0-rc.2.0.20260215114412-cabace8fd3ce
+replace github.com/sagernet/sing-box => ../hiddify-sing-box
 
 // replace github.com/xtls/xray-core => github.com/hiddify/xray-core v0.0.0-20260124181826-59e6569c13e9
 replace github.com/sagernet/wireguard-go => github.com/hiddify/wireguard-go v0.0.0-20260202221310-b94beca5cb72

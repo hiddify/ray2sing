@@ -203,8 +203,6 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hdevalence/ed25519consensus v0.2.0 h1:37ICyZqdyj0lAZ8P4D1d1id3HqbbG1N3iBb1Tb4rdcU=
 github.com/hdevalence/ed25519consensus v0.2.0/go.mod h1:w3BHWjwJbFU29IRHL1Iqkw3sus+7FctEyM4RqDxYNzo=
-github.com/hiddify/hiddify-sing-box v1.13.0-rc.2.0.20260215114412-cabace8fd3ce h1:W18/wigvSvUcHG1qG9RDL7820KVfZo2+WMUYjmuB8ug=
-github.com/hiddify/hiddify-sing-box v1.13.0-rc.2.0.20260215114412-cabace8fd3ce/go.mod h1:N9iO3F94s3I90O79q/C1pvAGeyxJyXZtzpbZMf3EVYU=
 github.com/hiddify/psiphon-quic-go v0.0.0-20260205155832-2164d1653824 h1:a5HGC6a/s4SmRvfqsYWBGd6ump3iploFoddqKpIyO7M=
 github.com/hiddify/psiphon-quic-go v0.0.0-20260205155832-2164d1653824/go.mod h1:rONdWgPMbFjyyBai7gB1IBF4pT9r4l0GyiDst5XR1SY=
 github.com/hiddify/psiphon-tls v0.0.0-20260205181946-4af85c2fb9f2 h1:42YhXZ/qMbWOlH+AE6KZKpv96G60FXMaeQ+TYFUFwNU=

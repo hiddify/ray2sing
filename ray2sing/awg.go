@@ -137,7 +137,17 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 	if peer.Address == "" || peer.Port == 0 {
 		return nil, errors.New("missing peer Endpoint")
 	}
-	if true || jc+jmin+jmax+s1+s2+s3+s4 == 0 && h1+h2+h3+h4+i1+i2+i3+i4 == "" {
+	if len(peer.AllowedIPs) == 0 {
+		if len(peer.AllowedIPs) == 0 {
+			peer.AllowedIPs = badoption.Listable[netip.Prefix]([]netip.Prefix{
+				netip.MustParsePrefix("0.0.0.0/0"), netip.MustParsePrefix("::/0"),
+			})
+		}
+	}
+	isAwg := jc+jmin+jmax+s1+s2+s3+s4 == 0 && h1+h2+h3+h4+i1+i2+i3+i4 == ""
+	noise := defaultWireguardNoiseOptions()
+	noise.FakePacket.Enabled = isAwg
+	if true || isAwg {
 		// fmt.Println(">>out", C.TypeAwg)
 		return &T.Endpoint{
 			Type: C.TypeWireGuard,
@@ -155,6 +165,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 						PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
 					},
 				},
+				Noise: noise,
 			},
 		}, nil
 	}
@@ -251,6 +262,11 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(allowedIPs) == 0 {
+		allowedIPs = badoption.Listable[netip.Prefix]([]netip.Prefix{
+			netip.MustParsePrefix("0.0.0.0/0"), netip.MustParsePrefix("::/0"),
+		})
+	}
 
 	peer := T.AwgPeerOptions{
 		Address:                     u.Hostname,
@@ -261,6 +277,9 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		PersistentKeepaliveInterval: getUint16("keepalive"),
 	}
 	pk := getOneOfN(u.Params, "", "privatekey", "pk")
+	if pk == "" {
+		pk = u.Username
+	}
 	if pk == "" {
 		return nil, errors.New("missing private_key")
 	}
@@ -299,7 +318,9 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		}
 	}
 	var out *T.Endpoint
-	if true || opts.Jc+opts.Jmin+opts.Jmax+opts.S1+opts.S2+opts.S3+opts.S4 == 0 && opts.H1+opts.H2+opts.H3+opts.H4+opts.I1+opts.I2+opts.I3+opts.I4 == "" {
+	isAwg := opts.Jc+opts.Jmin+opts.Jmax+opts.S1+opts.S2+opts.S3+opts.S4 == 0 && opts.H1+opts.H2+opts.H3+opts.H4+opts.I1+opts.I2+opts.I3+opts.I4 == ""
+
+	if true || isAwg {
 		wgopts := T.WireGuardEndpointOptions{
 			PrivateKey: opts.PrivateKey,
 			Address:    opts.Address,
@@ -313,7 +334,8 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 					PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
 				},
 			},
-			Noise: getWireGuardNoise(u.Params),
+			MTU:   uint32(toInt(getOneOfN(u.Params, "1280", "mtu"))),
+			Noise: getWireGuardNoise(u.Params, isAwg),
 		}
 		if reservedStr, ok := u.Params["reserved"]; ok {
 			reservedParts := strings.Split(reservedStr, ",")

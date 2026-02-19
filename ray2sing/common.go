@@ -36,9 +36,15 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 
 	var ECHOpts *option.OutboundECHOptions
 	valECH, hasECH := decoded["ech"]
-	if hasECH && (valECH != "0") {
+	if hasECH {
 		ECHOpts = &option.OutboundECHOptions{
 			Enabled: true,
+		}
+		if len(valECH) > 5 {
+			if !strings.Contains(valECH, "-----BEGIN ECH CONFIGS-----") {
+				valECH = "-----BEGIN ECH CONFIGS-----\n" + valECH + "\n-----END ECH CONFIGS-----"
+			}
+			ECHOpts.Config = badoption.Listable[string]{valECH}
 		}
 	}
 

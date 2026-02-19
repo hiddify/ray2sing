@@ -11,7 +11,7 @@ func convertRange(s string) hiddify.Range {
 	r.UnmarshalJSON([]byte(strconv.Quote(s)))
 	return r
 }
-func getWireGuardNoise(d map[string]string) hiddify.NoiseOptions {
+func getWireGuardNoise(d map[string]string, addDefault bool) hiddify.NoiseOptions {
 	fake_packet_count := convertRange(getOneOfN(d, "", "ifp", "wnoisecount"))
 
 	fake_packet_delay := convertRange(getOneOfN(d, "", "ifpd", "wnoisedelay"))
@@ -25,14 +25,34 @@ func getWireGuardNoise(d map[string]string) hiddify.NoiseOptions {
 			fake_packet_mode = "m4"
 		}
 	}
+	if fake_packet_count.To == 0 && fake_packet_delay.To == 0 && fake_packet_size.To == 0 && fake_packet_mode == "" {
+		if addDefault {
+			return defaultWireguardNoiseOptions()
+		}
+		return hiddify.NoiseOptions{}
+	}
 	return hiddify.NoiseOptions{
 		FakePacket: hiddify.FakePacketOptions{
-			Count: fake_packet_count,
-			Size:  fake_packet_size,
-			Delay: fake_packet_delay,
-			Mode:  fake_packet_mode,
+			Enabled: true,
+			Count:   fake_packet_count,
+			Size:    fake_packet_size,
+			Delay:   fake_packet_delay,
+			Mode:    fake_packet_mode,
 		},
 	}
+}
+
+func defaultWireguardNoiseOptions() hiddify.NoiseOptions {
+	return hiddify.NoiseOptions{
+		FakePacket: hiddify.FakePacketOptions{
+			Enabled: true,
+			Count:   convertRange("2-10"),
+			Size:    convertRange("30-50"),
+			Delay:   convertRange("30-50"),
+			Mode:    "m4",
+		},
+	}
+
 }
 
 // func WiregaurdSingbox(url string) (*T.Endpoint, error) {

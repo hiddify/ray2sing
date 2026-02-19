@@ -20,7 +20,8 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 				ServerPort: u.Port,
 			},
 			UniqueIdentifier: u.Username,
-			Noise:            getWireGuardNoise(u.Params),
+			Noise:            getWireGuardNoise(u.Params, false),
+			MTU:              uint32(toInt(getOneOfN(u.Params, "1280", "mtu"))),
 		},
 	}
 
