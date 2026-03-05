@@ -30,7 +30,7 @@ func NaiveSingbox(vlessURL string) (*T.Outbound, error) {
 		}
 	}
 	uot := T.UDPOverTCPOptions{
-		Enabled: getOneOfN(decoded, "", "uot") == "false" || getOneOfN(decoded, "", "uot") == "0",
+		Enabled: getOneOfN(decoded, "", "uot") != "false" && getOneOfN(decoded, "", "uot") != "0",
 	}
 
 	return &T.Outbound{
