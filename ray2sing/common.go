@@ -448,6 +448,43 @@ func toInt(s string) int {
 	return i
 }
 
+func toBool(s string, def bool) bool {
+	switch strings.ToLower(s) {
+	case "true":
+		return true
+	case "1":
+		return true
+	case "yes":
+		return true
+	case "on":
+		return true
+	case "false":
+		return false
+	case "0":
+		return false
+	case "no":
+		return false
+	case "off":
+		return false
+	default:
+		return def
+	}
+}
+func toIntN(s string) *int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return nil
+	}
+	return &i
+}
+
+func toFloatN(s string) *float64 {
+	i, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return nil
+	}
+	return &i
+}
 func toUInt16(s string, defaultPort uint16) uint16 {
 	val, err := strconv.ParseInt(s, 10, 17)
 	if err != nil {
@@ -483,7 +520,7 @@ func getOneOf(dic map[string]string, headers ...string) (string, error) {
 
 func getOneOfN(dic map[string]string, defaultval string, headers ...string) string {
 	for _, h := range headers {
-		if str, ok := dic[h]; ok {
+		if str, ok := dic[normalizeStr(h)]; ok {
 			return str
 		}
 	}
