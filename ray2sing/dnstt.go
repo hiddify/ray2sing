@@ -27,7 +27,7 @@ func DnsttSingbox(vlessURL string) (*T.Outbound, error) {
 		RecordType:        getOneOfN(decoded, "", "record-type"),
 		UTLSClientHelloID: getOneOfN(decoded, "", "utls"),
 
-		DnsttCompat:  toBool(getOneOfN(decoded, "false", "dnstt-compat")),
+		DnsttCompat:  toBool(getOneOfN(decoded, "false", "dnstt-compat"), false),
 		ClientIDSize: toIntN(getOneOfN(decoded, "", "clientid-size")),
 		MaxQnameLen:  toIntN(getOneOfN(decoded, "", "max-qname-len")),
 		MaxNumLabels: toIntN(getOneOfN(decoded, "", "max-num-labels")),
