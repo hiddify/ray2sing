@@ -16,22 +16,23 @@ func DnsttSingbox(vlessURL string) (*T.Outbound, error) {
 	// 	Enabled: getOneOfN(decoded, "", "uot") != "false" && getOneOfN(decoded, "", "uot") != "0",
 	// }
 	d := &T.DnsttOptions{
-		DialerOptions:     getDialerOptions(decoded),
-		PublicKey:         getOneOfN(decoded, "", "pubkey", "publickey", "serverpublickey"),
-		Domain:            getOneOfN(decoded, "", "domain", "serveraddress", "address"),
-		Resolvers:         strings.Split(getOneOfN(decoded, "", "resolver"), ","),
-		TunnelPerResolver: toInt(getOneOfN(decoded, "4", "tunnelperresolver")),
+		DialerOptions: getDialerOptions(decoded),
+		PublicKey:     getOneOfN(decoded, "", "pubkey", "publickey", "serverpublickey"),
+		Domain:        getOneOfN(decoded, "", "domain", "serveraddress", "address"),
+		Resolvers:     strings.Split(getOneOfN(decoded, "", "resolver"), ","),
+		// TunnelPerResolver: toInt(getOneOfN(decoded, "1", "tunnelperresolver")),
 
 		PreTestDomain:     getOneOfN(decoded, "", "pretest-domain"),
 		PreTestRecordType: getOneOfN(decoded, "", "pretest-record-type"),
 		RecordType:        getOneOfN(decoded, "", "record-type"),
 		UTLSClientHelloID: getOneOfN(decoded, "", "utls"),
 
-		DnsttCompat:  toBool(getOneOfN(decoded, "false", "dnstt-compat"), false),
-		ClientIDSize: toIntN(getOneOfN(decoded, "", "clientid-size")),
-		MaxQnameLen:  toIntN(getOneOfN(decoded, "", "max-qname-len")),
-		MaxNumLabels: toIntN(getOneOfN(decoded, "", "max-num-labels")),
-		RPS:          toFloatN(getOneOfN(decoded, "", "rps")),
+		DnsttCompat:    toBool(getOneOfN(decoded, "false", "dnstt-compat"), false),
+		ClientIDSize:   toIntN(getOneOfN(decoded, "", "clientid-size")),
+		MaxQnameLen:    toIntN(getOneOfN(decoded, "", "max-qname-len")),
+		MaxNumLabels:   toIntN(getOneOfN(decoded, "", "max-num-labels")),
+		RPS:            toFloatN(getOneOfN(decoded, "", "rps")),
+		SingleResolver: toBool(getOneOfN(decoded, "false", "single-resolver"), false),
 
 		MTU: toIntN(getOneOfN(decoded, "0", "mtu")),
 
