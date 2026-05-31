@@ -129,7 +129,7 @@ func defaultWireguardNoiseOptions() hiddify.NoiseOptions {
 // 		return &T.Endpoint{
 // 			Type: C.TypeWARP,
 // 			Tag:  u.Name,
-// 			Options: &T.WireGuardWARPEndpointOptions{
+// 			Options: &T.WARPEndpointOptions{
 // 				ServerOptions: T.ServerOptions{
 // 					Server:     u.Hostname,
 // 					ServerPort: u.Port,

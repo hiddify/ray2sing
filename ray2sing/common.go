@@ -425,10 +425,10 @@ func getALPNversion(s []string) int {
 //		}
 //	}
 func getDialerOptions(decoded map[string]string) option.DialerOptions {
-	fragment := getFragmentOptions(decoded)
+	// fragment := getFragmentOptions(decoded)
 	return T.DialerOptions{
 		// TCPFastOpen: !fragment.Enabled,
-		TLSFragment: fragment,
+		// TLSFragment: fragment,
 	}
 }
 
