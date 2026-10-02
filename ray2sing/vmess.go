@@ -28,6 +28,9 @@ func convertToStrings(data map[string]interface{}) map[string]string {
 	stringMap := make(map[string]string)
 	for key, value := range data {
 		switch v := value.(type) {
+		case nil:
+			// JSON null: treat as absent instead of the literal "<nil>"
+			continue
 		case string:
 			stringMap[key] = v
 		case float64:
