@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Launch Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "main.go",
+            "args": ["vless://aca58dad-a355-47ab-b157-164bacf1883e@54.192.35.68:443?encryption=none&security=tls&type=xhttp&headerType=none&path=%2Fapi%2Fv3%2Fassets%2Fstatic%2Fjs%2Fchunk-vendors.8f9d2e4a.1b3c4d5e.min.js&host=ulog.unlimitedweb.org&mode=stream-up&extra=%7B%22xPaddingBytes%22%3A%22250-950%22%2C%22xmux%22%3A%7B%22maxConcurrency%22%3A%2216%22%2C%22maxConnections%22%3A%220%22%2C%22cMaxReuseTimes%22%3A%220%22%2C%22hMaxReusableSecs%22%3A%22110%22%2C%22hMaxRequestTimes%22%3A%221000%22%2C%22hKeepAlivePeriod%22%3A60%7D%7D&sni=ulog.unlimitedweb.org&fp=safari&alpn=h2#%F0%9F%87%AC%F0%9F%87%A7%20%E2%80%A2%20%F0%9D%97%A8%F0%9D%97%BB%F0%9D%97%B6%F0%9D%98%81%F0%9D%97%B2%F0%9D%97%B1%20%F0%9D%97%9E%F0%9D%97%B6%F0%9D%97%BB%F0%9D%97%B4%F0%9D%97%B1%F0%9D%97%BC%F0%9D%97%BA"]
+        }
+    ]
+}

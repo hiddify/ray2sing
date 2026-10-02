@@ -17,6 +17,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 
 	var (
 		privateKey                         string
+		mtu                                uint32
 		addresses                          []netip.Prefix
 		jc, jmin, jmax                     int
 		s1, s2, s3, s4                     int
@@ -53,6 +54,9 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 			switch key {
 			case "PrivateKey":
 				privateKey = val
+			case "MTU":
+				v, _ := strconv.Atoi(val)
+				mtu = uint32(v)
 
 			case "Address":
 				for _, add := range strings.Split(val, ",") {
@@ -105,11 +109,13 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 				peer.PresharedKey = val
 
 			case "AllowedIPs":
-				pfx, err := netip.ParsePrefix(val)
-				if err != nil {
-					return nil, fmt.Errorf("invalid AllowedIPs: %w", err)
+				for _, ip := range strings.Split(val, ",") {
+					pfx, err := netip.ParsePrefix(strings.TrimSpace(ip))
+					if err != nil {
+						return nil, fmt.Errorf("invalid AllowedIPs: %w", err)
+					}
+					peer.AllowedIPs = append(peer.AllowedIPs, pfx)
 				}
-				peer.AllowedIPs = badoption.Listable[netip.Prefix]{pfx}
 
 			case "Endpoint":
 				host, portStr, err := net.SplitHostPort(val)
@@ -138,23 +144,38 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		return nil, errors.New("missing peer Endpoint")
 	}
 	if len(peer.AllowedIPs) == 0 {
-		if len(peer.AllowedIPs) == 0 {
-			peer.AllowedIPs = badoption.Listable[netip.Prefix]([]netip.Prefix{
-				netip.MustParsePrefix("0.0.0.0/0"), netip.MustParsePrefix("::/0"),
-			})
-		}
+		peer.AllowedIPs = badoption.Listable[netip.Prefix]([]netip.Prefix{
+			netip.MustParsePrefix("0.0.0.0/0"), netip.MustParsePrefix("::/0"),
+		})
 	}
-	isAwg := jc+jmin+jmax+s1+s2+s3+s4 == 0 && h1+h2+h3+h4+i1+i2+i3+i4 == ""
-	noise := defaultWireguardNoiseOptions()
-	noise.FakePacket.Enabled = isAwg
-	if true || isAwg {
-		// fmt.Println(">>out", C.TypeAwg)
+	awg := T.AwgOptions{
+		Jc:   jc,
+		Jmin: jmin,
+		Jmax: jmax,
+
+		S1: s1,
+		S2: s2,
+		S3: s3,
+		S4: s4,
+		H1: h1,
+		H2: h2,
+		H3: h3,
+		H4: h4,
+
+		I1: i1,
+		I2: i2,
+		I3: i3,
+		I4: i4,
+		I5: i5,
+	}
+	if !awg.IsAvailble() {
 		return &T.Endpoint{
 			Type: C.TypeWireGuard,
 			Tag:  "wiregaurd",
 			Options: &T.WireGuardEndpointOptions{
 				PrivateKey: privateKey,
 				Address:    badoption.Listable[netip.Prefix](addresses),
+				MTU:        mtu,
 				Peers: []T.WireGuardPeer{
 					T.WireGuardPeer{
 						Address:                     peer.Address,
@@ -165,7 +186,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 						PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
 					},
 				},
-				Noise: noise,
+				Noise: defaultWireguardNoiseOptions(),
 			},
 		}, nil
 	}
@@ -177,27 +198,9 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 
 			PrivateKey: privateKey,
 			Address:    badoption.Listable[netip.Prefix](addresses),
-			Awg: T.AwgOptions{
-				Jc:   jc,
-				Jmin: jmin,
-				Jmax: jmax,
-
-				S1: s1,
-				S2: s2,
-				S3: s3,
-				S4: s4,
-				H1: h1,
-				H2: h2,
-				H3: h3,
-				H4: h4,
-
-				I1: i1,
-				I2: i2,
-				I3: i3,
-				I4: i4,
-				I5: i5,
-			},
-			Peers: []T.AwgPeerOptions{peer},
+			MTU:        mtu,
+			Awg:        awg,
+			Peers:      []T.AwgPeerOptions{peer},
 		},
 	}
 
@@ -205,15 +208,17 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 }
 
 func AWGSingbox(raw string) (*T.Endpoint, error) {
+	content := raw
 	splt := strings.SplitN(raw, "://", 2)
 	if len(splt) == 2 {
 		d, _ := decodeBase64IfNeeded(splt[1])
 		raw = splt[0] + "://" + d
+		content = d
 	}
 	u, err := ParseUrl(raw, 0)
 
 	if err != nil || len(u.Params) == 0 {
-		if end, err2 := AWGSingboxTxt(raw); err2 == nil {
+		if end, err2 := AWGSingboxTxt(content); err2 == nil {
 			return end, nil
 		}
 		return nil, err
@@ -253,12 +258,12 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		return badoption.Listable[netip.Prefix](out), nil
 	}
 
-	addresses, err := parsePrefixes(getOneOfN(u.Params, "", "ip", "address"))
+	addresses, err := parsePrefixes(getOneOfN(u.Params, "", "ip", "address", "localaddress"))
 	if err != nil {
 		return nil, err
 	}
 
-	allowedIPs, err := parsePrefixes(getOneOfN(u.Params, "", "localaddress", "allowedips"))
+	allowedIPs, err := parsePrefixes(getOneOfN(u.Params, "", "allowedips"))
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +326,7 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 	var out *T.Endpoint
 	isAwg := opts.Awg.IsAvailble()
 
-	if true || isAwg {
+	if !isAwg {
 		wgopts := T.WireGuardEndpointOptions{
 			PrivateKey: opts.PrivateKey,
 			Address:    opts.Address,
@@ -336,7 +341,7 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 				},
 			},
 			MTU:   uint32(toInt(getOneOfN(u.Params, "1280", "mtu"))),
-			Noise: getWireGuardNoise(u.Params, isAwg),
+			Noise: getWireGuardNoise(u.Params, false),
 		}
 		if reservedStr, ok := u.Params["reserved"]; ok {
 			reservedParts := strings.Split(reservedStr, ",")

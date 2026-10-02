@@ -18,10 +18,15 @@ func TestHysteria(t *testing.T) {
 				"tag": "remarks § 0",
 				"server": "host",
 				"server_port": 443,
+				"up_mbps": 100,
+				"down_mbps": 100,
+				"obfs": "123456",
+				"auth_str": "123456",
 				"tls": {
 				"enabled": true,
 				"server_name": "sni.domain",
-				"insecure": true
+				"insecure": true,
+				"alpn": "hysteria"
 				}
 			}
 		]

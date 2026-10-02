@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hiddify/ray2sing/ray2sing"
+	"github.com/sagernet/sing-box/experimental/libbox"
 	"github.com/sagernet/sing-box/log"
 
 	"github.com/spf13/cobra"
@@ -26,7 +27,7 @@ func init() {
 }
 
 func convert(link string) error {
-	outbound, err := ray2sing.Ray2Singbox(link, false)
+	outbound, err := ray2sing.Ray2Singbox(libbox.BaseContext(nil), link, false)
 	if err != nil {
 		return err
 	}

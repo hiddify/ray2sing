@@ -1,7 +1,7 @@
 package ray2sing
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/sagernet/sing-box/experimental/libbox"
 	T "github.com/sagernet/sing-box/option"
+	singjson "github.com/sagernet/sing/common/json"
 )
 
 func CheckUrlAndJson(url string, expectedJSON string, t *testing.T) {
@@ -34,19 +35,30 @@ func CheckUrlAndJson(url string, expectedJSON string, t *testing.T) {
 	}
 }
 
-func json2map_prettystr(injson string) ([]T.Outbound, string, error) {
+type comparableOptions struct {
+	Outbounds []T.Outbound `json:"outbounds,omitempty"`
+	Endpoints []T.Endpoint `json:"endpoints,omitempty"`
+}
+
+func json2map_prettystr(injson string) (comparableOptions, string, error) {
 	var conf T.Options
-	if err := conf.UnmarshalJSONContext(context.Background(), []byte(injson)); err != nil {
-		return conf.Outbounds, "", err
+	ctx := libbox.BaseContext(nil)
+	if err := conf.UnmarshalJSONContext(ctx, []byte(injson)); err != nil {
+		return comparableOptions{}, "", err
 	}
-	if len(conf.Outbounds) == 0 {
-		return conf.Outbounds, "", fmt.Errorf("No outbound")
+	out := comparableOptions{Outbounds: conf.Outbounds, Endpoints: conf.Endpoints}
+	if len(out.Outbounds) == 0 && len(out.Endpoints) == 0 {
+		return out, "", fmt.Errorf("No outbound")
 	}
-	pp, err := json.MarshalIndent(conf.Outbounds, "", " ")
+	raw, err := singjson.MarshalContext(ctx, out)
 	if err != nil {
-		return conf.Outbounds, "", err
+		return out, "", err
 	}
-	return conf.Outbounds, string(pp), nil
+	var pp bytes.Buffer
+	if err := json.Indent(&pp, raw, "", " "); err != nil {
+		return out, "", err
+	}
+	return out, pp.String(), nil
 }
 
 func sortedMarshal(data map[string]interface{}) (string, error) {

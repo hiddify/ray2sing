@@ -2,6 +2,7 @@ package ray2sing
 
 import (
 	"strconv"
+	"strings"
 
 	T "github.com/sagernet/sing-box/option"
 )
@@ -23,6 +24,9 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 			},
 		},
 	}
+	if alpn := u.Params["alpn"]; alpn != "" {
+		opts.TLS.ALPN = strings.Split(alpn, ",")
+	}
 	singOut := &T.Outbound{
 		Type:    u.Scheme,
 		Tag:     u.Name,
@@ -41,7 +45,7 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 		opts.DownMbps = downMbps
 	}
 
-	opts.Obfs = u.Params["obfsParam"]
+	opts.Obfs = getOneOfN(u.Params, "", "obfsparam", "obfspassword")
 	// opts.TurnRelay, err = u.GetRelayOptions()
 	if err != nil {
 		return nil, err

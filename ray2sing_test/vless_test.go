@@ -23,6 +23,7 @@ func TestVless(t *testing.T) {
 			"tls": {
 			  "enabled": true,
 			  "server_name": "vless.229feb8b52a0e7e117ea76f8b591bcb3.workers.dev",
+			  "alpn": "http/1.1",
 			  "utls": {
 				"enabled": true,
 				"fingerprint": "chrome"
@@ -37,7 +38,7 @@ func TestVless(t *testing.T) {
 			  "max_early_data": 2048,
 			  "early_data_header_name": "Sec-WebSocket-Protocol"
 			},
-			"packet_encoding": ""
+			"packet_encoding": "xudp"
 		  }
 		]
 	  }

@@ -53,7 +53,7 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 		// fmt.Print(userInfo)
 		if err == nil && isValidChar(userInfo) {
 			// If decoding is successful, use the decoded string
-			userDetails := strings.Split(userInfo, ":")
+			userDetails := strings.SplitN(userInfo, ":", 2)
 			if len(userDetails) == 2 {
 				data.Username = userDetails[0]
 				data.Password = userDetails[1]
@@ -71,8 +71,7 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 func normalizeStr(ss string) string {
 	s := strings.ToLower(strings.TrimSpace(ss))
 	for _, r := range []string{"_", "-"} {
-		s = strings.ReplaceAll(s, r, " ")
-
+		s = strings.ReplaceAll(s, r, "")
 	}
 	return s
 }

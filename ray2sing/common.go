@@ -511,7 +511,7 @@ func isIPOnly(s string) bool {
 
 func getOneOf(dic map[string]string, headers ...string) (string, error) {
 	for _, h := range headers {
-		if str, ok := dic[h]; ok {
+		if str, ok := dic[normalizeStr(h)]; ok {
 			return str, nil
 		}
 	}

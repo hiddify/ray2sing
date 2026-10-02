@@ -15,7 +15,7 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 	if obfs, ok := decoded["obfs"]; ok && obfs != "" {
 		ObfsOpts = &T.Hysteria2Obfs{
 			Type:     obfs,
-			Password: decoded["obfs-password"],
+			Password: decoded["obfspassword"],
 		}
 	}
 
