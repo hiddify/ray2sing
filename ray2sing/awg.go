@@ -276,7 +276,7 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 	peer := T.AwgPeerOptions{
 		Address:                     u.Hostname,
 		Port:                        u.Port,
-		PublicKey:                   getOneOfN(u.Params, "", "peerpublickey", "publickey", "pub", "peerpub"),
+		PublicKey:                   getOneOfN(u.Params, "", "peerpublickey", "publickey", "pub", "peerpub", "peerpk"),
 		PresharedKey:                getOneOfN(u.Params, "", "presharedkey", "psk"),
 		AllowedIPs:                  allowedIPs,
 		PersistentKeepaliveInterval: getUint16("keepalive"),

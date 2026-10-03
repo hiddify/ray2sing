@@ -29,8 +29,7 @@ func TestTuic(t *testing.T) {
 			  "server_name": "www.google.com",
 			  "insecure": true,
 			  "alpn": [
-				"h3",
-				"spdy/3.1"
+				"h3"
 			  ]
 			}
 		  }

@@ -12,9 +12,10 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 	if err != nil {
 		return nil, err
 	}
-	SNI := u.Params["peer"]
+	SNI := getOneOfN(u.Params, "", "peer", "sni")
 	opts := T.HysteriaOutboundOptions{
 		ServerOptions: u.GetServerOption(),
+		ServerPorts:   u.PortRanges,
 		OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{
 			TLS: &T.OutboundTLSOptions{
 				Enabled:    true,
@@ -46,6 +47,10 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 	}
 
 	opts.Obfs = getOneOfN(u.Params, "", "obfsparam", "obfspassword")
+	// hiddifypanel puts the obfs password directly in "obfs" ("xplus" is only the obfs mode name)
+	if obfs := u.Params["obfs"]; opts.Obfs == "" && obfs != "" && obfs != "xplus" {
+		opts.Obfs = obfs
+	}
 	// opts.TurnRelay, err = u.GetRelayOptions()
 	if err != nil {
 		return nil, err

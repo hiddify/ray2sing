@@ -17,6 +17,9 @@ type UrlSchema struct {
 	Port     uint16
 	Name     string
 	Params   map[string]string
+	// PortRanges holds "start:end" entries when the URL port is a list/range such as
+	// "443,20000-30000" (hysteria port hopping); Port is then the first port.
+	PortRanges []string
 }
 
 func (u UrlSchema) GetServerOption() T.ServerOptions {
@@ -32,6 +35,7 @@ func (u UrlSchema) GetServerOption() T.ServerOptions {
 
 // parseHysteria2 parses a given URL and returns a HysteriaURLData struct.
 func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
+	inputURL, portRanges := extractPortRanges(inputURL)
 	parsedURL, err := url.Parse(inputURL)
 	if err != nil {
 		return nil, err
@@ -39,13 +43,14 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 	port := toUInt16(parsedURL.Port(), defaultPort)
 
 	data := &UrlSchema{
-		Scheme:   parsedURL.Scheme,
-		Username: parsedURL.User.Username(),
-		Password: getPassword(parsedURL),
-		Hostname: parsedURL.Hostname(),
-		Port:     port,
-		Name:     parsedURL.Fragment,
-		Params:   make(map[string]string),
+		Scheme:     parsedURL.Scheme,
+		Username:   parsedURL.User.Username(),
+		Password:   getPassword(parsedURL),
+		Hostname:   parsedURL.Hostname(),
+		Port:       port,
+		Name:       parsedURL.Fragment,
+		Params:     make(map[string]string),
+		PortRanges: portRanges,
 	}
 	if isBase64CharsOnly(data.Username) {
 		userInfo, err := decodeBase64IfNeeded(data.Username)
@@ -66,6 +71,42 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 	}
 
 	return data, nil
+}
+
+var portListRegex = regexp.MustCompile(`^[0-9]+([-,][0-9]+)*$`)
+
+// extractPortRanges rewrites a port list such as "host:443,20000-30000" to its first port
+// (url.Parse rejects lists) and returns the list in sing-box server_ports form ("443:443", "20000:30000").
+func extractPortRanges(inputURL string) (string, []string) {
+	schemeEnd := strings.Index(inputURL, "://")
+	if schemeEnd < 0 {
+		return inputURL, nil
+	}
+	authStart := schemeEnd + 3
+	authEnd := len(inputURL)
+	if i := strings.IndexAny(inputURL[authStart:], "/?#"); i >= 0 {
+		authEnd = authStart + i
+	}
+	authority := inputURL[authStart:authEnd]
+	hostStart := strings.LastIndex(authority, "@") + 1
+	colon := strings.LastIndex(authority, ":")
+	if colon < hostStart || strings.Contains(authority[colon:], "]") {
+		return inputURL, nil
+	}
+	portSpec := authority[colon+1:]
+	if !strings.ContainsAny(portSpec, ",-") || !portListRegex.MatchString(portSpec) {
+		return inputURL, nil
+	}
+	var ranges []string
+	for _, part := range strings.Split(portSpec, ",") {
+		bounds := strings.SplitN(part, "-", 2)
+		if len(bounds) == 1 {
+			bounds = append(bounds, bounds[0])
+		}
+		ranges = append(ranges, bounds[0]+":"+bounds[1])
+	}
+	firstPort := strings.SplitN(strings.SplitN(portSpec, ",", 2)[0], "-", 2)[0]
+	return inputURL[:authStart] + authority[:colon+1] + firstPort + inputURL[authEnd:], ranges
 }
 
 func normalizeStr(ss string) string {

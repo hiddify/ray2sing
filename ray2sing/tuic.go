@@ -3,6 +3,7 @@ package ray2sing
 import (
 	T "github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/json/badoption"
+	"strings"
 
 	"time"
 )
@@ -43,7 +44,7 @@ func TuicSingbox(tuicUrl string) (*T.Outbound, error) {
 					DisableSNI: decoded["sni"] == "",
 					ServerName: decoded["sni"],
 					Insecure:   decoded["allowinsecure"] == "1" || decoded["insecure"] == "1",
-					ALPN:       []string{"h3", "spdy/3.1"},
+					ALPN:       strings.Split(getOneOfN(decoded, "h3,spdy/3.1", "alpn"), ","),
 					ECH:        ECHOpts,
 				},
 			},

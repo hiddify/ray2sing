@@ -16,6 +16,8 @@ type DownloadSettings struct {
 	Security        string         `json:"security,omitempty"`
 	TLSSettings     *TLSConfig     `json:"tlsSettings"`
 	REALITYSettings *REALITYConfig `json:"realitySettings"`
+	// Xray/hiddifypanel nest the download leg's path/host/mode/headers here
+	XHTTPSettings *option.V2RayXHTTPBaseOptions `json:"xhttpSettings,omitempty"`
 }
 
 type TLSConfig struct {
@@ -28,9 +30,9 @@ type TLSConfig struct {
 	// MinVersion string `json:"minVersion"`
 	// MaxVersion string `json:"maxVersion"`
 	// CipherSuites            string           `json:"cipherSuites"`
-	Fingerprint      string `json:"fingerprint"`
-	RejectUnknownSNI bool   `json:"rejectUnknownSni"`
-	// PinnedPeerCertSha256    string           `json:"pinnedPeerCertSha256"`
+	Fingerprint          string `json:"fingerprint"`
+	RejectUnknownSNI     bool   `json:"rejectUnknownSni"`
+	PinnedPeerCertSha256 string `json:"pinnedPeerCertSha256"`
 	// CurvePreferences        *StringList      `json:"curvePreferences"`
 	// MasterKeyLog            string           `json:"masterKeyLog"`
 	// ServerNameToVerify      string           `json:"serverNameToVerify"`

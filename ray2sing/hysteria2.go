@@ -46,6 +46,7 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 		Tag:  u.Name,
 		Options: &T.Hysteria2OutboundOptions{
 			ServerOptions: u.GetServerOption(),
+			ServerPorts:   u.PortRanges,
 			Obfs:          ObfsOpts,
 			Password:      pass,
 			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{

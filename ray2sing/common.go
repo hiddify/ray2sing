@@ -3,6 +3,7 @@ package ray2sing
 //based on https://github.com/XTLS/Xray-core/issues/91
 //todo merge with https://github.com/XTLS/libXray/
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -64,6 +65,12 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 		ECH:        ECHOpts,
 		// TLSTricks:  getTricksOptions(decoded),
 	}
+	// pcs: Xray pinnedPeerCertSha256
+	tlsOptions.CertificateSHA256 = parsePinnedCertSHA256(decoded["pcs"])
+	// fragment: "size,sleep,packets" (or fgsize/fgsleep) enables TLS handshake fragmentation
+	if getFragmentOptions(decoded).Enabled {
+		tlsOptions.Fragment = true
+	}
 	if fp != "" && !tlsOptions.DisableSNI {
 		tlsOptions.UTLS = &option.OutboundUTLSOptions{
 			Enabled:     true,
@@ -90,6 +97,17 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 		TLS: tlsOptions,
 	}
 
+}
+
+// parsePinnedCertSHA256 parses Xray's pinnedPeerCertSha256: comma separated hex SHA256 of the server certificate.
+func parsePinnedCertSHA256(pins string) badoption.Listable[[]byte] {
+	var hashes badoption.Listable[[]byte]
+	for _, pin := range strings.Split(pins, ",") {
+		if hash, err := hex.DecodeString(strings.ReplaceAll(strings.TrimSpace(pin), ":", "")); err == nil && len(hash) == 32 {
+			hashes = append(hashes, hash)
+		}
+	}
+	return hashes
 }
 
 func getTricksOptions(decoded map[string]string) *option.TLSTricksOptions {
@@ -281,6 +299,17 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 				transportOptions.XHTTPOptions.Path = path
 			}
 			if dl := x.DownloadSettings; dl != nil {
+				if dl.XHTTPSettings != nil {
+					if dl.XHTTPSettings.Path != "" {
+						dl.Path = dl.XHTTPSettings.Path
+					}
+					if dl.XHTTPSettings.Host != "" {
+						dl.Host = dl.XHTTPSettings.Host
+					}
+					if len(dl.XHTTPSettings.Headers) > 0 {
+						dl.Headers = dl.XHTTPSettings.Headers
+					}
+				}
 				transportOptions.XHTTPOptions.Download = &option.V2RayXHTTPDownloadOptions{
 					V2RayXHTTPBaseOptions: dl.V2RayXHTTPBaseOptions,
 					ServerOptions: option.ServerOptions{
@@ -298,6 +327,7 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 						Insecure:   dl.TLSSettings.Insecure,
 						ServerName: dl.TLSSettings.ServerName,
 					}
+					transportOptions.XHTTPOptions.Download.TLS.CertificateSHA256 = parsePinnedCertSHA256(dl.TLSSettings.PinnedPeerCertSha256)
 
 					if dl.TLSSettings.Fingerprint != "" && getALPNversion(dl.TLSSettings.ALPN) != 3 {
 						transportOptions.XHTTPOptions.Download.TLS.UTLS = &option.OutboundUTLSOptions{
