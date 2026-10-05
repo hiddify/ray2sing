@@ -120,6 +120,9 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outend *OutEn
 	if outend.endpoint == nil && outend.outbound == nil {
 		return nil, E.New("Not supported config type")
 	}
+	if err := applyFinalMask(config, outend); err != nil {
+		return nil, err
+	}
 	if outend.outbound != nil && outend.outbound.Tag == "" {
 		outend.outbound.Tag = outend.outbound.Type
 	}
