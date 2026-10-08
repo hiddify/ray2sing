@@ -27,6 +27,12 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 		}
 	}
 
+	// VLESS encryption (e.g. mlkem768x25519plus...); "none" is the plain protocol
+	encryption := decoded["encryption"]
+	if encryption == "none" {
+		encryption = ""
+	}
+
 	packetEncoding := decoded["packetencoding"]
 	if packetEncoding == "" {
 		packetEncoding = "xudp"
@@ -41,6 +47,7 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 			UUID:                        u.Username,
 			PacketEncoding:              &packetEncoding,
 			Flow:                        decoded["flow"],
+			Encryption:                  encryption,
 			OutboundTLSOptionsContainer: tlsOptions,
 			Transport:                   transportOptions,
 			Multiplex:                   getMuxOptions(decoded),

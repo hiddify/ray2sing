@@ -185,8 +185,12 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		net = "tcp"
 	}
 	// fmoption.Printf("\n\nheaderType:%s, net:%s, type:%s\n\n", decoded["headerType"], net, decoded["type"])
+	// Xray raw TCP with the HTTP header (vless headerType=http, vmess net=tcp type=http) is
+	// HTTP/1.1 also over TLS, unlike Xray's "http" network (HTTP/2)
+	rawHTTP := false
 	if (decoded["type"] == "http" || decoded["headertype"] == "http") && net == "tcp" {
 		net = "http"
+		rawHTTP = true
 	}
 
 	switch net {
@@ -194,8 +198,11 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		return nil, nil
 	case "http":
 		transportOptions.Type = C.V2RayTransportTypeHTTP
-		if decoded["security"] != "tls" {
+		if decoded["security"] != "tls" || rawHTTP {
 			transportOptions.HTTPOptions.Method = "GET"
+		}
+		if rawHTTP {
+			transportOptions.HTTPOptions.Version = 1
 		}
 		if host != "" {
 			transportOptions.HTTPOptions.Host = badoption.Listable[string]{host}
