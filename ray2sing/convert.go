@@ -3,6 +3,7 @@ package ray2sing
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"runtime"
 
@@ -154,6 +155,9 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 
 			// fmt.Printf("%s", chain)
 			chain, _ := decodeBase64IfNeeded(chain1)
+			if isSubscriptionInfoEntry(chain) {
+				continue
+			}
 			outend, err := processSingleConfig(chain, useXrayWhenPossible)
 
 			if err != nil {
@@ -231,4 +235,12 @@ func Ray2SingboxOptions(ctx context.Context, configs string, useXrayWhenPossible
 
 	convertedData, err := GenerateConfigLite(configs, useXrayWhenPossible)
 	return convertedData, err
+}
+
+// isSubscriptionInfoEntry reports Hiddify panel entries that only show the subscription's usage and
+// expiry in their name (sni=fake_ip_for_sub_link); they are not servers, and the same data comes in
+// the subscription-userinfo header.
+func isSubscriptionInfoEntry(config string) bool {
+	u, err := url.Parse(config)
+	return err == nil && u.Query().Get("sni") == "fake_ip_for_sub_link"
 }
