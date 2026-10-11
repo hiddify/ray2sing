@@ -7,10 +7,7 @@ import (
 )
 
 func buildRegex() *regexp.Regexp {
-	prefixSet := map[string]struct{}{
-		"#":  {},
-		"//": {},
-	}
+	prefixSet := map[string]struct{}{}
 
 	for k := range configTypes {
 		prefixSet[k] = struct{}{}
@@ -40,7 +37,39 @@ func buildRegex() *regexp.Regexp {
 
 var splitPattern = buildRegex()
 
+// separatorPattern matches a "===" or "#===" line that explicitly separates configs,
+// e.g. several WireGuard .conf files pasted together.
+var separatorPattern = regexp.MustCompile(`(?m)^[ \t]*#?[ \t]*={3,}[ \t]*\r?$`)
+
+func isSeparatorLine(line string) bool {
+	return separatorPattern.MatchString(line)
+}
+
+// removeCommentLines drops whole-line "#" and "//" comments, so a comment inside a
+// multi-line config (e.g. a WireGuard [Interface] block) does not cut it in half.
+func removeCommentLines(text string) string {
+	lines := strings.Split(text, "\n")
+	kept := lines[:0]
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "//") {
+			continue
+		}
+		kept = append(kept, line)
+	}
+	return strings.Join(kept, "\n")
+}
+
 func splitByPrefix(text string) []string {
+	var result []string
+	// split on separators before dropping comments, since "#===" is also a comment
+	for _, segment := range separatorPattern.Split(text, -1) {
+		result = append(result, splitSegmentByPrefix(removeCommentLines(segment))...)
+	}
+	return result
+}
+
+func splitSegmentByPrefix(text string) []string {
 	indexes := splitPattern.FindAllStringIndex(text, -1)
 
 	if len(indexes) == 0 {
@@ -83,6 +112,10 @@ func expandDecodedConfig(configs string) []string {
 
 	configs2 := []string{}
 	for _, config := range strings.Split(configs, "\n") {
+		if isSeparatorLine(config) {
+			configs2 = append(configs2, config)
+			continue
+		}
 		configDecoded, err := decodeBase64IfNeeded(config)
 		if err != nil {
 			configDecoded = config
