@@ -65,6 +65,14 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 	if packetEncoding == "" {
 		packetEncoding = "xudp"
 	}
+	tlsOptions := getTLSOptions(decoded)
+	if tlsOptions.TLS != nil && isReality(decoded) {
+		tlsOptions.TLS.Reality = &T.OutboundRealityOptions{
+			Enabled:   true,
+			PublicKey: decoded["pbk"],
+			ShortID:   decoded["sid"],
+		}
+	}
 	return &T.Outbound{
 		Tag:  decoded["ps"],
 		Type: "vmess",
@@ -80,7 +88,7 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 			GlobalPadding:               false,
 			AuthenticatedLength:         true,
 			PacketEncoding:              packetEncoding,
-			OutboundTLSOptionsContainer: getTLSOptions(decoded),
+			OutboundTLSOptionsContainer: tlsOptions,
 			Transport:                   transportOptions,
 			Multiplex:                   getMuxOptions(decoded),
 		},

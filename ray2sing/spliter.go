@@ -29,8 +29,9 @@ func buildRegex() *regexp.Regexp {
 		return len(prefixes[i]) > len(prefixes[j])
 	})
 
-	// pattern := `(` + strings.Join(prefixes, "|") + `)`
-	pattern := `(?m)^(?:` + strings.Join(prefixes, "|") + `)`
+	// Also split on any URI scheme at line start (e.g. tg://) so unsupported
+	// share links are not swallowed into the previous config's fragment/name.
+	pattern := `(?m)^(?:` + strings.Join(prefixes, "|") + `|[a-zA-Z][a-zA-Z0-9+.-]*://)`
 
 	return regexp.MustCompile(pattern)
 }

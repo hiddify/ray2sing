@@ -13,13 +13,21 @@ func SnellSingbox(snellURL string) (*T.Outbound, error) {
 		return nil, err
 	}
 	decoded := u.Params
-	psk := getOneOfN(decoded, u.Username, "psk")
+	// snell://psk@host (legacy) or snell://userkey@host?psk=... (panel multi-user)
+	psk := decoded["psk"]
+	userKey := getOneOfN(decoded, "", "userkey")
+	if psk == "" {
+		psk = u.Username
+	} else if userKey == "" && u.Username != "" {
+		userKey = u.Username
+	}
 	options := &T.SnellOutboundOptions{
 		Version: toInt(getOneOfN(decoded, "4", "version")),
 		AbstractSnellOutboundOptions: T.AbstractSnellOutboundOptions{
 			DialerOptions: getDialerOptions(decoded),
 			ServerOptions: u.GetServerOption(),
 			PSK:           psk,
+			UserKey:       userKey,
 			Reuse:         toBool(decoded["reuse"], false),
 		},
 	}

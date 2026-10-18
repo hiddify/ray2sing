@@ -42,13 +42,17 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 	}
 	port := toUInt16(parsedURL.Port(), defaultPort)
 
+	name := parsedURL.Fragment
+	if i := strings.IndexAny(name, "\r\n"); i >= 0 {
+		name = name[:i]
+	}
 	data := &UrlSchema{
 		Scheme:     parsedURL.Scheme,
 		Username:   parsedURL.User.Username(),
 		Password:   getPassword(parsedURL),
 		Hostname:   parsedURL.Hostname(),
 		Port:       port,
-		Name:       parsedURL.Fragment,
+		Name:       name,
 		Params:     make(map[string]string),
 		PortRanges: portRanges,
 	}

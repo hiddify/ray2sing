@@ -288,7 +288,7 @@ func getTLSOptionsXray(decoded map[string]string) map[string]any {
 	}
 }
 func getRealityOptionsXray(decoded map[string]string) map[string]any {
-	if !(decoded["security"] == "reality") {
+	if !isReality(decoded) {
 		return nil
 	}
 	serverName := decoded["sni"]

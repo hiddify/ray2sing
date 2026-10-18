@@ -25,8 +25,13 @@ const USER_AGENT string = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit
 type ParserFunc func(string) (*option.Outbound, error)
 type EndpointParserFunc func(string) (*T.Endpoint, error)
 
+// isReality reports VLESS-style security=reality or VMess-style tls=reality.
+func isReality(decoded map[string]string) bool {
+	return decoded["security"] == "reality" || decoded["tls"] == "reality"
+}
+
 func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
-	if !(decoded["tls"] == "tls" || decoded["security"] == "tls" || decoded["security"] == "reality") {
+	if !(decoded["tls"] == "tls" || decoded["security"] == "tls" || isReality(decoded)) {
 		return T.OutboundTLSOptionsContainer{TLS: nil}
 	}
 
@@ -50,7 +55,7 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 
 	fp := decoded["fp"]
-	if fp == "" && decoded["security"] == "reality" {
+	if fp == "" && isReality(decoded) {
 		fp = "chrome"
 	}
 	insecure, err := getOneOf(decoded, "insecure", "allowinsecure")
@@ -71,13 +76,6 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	if getFragmentOptions(decoded).Enabled {
 		tlsOptions.Fragment = true
 	}
-	if fp != "" && !tlsOptions.DisableSNI {
-		tlsOptions.UTLS = &option.OutboundUTLSOptions{
-			Enabled:     true,
-			Fingerprint: fp,
-		}
-	}
-
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
 		net := getOneOfN(decoded, "net")
 		if net == "" {
@@ -87,11 +85,15 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 			tlsOptions.ALPN = []string{"h2", "http/1.1"}
 		} else {
 			tlsOptions.ALPN = strings.Split(alpn, ",")
-			if getALPNversion(tlsOptions.ALPN) == 3 && getOneOfN(decoded, "", "type") == "xhttp" || getOneOfN(decoded, "", "net") == "xhttp" {
-				tlsOptions.UTLS = nil //TODO utls quic has bug
-			}
 		}
-
+	}
+	// uTLS breaks QUIC/h3 (xhttp QUIC and similar); never enable fingerprint when ALPN is h3.
+	useUTLS := fp != "" && !tlsOptions.DisableSNI && getALPNversion(tlsOptions.ALPN) != 3
+	if useUTLS {
+		tlsOptions.UTLS = &option.OutboundUTLSOptions{
+			Enabled:     true,
+			Fingerprint: fp,
+		}
 	}
 	return T.OutboundTLSOptionsContainer{
 		TLS: tlsOptions,
