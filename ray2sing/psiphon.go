@@ -12,7 +12,7 @@ func PsiphonSingbox(url string) (*T.Outbound, error) {
 	}
 	opts := T.PsiphonOutboundOptions{
 		// ServerOptions: u.GetServerOption(),
-		EgressRegion:                       getOneOfN(u.Params, "", "region"),
+		EgressRegion:                       getOneOfN(u.Params, "", "region", "egress_region"),
 		RemoteServerListURL:                getOneOfN(u.Params, "", "remote_server_list_url"),
 		RemoteServerListDownloadFilename:   getOneOfN(u.Params, "", "remote_server_list_download_filename"),
 		RemoteServerListSignaturePublicKey: getOneOfN(u.Params, "", "remote_server_list_signature_public_key"),
