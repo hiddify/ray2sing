@@ -29,11 +29,14 @@ func AnyTLSSingbox(anytlsURL string) (*T.Outbound, error) {
 	if fp := decoded["fp"]; fp != "" {
 		tls.UTLS = &T.OutboundUTLSOptions{Enabled: true, Fingerprint: fp}
 	}
+	dialer := getDialerOptions(decoded)
+	// the anytls outbound refuses tcp_fast_open
+	dialer.TCPFastOpen = false
 	return &T.Outbound{
 		Type: C.TypeAnyTLS,
 		Tag:  u.Name,
 		Options: &T.AnyTLSOutboundOptions{
-			DialerOptions:               getDialerOptions(decoded),
+			DialerOptions:               dialer,
 			ServerOptions:               u.GetServerOption(),
 			OutboundTLSOptionsContainer: T.OutboundTLSOptionsContainer{TLS: tls},
 			Password:                    password,
