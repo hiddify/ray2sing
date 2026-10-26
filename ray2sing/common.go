@@ -72,10 +72,8 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 	// pcs: Xray pinnedPeerCertSha256
 	tlsOptions.CertificateSHA256 = parsePinnedCertSHA256(decoded["pcs"])
-	// fragment: "size,sleep,packets" (or fgsize/fgsleep) enables TLS handshake fragmentation
-	if getFragmentOptions(decoded).Enabled {
-		tlsOptions.Fragment = true
-	}
+	// fragment size/sleep is applied via dialer.TLSFragment in getDialerOptions
+	// (not tls.fragment) so ClientHello uses the configured ranges.
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
 		net := getOneOfN(decoded, "net")
 		if net == "" {
@@ -464,10 +462,12 @@ func getALPNversion(s []string) int {
 //		}
 //	}
 func getDialerOptions(decoded map[string]string) option.DialerOptions {
-	// fragment := getFragmentOptions(decoded)
+	fragment := getFragmentOptions(decoded)
 	return T.DialerOptions{
-		// TCPFastOpen: !fragment.Enabled,
-		// TLSFragment: fragment,
+		AbstractDialerOptions: T.AbstractDialerOptions{
+			TCPFastOpen: !fragment.Enabled,
+		},
+		TLSFragment: fragment,
 	}
 }
 
