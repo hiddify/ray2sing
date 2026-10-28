@@ -203,6 +203,21 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		}
 		if rawHTTP {
 			transportOptions.HTTPOptions.Version = 1
+			// The browser headers Xray sends for its HTTP header obfuscation. Besides the fingerprint, a request
+			// longer than Xray's first read behind a PROXY protocol hop (256 bytes) keeps that read free of the
+			// payload: Xray's Trojan inbound parses its header from that first read only and rejects a short one.
+			transportOptions.HTTPOptions.Headers = badoption.HTTPHeader{
+				"Sec-CH-UA":          {`"Chromium";v="144", "Not:A-Brand";v="24", "Google Chrome";v="144"`},
+				"Sec-CH-UA-Mobile":   {"?0"},
+				"Sec-CH-UA-Platform": {`"Windows"`},
+				"Sec-Fetch-Mode":     {"no-cors"},
+				"Sec-Fetch-Dest":     {"empty"},
+				"Sec-Fetch-Site":     {"none"},
+				"Sec-Fetch-User":     {"?1"},
+				"Accept-Encoding":    {"gzip, deflate"},
+				"Connection":         {"keep-alive"},
+				"Pragma":             {"no-cache"},
+			}
 		}
 		if host != "" {
 			transportOptions.HTTPOptions.Host = badoption.Listable[string]{host}
@@ -215,9 +230,9 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 	case "httpupgrade":
 		decoded["alpn"] = "http/1.1"
 		transportOptions.Type = C.V2RayTransportTypeHTTPUpgrade
-		if host != "" {
-			transportOptions.HTTPUpgradeOptions.Headers = badoption.HTTPHeader{"Host": {host}}
-		}
+		// The request's Host: a "Host" entry in headers is not sent (Go takes the request's Host field), so a
+		// link to a CDN IP over plain HTTP reached the CDN with the IP as Host.
+		transportOptions.HTTPUpgradeOptions.Host = host
 		if path != "" {
 			if !strings.HasPrefix(path, "/") {
 				path = "/" + path

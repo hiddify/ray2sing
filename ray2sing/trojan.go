@@ -16,6 +16,15 @@ func TrojanSingbox(trojanURL string) (*T.Outbound, error) {
 		return nil, err
 	}
 
+	tlsOptions := getTLSOptions(decoded)
+	if tlsOptions.TLS != nil && isReality(decoded) {
+		tlsOptions.TLS.Reality = &T.OutboundRealityOptions{
+			Enabled:   true,
+			PublicKey: decoded["pbk"],
+			ShortID:   decoded["sid"],
+		}
+	}
+
 	return &T.Outbound{
 		Tag:  u.Name,
 		Type: "trojan",
@@ -23,7 +32,7 @@ func TrojanSingbox(trojanURL string) (*T.Outbound, error) {
 			DialerOptions:               getDialerOptions(decoded),
 			ServerOptions:               u.GetServerOption(),
 			Password:                    u.Username,
-			OutboundTLSOptionsContainer: getTLSOptions(decoded),
+			OutboundTLSOptionsContainer: tlsOptions,
 			Transport:                   transportOptions,
 			Multiplex:                   getMuxOptions(decoded),
 		},
