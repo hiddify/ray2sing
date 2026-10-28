@@ -20,9 +20,11 @@ func getWireGuardNoise(d map[string]string, addDefault bool) hiddify.NoiseOption
 
 	fake_packet_mode := d["ifpm"]
 	if wnoise, ok := d["wnoise"]; ok {
-		switch wnoise {
-		case "quic":
-			fake_packet_mode = "m4"
+		switch wnoise { // Xray's wnoise
+		case "quic": // QUIC Initials
+			fake_packet_mode = hiddify.NoiseModeQUIC
+		case "random": // plain random bytes, with no header
+			fake_packet_mode = hiddify.NoiseModeRaw
 		}
 	}
 	if fake_packet_count.To == 0 && fake_packet_delay.To == 0 && fake_packet_size.To == 0 && fake_packet_mode == "" {
@@ -49,7 +51,6 @@ func defaultWireguardNoiseOptions() hiddify.NoiseOptions {
 			Count:   convertRange("2-10"),
 			Size:    convertRange("30-50"),
 			Delay:   convertRange("30-50"),
-			Mode:    "m4",
 		},
 	}
 
