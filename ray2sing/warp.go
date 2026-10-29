@@ -211,6 +211,13 @@ func disableWarpScanner(endpoint *T.Endpoint) {
 	}
 }
 
+// disableMasqueScanner is disableWarpScanner for a MASQUE outbound.
+func disableMasqueScanner(outbound *T.Outbound) {
+	if options, ok := outbound.Options.(*T.MASQUEOutboundOptions); ok && options.Scanner != nil {
+		options.Scanner.Enabled = false
+	}
+}
+
 func warpNoisePreset(name string) (warpscan.NoisePreset, bool) {
 	name = strings.ToLower(name)
 	if alias, ok := warpNoisePresetAliases[name]; ok {

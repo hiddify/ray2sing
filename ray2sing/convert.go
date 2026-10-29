@@ -50,6 +50,7 @@ var configTypes = map[string]ParserFunc{
 	"mierus://":  MieruSingbox,
 	"psiphon://": PsiphonSingbox,
 	"dnstt://":   DnsttSingbox,
+	"masque://":  MasqueSingbox,
 }
 var endpointParsers = map[string]EndpointParserFunc{
 	"wg://":        AWGSingbox,
@@ -149,7 +150,7 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 		}
 		detourTag := ""
 
-		chains := strings.Split(config, " -> ")
+		chains := strings.Split(expandInnerLinks(config), " -> ")
 		for i := len(chains) - 1; i >= 0; i-- {
 			chain1 := chains[i]
 
@@ -172,6 +173,9 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 					d := dialerOpt.TakeDialerOptions()
 					d.Detour = detourTag
 					dialerOpt.ReplaceDialerOptions(d)
+				}
+				if detourTag != "" {
+					disableMasqueScanner(outend.outbound)
 				}
 
 				detourTag = outend.outbound.Tag
