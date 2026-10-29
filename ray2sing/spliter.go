@@ -42,6 +42,14 @@ var splitPattern = buildRegex()
 // e.g. several WireGuard .conf files pasted together.
 var separatorPattern = regexp.MustCompile(`(?m)^[ \t]*#?[ \t]*={3,}[ \t]*\r?$`)
 
+// boxSeparatorPattern is a rule of box-drawing characters between configs, which channels
+// glue to the end of a config: "PersistentKeepalive = 25─────────".
+var boxSeparatorPattern = regexp.MustCompile(`[─━]{3,}`)
+
+// confNamePattern is the "# Name = ..." comment that WGTunnel and AmneziaVPN write before a
+// conf's [Interface]: it moves inside, where comments are not dropped and the split keeps it.
+var confNamePattern = regexp.MustCompile(`(?m)^[ \t]*#[ \t]*Name[ \t]*=[ \t]*(.*?)[ \t]*\r?\n[ \t]*\[Interface\]`)
+
 func isSeparatorLine(line string) bool {
 	return separatorPattern.MatchString(line)
 }
@@ -100,6 +108,8 @@ func splitSegmentByPrefix(text string) []string {
 	return result
 }
 func expandDecodedConfig(configs string) []string {
+	configs = boxSeparatorPattern.ReplaceAllString(configs, "\n")
+	configs = confNamePattern.ReplaceAllString(configs, "[Interface]\nName = $1")
 	res := []string{}
 	add := func(config ...string) {
 		for _, c := range config {

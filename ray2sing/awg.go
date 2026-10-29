@@ -27,6 +27,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 	)
 
 	section := ""
+	name := ""
 
 	lines := strings.Split(content, "\n")
 	for _, raw := range lines {
@@ -52,6 +53,8 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		switch section {
 		case "interface":
 			switch key {
+			case "Name": // the "# Name" comment, see confNamePattern
+				name = val
 			case "PrivateKey":
 				privateKey = val
 			case "MTU":
@@ -169,9 +172,12 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		I5: i5,
 	}
 	if !awg.IsAvailble() {
+		if name == "" {
+			name = "wireguard"
+		}
 		return &T.Endpoint{
 			Type: C.TypeWireGuard,
-			Tag:  "wiregaurd",
+			Tag:  name,
 			Options: &T.WireGuardEndpointOptions{
 				PrivateKey: privateKey,
 				Address:    badoption.Listable[netip.Prefix](addresses),
@@ -191,9 +197,12 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		}, nil
 	}
 
+	if name == "" {
+		name = "awg"
+	}
 	out := &T.Endpoint{
 		Type: C.TypeAwg,
-		Tag:  "awg", // adjust if you derive tag elsewhere
+		Tag:  name,
 		Options: &T.AwgEndpointOptions{
 
 			PrivateKey: privateKey,
