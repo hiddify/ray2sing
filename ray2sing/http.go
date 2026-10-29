@@ -3,12 +3,16 @@ package ray2sing
 import (
 	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
+	E "github.com/sagernet/sing/common/exceptions"
 )
 
 func HttpSingbox(url string) (*T.Outbound, error) {
 	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
+	}
+	if u.Port == 0 { // a web page or a subscription link, such as https://example.com/sub.txt
+		return nil, E.New("not an HTTP proxy, it has no port: ", url)
 	}
 	opts := T.HTTPOutboundOptions{
 		ServerOptions: u.GetServerOption(),
@@ -44,6 +48,9 @@ func HttpsSingbox(url string) (*T.Outbound, error) {
 	u, err := ParseUrl(url, 0)
 	if err != nil {
 		return nil, err
+	}
+	if u.Port == 0 { // a web page or a subscription link, such as https://example.com/sub.txt
+		return nil, E.New("not an HTTP proxy, it has no port: ", url)
 	}
 	opts := T.HTTPOutboundOptions{
 		ServerOptions: u.GetServerOption(),
