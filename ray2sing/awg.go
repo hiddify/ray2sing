@@ -1,6 +1,7 @@
 package ray2sing
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -8,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/json/badoption"
 )
@@ -23,7 +23,8 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		s1, s2, s3, s4                     int
 		h1, h2, h3, h4, i1, i2, i3, i4, i5 string
 
-		peer T.AwgPeerOptions
+		peer     T.AwgPeerOptions
+		reserved []uint8
 	)
 
 	section := ""
@@ -135,6 +136,12 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 			case "PersistentKeepalive":
 				v, _ := strconv.Atoi(val)
 				peer.PersistentKeepaliveInterval = uint16(v)
+			case "Reserved": // WARP generators write the client id so
+				for _, part := range strings.Split(val, ",") {
+					if num, err := strconv.ParseUint(strings.TrimSpace(part), 10, 8); err == nil {
+						reserved = append(reserved, uint8(num))
+					}
+				}
 			}
 		}
 	}
@@ -171,49 +178,33 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		I4: i4,
 		I5: i5,
 	}
+	wg := T.WireGuardEndpointOptions{
+		PrivateKey: privateKey,
+		Address:    badoption.Listable[netip.Prefix](addresses),
+		MTU:        mtu,
+		Peers: []T.WireGuardPeer{
+			T.WireGuardPeer{
+				Address:                     peer.Address,
+				Port:                        peer.Port,
+				PreSharedKey:                peer.PresharedKey,
+				PublicKey:                   peer.PublicKey,
+				AllowedIPs:                  T.LegacyListable[netip.Prefix](peer.AllowedIPs),
+				PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
+				Reserved:                    reserved,
+			},
+		},
+	}
 	if !awg.IsAvailble() {
 		if name == "" {
 			name = "wireguard"
 		}
-		return &T.Endpoint{
-			Type: C.TypeWireGuard,
-			Tag:  name,
-			Options: &T.WireGuardEndpointOptions{
-				PrivateKey: privateKey,
-				Address:    badoption.Listable[netip.Prefix](addresses),
-				MTU:        mtu,
-				Peers: []T.WireGuardPeer{
-					T.WireGuardPeer{
-						Address:                     peer.Address,
-						Port:                        peer.Port,
-						PreSharedKey:                peer.PresharedKey,
-						PublicKey:                   peer.PublicKey,
-						AllowedIPs:                  T.LegacyListable[netip.Prefix](peer.AllowedIPs),
-						PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
-					},
-				},
-				Noise: defaultWireguardNoiseOptions(),
-			},
-		}, nil
+		wg.Noise = defaultWireguardNoiseOptions()
+		return amneziaWireGuardEndpoint(name, wg, awg), nil
 	}
-
 	if name == "" {
 		name = "awg"
 	}
-	out := &T.Endpoint{
-		Type: C.TypeAwg,
-		Tag:  name,
-		Options: &T.AwgEndpointOptions{
-
-			PrivateKey: privateKey,
-			Address:    badoption.Listable[netip.Prefix](addresses),
-			MTU:        mtu,
-			Awg:        awg,
-			Peers:      []T.AwgPeerOptions{peer},
-		},
-	}
-
-	return out, nil
+	return amneziaWireGuardEndpoint(name, wg, awg), nil
 }
 
 func AWGSingbox(raw string) (*T.Endpoint, error) {
@@ -231,6 +222,20 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 			return end, nil
 		}
 		return nil, err
+	}
+	// "obfs=amneziawg&obfsParam={...}": the AmneziaWG values as a JSON object, as sing-box based
+	// clients (Karing, ...) export them
+	if param, ok := u.Params["obfsparam"]; ok {
+		var values map[string]any
+		if err := json.Unmarshal([]byte(param), &values); err != nil {
+			return nil, fmt.Errorf("invalid obfsParam: %w", err)
+		}
+		for key, value := range values {
+			key = normalizeStr(key)
+			if _, exists := u.Params[key]; !exists {
+				u.Params[key] = fmt.Sprint(value)
+			}
+		}
 	}
 
 	getInt := func(key string) int {
@@ -255,11 +260,12 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 			if s != "" {
 				p, err := netip.ParsePrefix(strings.TrimSpace(s))
 				if err != nil {
-					p2, err2 := netip.ParsePrefix(strings.TrimSpace(s) + "/24")
+					// a bare address is that one address: /32, or /128 for IPv6
+					addr, err2 := netip.ParseAddr(strings.TrimSpace(s))
 					if err2 != nil {
 						return nil, fmt.Errorf("invalid %s: %w", raw, err)
 					}
-					p = p2
+					p = netip.PrefixFrom(addr, addr.BitLen())
 				}
 				out = append(out, p)
 			}
@@ -332,59 +338,47 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 			opts.MTU = uint32(mtu)
 		}
 	}
-	var out *T.Endpoint
 	isAwg := opts.Awg.IsAvailble()
-
-	if !isAwg {
-		wgopts := T.WireGuardEndpointOptions{
-			PrivateKey: opts.PrivateKey,
-			Address:    opts.Address,
-			Peers: []T.WireGuardPeer{
-				T.WireGuardPeer{
-					Address:                     peer.Address,
-					Port:                        peer.Port,
-					PreSharedKey:                peer.PresharedKey,
-					PublicKey:                   peer.PublicKey,
-					AllowedIPs:                  T.LegacyListable[netip.Prefix](peer.AllowedIPs),
-					PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
-				},
+	wgopts := T.WireGuardEndpointOptions{
+		PrivateKey: opts.PrivateKey,
+		Address:    opts.Address,
+		Peers: []T.WireGuardPeer{
+			T.WireGuardPeer{
+				Address:                     peer.Address,
+				Port:                        peer.Port,
+				PreSharedKey:                peer.PresharedKey,
+				PublicKey:                   peer.PublicKey,
+				AllowedIPs:                  T.LegacyListable[netip.Prefix](peer.AllowedIPs),
+				PersistentKeepaliveInterval: peer.PersistentKeepaliveInterval,
 			},
-			MTU:   uint32(toInt(getOneOfN(u.Params, "1280", "mtu"))),
-			Noise: getWireGuardNoise(u.Params, false),
-		}
-		if reservedStr, ok := u.Params["reserved"]; ok {
-			reservedParts := strings.Split(reservedStr, ",")
-			for _, part := range reservedParts {
-				num, err := strconv.ParseUint(part, 10, 8)
-				if err != nil {
-					return nil, err // Handle the error appropriately
-				}
-				wgopts.Peers[0].Reserved = append(wgopts.Peers[0].Reserved, uint8(num))
+		},
+		MTU:   uint32(toInt(getOneOfN(u.Params, "1280", "mtu"))),
+		Noise: getWireGuardNoise(u.Params, false),
+	}
+	if isAwg {
+		wgopts.MTU = opts.MTU
+	}
+	if reservedStr, ok := u.Params["reserved"]; ok {
+		reservedParts := strings.Split(reservedStr, ",")
+		for _, part := range reservedParts {
+			num, err := strconv.ParseUint(part, 10, 8)
+			if err != nil {
+				return nil, err // Handle the error appropriately
 			}
-		}
-		if workerStr, ok := u.Params["workers"]; ok {
-			if workers, err := strconv.Atoi(workerStr); err == nil {
-				wgopts.Workers = workers
-			}
-		}
-		out = &T.Endpoint{
-			Type:    C.TypeWireGuard,
-			Tag:     u.Name,
-			Options: &wgopts,
-		}
-		if out.Tag == "" {
-			out.Tag = "WG"
-		}
-	} else {
-		out = &T.Endpoint{
-			Type:    C.TypeAwg,
-			Tag:     u.Name,
-			Options: &opts,
-		}
-		if out.Tag == "" {
-			out.Tag = "AWG"
+			wgopts.Peers[0].Reserved = append(wgopts.Peers[0].Reserved, uint8(num))
 		}
 	}
-
-	return out, nil
+	if workerStr, ok := u.Params["workers"]; ok {
+		if workers, err := strconv.Atoi(workerStr); err == nil {
+			wgopts.Workers = workers
+		}
+	}
+	tag := u.Name
+	if tag == "" {
+		tag = "WG"
+		if isAwg {
+			tag = "AWG"
+		}
+	}
+	return amneziaWireGuardEndpoint(tag, wgopts, opts.Awg), nil
 }
