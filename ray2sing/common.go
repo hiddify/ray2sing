@@ -72,6 +72,11 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	}
 	// pcs: Xray pinnedPeerCertSha256
 	tlsOptions.CertificateSHA256 = parsePinnedCertSHA256(decoded["pcs"])
+	// cipherSuites: Xray's TLS cipher suites, separated by ":" (Xray) or ","; sing-box applies them
+	// to the standard TLS client, that is without a fingerprint or with fp=unsafe
+	if suites := getOneOfN(decoded, "", "cipherSuites", "cipher_suites"); suites != "" {
+		tlsOptions.CipherSuites = strings.FieldsFunc(suites, func(r rune) bool { return r == ':' || r == ',' })
+	}
 	// fragment size/sleep is applied via dialer.TLSFragment in getDialerOptions
 	// (not tls.fragment) so ClientHello uses the configured ranges.
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
