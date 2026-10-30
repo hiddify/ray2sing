@@ -3,6 +3,7 @@ package ray2sing
 //based on https://github.com/XTLS/Xray-core/issues/91
 //todo merge with https://github.com/XTLS/libXray/
 import (
+	stdtls "crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -74,9 +75,7 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	tlsOptions.CertificateSHA256 = parsePinnedCertSHA256(decoded["pcs"])
 	// cipherSuites: Xray's TLS cipher suites, separated by ":" (Xray) or ","; sing-box applies them
 	// to the standard TLS client, that is without a fingerprint or with fp=unsafe
-	if suites := getOneOfN(decoded, "", "cipherSuites", "cipher_suites"); suites != "" {
-		tlsOptions.CipherSuites = strings.FieldsFunc(suites, func(r rune) bool { return r == ':' || r == ',' })
-	}
+	tlsOptions.CipherSuites = parseCipherSuites(getOneOfN(decoded, "", "cipherSuites", "cipher_suites"))
 	// fragment size/sleep is applied via dialer.TLSFragment in getDialerOptions
 	// (not tls.fragment) so ClientHello uses the configured ranges.
 	if alpn, ok := decoded["alpn"]; ok && alpn != "" {
@@ -102,6 +101,23 @@ func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 		TLS: tlsOptions,
 	}
 
+}
+
+// parseCipherSuites keeps the names sing-box knows (Go's secure suites), as Xray skips a name it does not know:
+// sing-box refuses the whole outbound for one unknown name. Xray also takes Go's insecure suites, which sing-box
+// does not; they are left out too.
+func parseCipherSuites(value string) []string {
+	known := map[string]bool{}
+	for _, suite := range stdtls.CipherSuites() {
+		known[suite.Name] = true
+	}
+	var suites []string
+	for _, name := range strings.FieldsFunc(value, func(r rune) bool { return r == ':' || r == ',' }) {
+		if name = strings.TrimSpace(name); known[name] {
+			suites = append(suites, name)
+		}
+	}
+	return suites
 }
 
 // parsePinnedCertSHA256 parses Xray's pinnedPeerCertSha256: comma separated hex SHA256 of the server certificate.

@@ -19,3 +19,14 @@ func TestTLSCipherSuites(t *testing.T) {
 		t.Fatalf("cipher suites %v, utls %+v", tls.CipherSuites, tls.UTLS)
 	}
 }
+
+// As Xray, a cipher suite name sing-box does not know is skipped, not a reason to drop the outbound.
+func TestTLSCipherSuitesUnknownSkipped(t *testing.T) {
+	options, err := ray2sing.Ray2SingboxOptions(libbox.BaseContext(nil), "trojan://pw@example.com:443?security=tls&fp=unsafe&cipherSuites=TLS_RSA_WITH_AES_128_CBC_SHA%3ANOT_A_SUITE%3ATLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256#t", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if suites := options.Outbounds[0].Options.(*option.TrojanOutboundOptions).TLS.CipherSuites; len(suites) != 1 || suites[0] != "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256" {
+		t.Fatalf("cipher suites %v", suites)
+	}
+}
