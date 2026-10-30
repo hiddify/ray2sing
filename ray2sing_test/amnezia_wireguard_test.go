@@ -7,6 +7,7 @@ import (
 
 	"github.com/hiddify/ray2sing/ray2sing"
 	"github.com/sagernet/sing-box/experimental/libbox"
+	"github.com/sagernet/sing-box/option"
 )
 
 const testPrivateKey = "cGsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
@@ -116,5 +117,24 @@ func TestMoveAmneziaWireGuardFields(t *testing.T) {
 		if strings.Contains(got, gone) {
 			t.Errorf("%s left in\n%s", gone, got)
 		}
+	}
+}
+
+// The outer WARP of a chain has neither the scanner nor the port rotation.
+func TestWarpBehindDetour(t *testing.T) {
+	options, err := ray2sing.Ray2SingboxOptions(libbox.BaseContext(nil), "warp://auto#outer -> warp://auto#inner", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, endpoint := range options.Endpoints {
+		warp := endpoint.Options.(*option.WARPEndpointOptions)
+		behind := warp.Detour != ""
+		rotates := warp.RotatePorts == nil || *warp.RotatePorts
+		if behind == rotates || behind == warp.Scanner.Enabled {
+			t.Errorf("%s (detour %q): rotate_ports %v, scanner %v", endpoint.Tag, warp.Detour, rotates, warp.Scanner.Enabled)
+		}
+	}
+	if len(options.Endpoints) != 2 {
+		t.Errorf("endpoints: %d", len(options.Endpoints))
 	}
 }

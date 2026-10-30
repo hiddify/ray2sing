@@ -202,16 +202,25 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 	return &out, nil
 }
 
-// disableWarpScanner turns off the scanner of a warp endpoint behind a detour: its probes would
-// go through the detour, which does not reach Cloudflare's endpoints the way WARP does.
-func disableWarpScanner(endpoint *T.Endpoint) {
-	if options, ok := endpoint.Options.(*T.WARPEndpointOptions); ok && endpoint.Type == C.TypeWARP && options.Scanner != nil {
+// warpBehindDetour sets up a warp endpoint behind a detour (the outer WARP of WARP in WARP). The
+// scanner is off: its probes would go through the detour, which does not reach Cloudflare's
+// endpoints the way WARP does. The ports are not rotated either: through a detour, a port that
+// gets no handshake says more about the detour than about the port.
+func warpBehindDetour(endpoint *T.Endpoint) {
+	options, ok := endpoint.Options.(*T.WARPEndpointOptions)
+	if !ok || endpoint.Type != C.TypeWARP {
+		return
+	}
+	if options.Scanner != nil {
 		options.Scanner.Enabled = false
 		options.Scanner.SearchNoise = false
 	}
+	rotatePorts := false
+	options.RotatePorts = &rotatePorts
 }
 
-// disableMasqueScanner is disableWarpScanner for a MASQUE outbound.
+// disableMasqueScanner turns off the scanner of a MASQUE outbound behind a detour, as
+// warpBehindDetour does.
 func disableMasqueScanner(outbound *T.Outbound) {
 	if options, ok := outbound.Options.(*T.MASQUEOutboundOptions); ok && options.Scanner != nil {
 		options.Scanner.Enabled = false

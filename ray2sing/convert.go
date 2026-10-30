@@ -190,7 +190,7 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 					dialerOpt.ReplaceDialerOptions(d)
 				}
 				if detourTag != "" {
-					disableWarpScanner(outend.endpoint)
+					warpBehindDetour(outend.endpoint)
 				}
 
 				detourTag = outend.endpoint.Tag
