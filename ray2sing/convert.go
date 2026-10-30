@@ -149,6 +149,7 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 			continue
 		}
 		detourTag := ""
+		config = unescapeHTMLAmpersand(config)
 
 		chains := strings.Split(expandInnerLinks(config), " -> ")
 		for i := len(chains) - 1; i >= 0; i-- {

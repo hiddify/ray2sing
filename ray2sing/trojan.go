@@ -10,6 +10,10 @@ func TrojanSingbox(trojanURL string) (*T.Outbound, error) {
 		return nil, err
 	}
 	decoded := u.Params
+	// trojan is TLS unless the link says otherwise, as in Xray and v2rayN
+	if _, ok := decoded["security"]; !ok && decoded["tls"] == "" {
+		decoded["security"] = "tls"
+	}
 
 	transportOptions, err := getTransportOptions(decoded)
 	if err != nil {

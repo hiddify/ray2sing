@@ -77,6 +77,16 @@ func ParseUrl(inputURL string, defaultPort uint16) (*UrlSchema, error) {
 	return data, nil
 }
 
+// unescapeHTMLAmpersand turns "&amp;" back into "&" in a link. Some subscriptions publish their
+// links HTML-escaped; url.Parse then reads "&amp;pbk=" as a key "amp;pbk" and the parameter is lost.
+// Only "&amp;" is replaced: html.UnescapeString also decodes entities without ";" ("&notes" → "¬es").
+func unescapeHTMLAmpersand(link string) string {
+	if !strings.Contains(link, "://") {
+		return link
+	}
+	return strings.ReplaceAll(link, "&amp;", "&")
+}
+
 var portListRegex = regexp.MustCompile(`^[0-9]+([-,][0-9]+)*$`)
 
 // extractPortRanges rewrites a port list such as "host:443,20000-30000" to its first port
