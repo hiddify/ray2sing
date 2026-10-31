@@ -31,7 +31,7 @@ import (
 //   - MASQUE: vhttp (h3, h2, auto), masque_sni, masque_insecure, masque_ipv6,
 //     udp_keepalive_period, udp_initial_packet_size, reconnect_delay, fragment,
 //     fragment_fallback_delay, record_fragment, cipher_suites, curve_preferences, kernel_tx,
-//     kernel_rx.
+//     kernel_rx, ech, ech_config, ech_query_server_name.
 //   - scanner: scanner and search_noise (both on unless set to 0 or false, and off behind a
 //     detour), scan_ports, scan_cidrs, max_rtt, scan_timeout, scan_count, scan_concurrency,
 //     noise_presets.
@@ -125,7 +125,8 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 
 	var masque *T.WARPMASQUEOptions
 	if has("vhttp", "masque_sni", "masque_insecure", "masque_ipv6", "udp_keepalive_period", "udp_initial_packet_size", "reconnect_delay",
-		"fragment", "fragment_fallback_delay", "record_fragment", "cipher_suites", "curve_preferences", "kernel_tx", "kernel_rx") {
+		"fragment", "fragment_fallback_delay", "record_fragment", "cipher_suites", "curve_preferences", "kernel_tx", "kernel_rx",
+		"ech", "ech_config", "ech_query_server_name") {
 		masque = &T.WARPMASQUEOptions{
 			Enabled: true,
 			TLS: T.MASQUEOutboundTLSOptions{
@@ -143,6 +144,17 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 			ReconnectDelay:       warpDuration(param("reconnect_delay")),
 			VHTTP:                param("vhttp"),
 			ServerName:           param("masque_sni"),
+		}
+		// WARP rejects ECH, so this is the fallback path: the client retries the plain handshake
+		// once the endpoint refuses the config list.
+		if config := param("ech_config"); config != "" || toBool(param("ech"), false) || param("ech_query_server_name") != "" {
+			masque.TLS.ECH = &T.OutboundECHOptions{
+				Enabled:         true,
+				QueryServerName: param("ech_query_server_name"),
+			}
+			if config != "" {
+				masque.TLS.ECH.Config = badoption.Listable[string]{config}
+			}
 		}
 		if curves := param("curve_preferences"); curves != "" {
 			_ = json.Unmarshal(jsonStringList(curves), &masque.TLS.CurvePreferences)
