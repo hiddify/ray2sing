@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/netip"
 	"strconv"
+	"strings"
 
 	C "github.com/sagernet/sing-box/constant"
 	T "github.com/sagernet/sing-box/option"
@@ -35,13 +36,23 @@ func awgAsWireGuardNoise(awg T.AwgOptions) (noise hiddify.NoiseOptions, ok bool)
 		}
 	}
 	packets := []string{awg.I1, awg.I2, awg.I3, awg.I4, awg.I5}
+	mode := hiddify.NoiseModeRaw
 	if awg.IP != "" || awg.ID != "" {
-		if awg.IP != "quic" || awg.ID == "" || awg.I1 != "" {
+		if awg.I1 != "" {
 			return noise, false
 		}
-		packets[0] = "<qi " + awg.ID + ">"
+		if strings.EqualFold(awg.IP, "quic") {
+			if awg.ID == "" {
+				return noise, false
+			}
+			packets[0] = "<qi " + awg.ID + ">"
+		} else if _, ok := hiddify.NoisePresetByName(awg.IP); ok {
+			mode = awg.IP // the preset's packets, then i2–i5 (see FakePacketOptions.WithPreset)
+		} else {
+			return noise, false
+		}
 	}
-	fake := hiddify.FakePacketOptions{Mode: hiddify.NoiseModeRaw}
+	fake := hiddify.FakePacketOptions{Mode: mode}
 	for _, packet := range packets {
 		if packet == "" {
 			continue
@@ -55,7 +66,7 @@ func awgAsWireGuardNoise(awg T.AwgOptions) (noise hiddify.NoiseOptions, ok bool)
 		fake.Count = hiddify.Range{From: int32(awg.Jc), To: int32(awg.Jc)}
 		fake.Size = hiddify.Range{From: int32(awg.Jmin), To: int32(awg.Jmax)}
 	}
-	fake.Enabled = len(fake.Packets) > 0 || fake.Count.To > 0
+	fake.Enabled = len(fake.Packets) > 0 || fake.Count.To > 0 || mode != hiddify.NoiseModeRaw
 	return hiddify.NoiseOptions{FakePacket: fake}, true
 }
 

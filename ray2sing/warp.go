@@ -42,8 +42,6 @@ import (
 
 var warpModes = map[string]string{"wg": "wg", "wireguard": "wg", "awg": "awg", "masque": "masque", "auto": "auto"}
 
-var warpNoisePresetAliases = map[string]string{"dns": "dns-google", "random": "xray-random"}
-
 func WarpSingbox(url string) (*T.Endpoint, error) {
 	u, err := ParseUrl(url, 0)
 	if err != nil {
@@ -228,11 +226,7 @@ func disableMasqueScanner(outbound *T.Outbound) {
 }
 
 func warpNoisePreset(name string) (warpscan.NoisePreset, bool) {
-	name = strings.ToLower(name)
-	if alias, ok := warpNoisePresetAliases[name]; ok {
-		name = alias
-	}
-	return warpscan.NoisePresetByName(name)
+	return warpscan.NoisePresetByName(name) // also by a short name: dns, random
 }
 
 func warpDuration(value string) badoption.Duration {

@@ -25,6 +25,10 @@ func getWireGuardNoise(d map[string]string, addDefault bool) hiddify.NoiseOption
 			fake_packet_mode = hiddify.NoiseModeQUIC
 		case "random": // plain random bytes, with no header
 			fake_packet_mode = hiddify.NoiseModeRaw
+		default: // a named preset: sip, dns, stun, quic-mimic, ...
+			if _, ok := hiddify.NoisePresetByName(wnoise); ok {
+				fake_packet_mode = wnoise
+			}
 		}
 	}
 	if fake_packet_count.To == 0 && fake_packet_delay.To == 0 && fake_packet_size.To == 0 && fake_packet_mode == "" {
