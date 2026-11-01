@@ -51,3 +51,51 @@ func TestMasqueInnerLink(t *testing.T) {
 		t.Fatalf("inner: %s %+v", inner.Tag, innerOptions)
 	}
 }
+
+// MahsaNG writes the device's key before the "@" and the endpoint with its port after it, with
+// no endpoint key; the link failed with "private_key is not an ECDSA key".
+func TestMasqueKeyLink(t *testing.T) {
+	const key = "MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgBwuLjlsggKUoQAHnXmQli6jPVuhju5hAV0io0Vt//H6gCgYIKoZIzj0DAQehRANCAAT9CueMifPPo9N28YF+og7UDN6iOwRMy1NVBxwy1fKZxus54nCwix5kIzj1pboJVgCmWBT7fCDLbQWsshNM/Gy1"
+	link := "masque://" + url.QueryEscape(key) + "@162.159.198.2:8095?transport=h3&address=172.16.0.2%2F32,2606:4700:110:8a36::2%2F128&mtu=1280&remoteDNS=1.1.1.1&sni=consumer-masque.cloudflareclient.com&insecure=1&keepalive=5&wnoise=quic&wnoisecount=15&wnoisedelay=1-2&wpayloadsize=5-10#%D8%B2%D9%86+%D8%B2%D9%86%D8%AF%DA%AF%DB%8C"
+	out, err := MasqueSingbox(link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	options := out.Options.(*T.MASQUEOutboundOptions)
+	device := options.Device
+	if out.Tag != "زن زندگی" || device.PrivateKey != key || device.EndpointPublicKey != "" || device.ID != "" {
+		t.Fatalf("device: %q %+v", out.Tag, device)
+	}
+	if device.EndpointV4 != "162.159.198.2:8095" || device.EndpointV6 != "" || device.IPv4 != "172.16.0.2" || device.IPv6 != "2606:4700:110:8a36::2" {
+		t.Fatalf("endpoints: %+v", device)
+	}
+	if options.VHTTP != "h3" || options.MTU != 1280 || options.UDPKeepalivePeriod != warpDuration("5") || !options.MASQUEOutboundTLSOptions.Insecure ||
+		options.ServerName != "consumer-masque.cloudflareclient.com" {
+		t.Fatalf("options: %+v", options)
+	}
+
+	// a raw key, insecure off, a pin, an IPv6 endpoint without a port, no address
+	raw := "masque://" + key + "@[2606:4700:103::2]?transport=h2&insecure=0&pin=eb591b36ab26ba617e98371918c10bcdeae3742db6e76543f94be524dce1d555&packets=tlshello"
+	out, err = MasqueSingbox(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	options = out.Options.(*T.MASQUEOutboundOptions)
+	device = options.Device
+	if device.PrivateKey != key || device.EndpointV6 != "[2606:4700:103::2]:443" || device.EndpointV4 != "" || device.IPv4 != "172.16.0.2" {
+		t.Fatalf("device: %+v", device)
+	}
+	tls := options.MASQUEOutboundTLSOptions
+	if options.VHTTP != "h2" || tls.Insecure || !tls.Fragment || len(tls.CertificatePublicKeySHA256) != 1 || tls.CertificatePublicKeySHA256[0] != "eb591b36ab26ba617e98371918c10bcdeae3742db6e76543f94be524dce1d555" {
+		t.Fatalf("options: %+v", options)
+	}
+
+	// the device-id shape keeps its key parameter and id
+	out, err = MasqueSingbox(testMasqueLink)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if device := out.Options.(*T.MASQUEOutboundOptions).Device; device.PrivateKey != "KEY-_" || device.ID != "9f880678-0ce1-47c9-a131-8a511ce60c1e" {
+		t.Fatalf("device-id link: %+v", device)
+	}
+}
