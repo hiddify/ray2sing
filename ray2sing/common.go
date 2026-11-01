@@ -497,11 +497,16 @@ func getALPNversion(s []string) int {
 //			}
 //		}
 //	}
+//
+// getDialerOptions: the link's fragment, and TCP Fast Open only when the link asks for it with
+// tfo=1 (or tcp_fast_open=1). Off otherwise: a SYN that carries data is dropped by many servers,
+// ISPs and DPI boxes, so a link with it on never connected there (it was on for every link
+// without a fragment in 96b1d62, by mistake). A fragment needs TFO off, so it wins over tfo.
 func getDialerOptions(decoded map[string]string) option.DialerOptions {
 	fragment := getFragmentOptions(decoded)
 	return T.DialerOptions{
 		AbstractDialerOptions: T.AbstractDialerOptions{
-			TCPFastOpen: !fragment.Enabled,
+			TCPFastOpen: !fragment.Enabled && toBool(getOneOfN(decoded, "", "tfo", "tcp_fast_open"), false),
 		},
 		TLSFragment: fragment,
 	}

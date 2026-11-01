@@ -2,6 +2,7 @@ package ray2sing
 
 import (
 	"strconv"
+	"strings"
 
 	T "github.com/sagernet/sing-box/option"
 )
@@ -24,9 +25,10 @@ func HysteriaSingbox(hysteriaURL string) (*T.Outbound, error) {
 			},
 		},
 	}
-	// if alpn := u.Params["alpn"]; alpn != "" {
-	// 	opts.TLS.ALPN = strings.Split(alpn, ",")
-	// }
+	// a Hysteria v1 server with its own ALPN refuses the default one
+	if alpn := u.Params["alpn"]; alpn != "" {
+		opts.TLS.ALPN = strings.Split(alpn, ",")
+	}
 	singOut := &T.Outbound{
 		Type:    u.Scheme,
 		Tag:     u.Name,
