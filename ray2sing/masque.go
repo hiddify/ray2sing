@@ -45,6 +45,16 @@ import (
 //	  - remoteDNS, domainStrategy, fm and wnoise, wnoisecount, wnoisedelay, wpayloadsize have no
 //	    counterpart (DNS is sing-box's, the tunnel sends no QUIC noise) and are ignored.
 //	  - "+" in the name is a space, as Java's URLEncoder writes it.
+//
+// Other apps write the endpoint as the link's host, with the device's key as a parameter:
+//
+//		masque://162.159.198.2:443?privateKey=<private key, base64>&ip=172.16.0.2/32&mtu=1280&keepalive=5&sni=consumer-masque.cloudflareclient.com#name
+//
+//	  - a host that is an IP address or a domain is the endpoint, never a device id (a device id
+//	    has no dot); with no endpoint parameter, it is the endpoint.
+//	  - privateKey (or key, private_key): the device's key, as after the "@" above.
+//	  - ip (or address): the tunnel addresses, as address above.
+//	  - udp and flag have no counterpart and are ignored.
 func MasqueSingbox(link string) (*T.Outbound, error) {
 	key, link, isKeyLink := splitMasqueKeyLink(link)
 	u, err := ParseUrl(link, 443)
@@ -52,8 +62,10 @@ func MasqueSingbox(link string) (*T.Outbound, error) {
 		return nil, err
 	}
 	param := func(keys ...string) string { return getOneOfN(u.Params, "", keys...) }
+	// the host is the endpoint when it is an address and no endpoint parameter names one
+	hostIsEndpoint := !isKeyLink && u.Username == "" && param("endpoint", "endpoint6") == "" && isMasqueAddress(u.Hostname)
 	id := u.Username
-	if id == "" && !isKeyLink {
+	if id == "" && !isKeyLink && !hostIsEndpoint {
 		id = u.Hostname
 	}
 	device := &T.MASQUEDeviceOptions{
@@ -79,15 +91,17 @@ func MasqueSingbox(link string) (*T.Outbound, error) {
 		device.EndpointH2V6, device.EndpointH2V4 = device.EndpointH2V4, ""
 	}
 	insecure := toBool(param("insecure", "masque_insecure"), false)
-	if isKeyLink {
-		device.PrivateKey = key
+	if isKeyLink || hostIsEndpoint {
+		if isKeyLink {
+			device.PrivateKey = key
+		}
 		endpoint := net.JoinHostPort(u.Hostname, strconv.Itoa(int(u.Port)))
 		if isIPv6Endpoint(u.Hostname) {
 			device.EndpointV6 = endpoint
 		} else {
 			device.EndpointV4 = endpoint
 		}
-		for _, address := range splitList(param("address")) {
+		for _, address := range splitList(param("address", "ip")) {
 			if prefix, err := netip.ParsePrefix(address); err == nil {
 				address = prefix.Addr().String()
 			}
@@ -103,7 +117,9 @@ func MasqueSingbox(link string) (*T.Outbound, error) {
 		if device.IPv4 == "" && device.IPv6 == "" {
 			device.IPv4 = "172.16.0.2"
 		}
-		insecure = toBool(param("insecure", "allow_insecure"), true)
+		if isKeyLink {
+			insecure = toBool(param("insecure", "allow_insecure"), true)
+		}
 		u.Name = strings.ReplaceAll(u.Name, "+", " ")
 	}
 
@@ -193,6 +209,15 @@ func splitMasqueKeyLink(link string) (key string, rest string, ok bool) {
 		rest += "#" + fragment
 	}
 	return strings.TrimSpace(key), rest, true
+}
+
+// isMasqueAddress reports whether a link's host is an endpoint address: an IP address or a
+// domain. A device id is a bare identifier, without a dot.
+func isMasqueAddress(host string) bool {
+	if _, err := netip.ParseAddr(strings.Trim(host, "[]")); err == nil {
+		return true
+	}
+	return strings.Contains(host, ".")
 }
 
 func isIPv6Endpoint(endpoint string) bool {
