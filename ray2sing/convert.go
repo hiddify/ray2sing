@@ -35,23 +35,25 @@ var configTypes = map[string]ParserFunc{
 	"anytls://":      AnyTLSSingbox,
 	"snell://":       SnellSingbox,
 
-	"ssconf://":    BeepassSingbox,
-	"direct://":    DirectSingbox,
-	"socks://":     SocksSingbox,
-	"phttp://":     HttpSingbox,
-	"phttps://":    HttpsSingbox,
-	"http://":      HttpSingbox,
-	"https://":     HttpsSingbox,
-	"xvmess://":    VmessXray,
-	"xvless://":    VlessXray,
-	"xtrojan://":   TrojanXray,
-	"xdirect://":   DirectXray,
-	"mieru://":     MieruSingbox,
-	"mierus://":    MieruSingbox,
-	"psiphon://":   PsiphonSingbox,
-	"dnstt://":     DnsttSingbox,
-	"masterdns://": MasterdnsSingbox,
-	"masque://":    MasqueSingbox,
+	"ssconf://":      BeepassSingbox,
+	"direct://":      DirectSingbox,
+	"socks://":       SocksSingbox,
+	"phttp://":       HttpSingbox,
+	"phttps://":      HttpsSingbox,
+	"http://":        HttpSingbox,
+	"https://":       HttpsSingbox,
+	"xvmess://":      VmessXray,
+	"xvless://":      VlessXray,
+	"xtrojan://":     TrojanXray,
+	"xdirect://":     DirectXray,
+	"mieru://":       MieruSingbox,
+	"mierus://":      MieruSingbox,
+	"psiphon://":     PsiphonSingbox,
+	"dnstt://":       DnsttSingbox,
+	"masterdns://":   MasterdnsSingbox,
+	"slipnet://":     SlipnetSingbox,
+	"slipnet-enc://": SlipnetSingbox,
+	"masque://":      MasqueSingbox,
 }
 var endpointParsers = map[string]EndpointParserFunc{
 	"wg://":        AWGSingbox,
@@ -153,7 +155,7 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 		detourTag := ""
 		config = unescapeHTMLAmpersand(config)
 
-		chains := strings.Split(expandInnerLinks(config), " -> ")
+		chains := strings.Split(expandLinks(config), " -> ")
 		for i := len(chains) - 1; i >= 0; i-- {
 			chain1 := chains[i]
 
