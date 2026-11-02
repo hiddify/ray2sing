@@ -142,11 +142,11 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 
 	var outbounds []T.Outbound
 	var endpoints []T.Endpoint
+	var declaredIPv6 map[string]bool // a link's ipv6=1 or ipv6=0, by the final tag
 	counter := 0
 
 	for _, config := range configArray {
 		if len(config) < 5 || config[0] == '#' || config[0] == '/' {
-	var declaredIPv6 map[string]bool // a link's ipv6=1 or ipv6=0, by the final tag
 			continue
 		}
 		detourTag := ""
@@ -169,10 +169,6 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 				continue
 			}
 
-			if outend.outbound != nil {
-				outend.outbound.Tag += " § " + strconv.Itoa(counter)
-				if dialerOpt, ok := outend.outbound.Options.(T.DialerOptionsWrapper); ok {
-					d := dialerOpt.TakeDialerOptions()
 			if carried, declared := ipv6Hint(chain); declared {
 				if declaredIPv6 == nil {
 					declaredIPv6 = make(map[string]bool)
@@ -183,6 +179,10 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 					declaredIPv6[outend.endpoint.Tag+" § "+strconv.Itoa(counter)] = carried
 				}
 			}
+			if outend.outbound != nil {
+				outend.outbound.Tag += " § " + strconv.Itoa(counter)
+				if dialerOpt, ok := outend.outbound.Options.(T.DialerOptionsWrapper); ok {
+					d := dialerOpt.TakeDialerOptions()
 					d.Detour = detourTag
 					dialerOpt.ReplaceDialerOptions(d)
 				}
@@ -223,11 +223,11 @@ func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options
 		Outbounds: outbounds,
 		Endpoints: endpoints,
 	}
+	declareIPv6(&fullConfig, declaredIPv6)
 
 	return &fullConfig, nil
 }
 
-	declareIPv6(&fullConfig, declaredIPv6)
 func Ray2Singbox(ctx context.Context, configs string, useXrayWhenPossible bool) (out []byte, err error) {
 	convertedData, err := Ray2SingboxOptions(ctx, configs, useXrayWhenPossible)
 	if err != nil {
