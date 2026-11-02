@@ -20,6 +20,11 @@ func SSHSingbox(sshURL string) (*T.Outbound, error) {
 		privkeys = []string{}
 	}
 	for i := 0; i < len(privkeys); i++ {
+		if strings.Contains(privkeys[i], "-----BEGIN ") && !strings.Contains(privkeys[i], prefix) {
+			// a complete PEM of another format (PKCS#1, PKCS#8, EC) is kept as it is
+			privkeys[i] = strings.TrimSpace(privkeys[i]) + "\n"
+			continue
+		}
 		body := strings.ReplaceAll(privkeys[i], prefix, "")
 		body = strings.ReplaceAll(body, suffix, "")
 		body = strings.TrimSpace(body)

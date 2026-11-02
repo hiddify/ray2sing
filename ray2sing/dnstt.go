@@ -2,9 +2,29 @@ package ray2sing
 
 import (
 	"strings"
+	"time"
 
 	T "github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/json/badoption"
 )
+
+// toDurationN reads "60s", "1m" or a number of seconds; nil when empty or invalid.
+func toDurationN(s string) *badoption.Duration {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil
+	}
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		seconds := toInt(s)
+		if seconds <= 0 {
+			return nil
+		}
+		d = time.Duration(seconds) * time.Second
+	}
+	bd := badoption.Duration(d)
+	return &bd
+}
 
 func DnsttSingbox(vlessURL string) (*T.Outbound, error) {
 	u, err := ParseUrl(vlessURL, 443)
@@ -38,8 +58,8 @@ func DnsttSingbox(vlessURL string) (*T.Outbound, error) {
 
 		MaxStreams: toIntN(getOneOfN(decoded, "", "max-streams")),
 
-		// IdleTimeout          *badoption.Duration `json:"idle-timeout,omitempty"`
-		// KeepAlive            *badoption.Duration `json:"keepalive,omitempty"`
+		IdleTimeout: toDurationN(getOneOfN(decoded, "", "idle-timeout")),
+		KeepAlive:   toDurationN(getOneOfN(decoded, "", "keepalive")),
 		// OpenStreamTimeout    *badoption.Duration `json:"open-stream-timeout,omitempty"`
 
 		// ReconnectMinDelay    *badoption.Duration `json:"reconnect-min,omitempty"`
@@ -50,6 +70,7 @@ func DnsttSingbox(vlessURL string) (*T.Outbound, error) {
 		UdpAcceptErrors: toBool(getOneOfN(decoded, "false", "udp-accept-errors"), false),
 		UdpSharedSocket: toBool(getOneOfN(decoded, "true", "udp-shared-socket"), true),
 		UdpWorkers:      toIntN(getOneOfN(decoded, "", "udp-workers")),
+		SmartPool:       smartPoolOption(getOneOfN(decoded, "", "smart-pool", "smart_pool")),
 
 		// UDPOverTCP: &uot,
 	}
@@ -62,4 +83,20 @@ func DnsttSingbox(vlessURL string) (*T.Outbound, error) {
 		Type:    "dnstt",
 		Options: d,
 	}, nil
+}
+
+// smartPoolOption reads smart-pool=1 (the pool with its defaults) or a load balance name
+// (roundrobin, weighted, lowest_latency) as the pool's strategy; empty or false means no pool.
+func smartPoolOption(value string) *T.SmartPoolOptions {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	switch strings.ToLower(value) {
+	case "0", "false", "no", "off":
+		return nil
+	case "1", "true", "yes", "on":
+		return &T.SmartPoolOptions{Enabled: true}
+	}
+	return &T.SmartPoolOptions{Enabled: true, LoadBalance: value}
 }

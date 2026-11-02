@@ -53,6 +53,7 @@ var configTypes = map[string]ParserFunc{
 	"masterdns://":   MasterdnsSingbox,
 	"slipnet://":     SlipnetSingbox,
 	"slipnet-enc://": SlipnetSingbox,
+	"dnst://":        DnstSingbox,
 	"masque://":      MasqueSingbox,
 }
 var endpointParsers = map[string]EndpointParserFunc{
