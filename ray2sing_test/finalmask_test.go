@@ -84,3 +84,26 @@ func TestFinalMaskInvalidIsRejected(t *testing.T) {
 		}
 	}
 }
+
+// patterniha's merge mask, and dialMode=oob.<bytes> as an oob mask after it, next to the socket.
+// The merge mask used to fail the whole link ("unknown mask type"), so the link was dropped.
+func TestFinalMaskMergeAndDialModeOOB(t *testing.T) {
+	fm := url.QueryEscape(`{"tcp": [{"type": "merge", "settings": {"times": 100, "delayMs": 30, "maxBytes": 16384}}]}`)
+	link := "vless://dffb7646-1656-427a-8187-9c056a6a5fd5@[2a06:98c1:3101::6812:202f]:443?encryption=none&security=tls&type=ws&host=example.com&path=%2Fws&sni=example.com&fp=hellochrome_120&fm=" + fm + "&dialMode=oob.0&packetEncoding=xudp#oob"
+	mask := finalMaskOf(t, link)
+	if mask == nil || len(mask.TCP) != 2 || mask.TCP[0].Type != "merge" || mask.TCP[1].Type != "oob" || string(mask.TCP[1].Settings) != `{"bytes":[0]}` {
+		t.Fatalf("finalmask: %+v", mask)
+	}
+
+	// dialMode alone, with several bytes
+	mask = finalMaskOf(t, "vless://dffb7646-1656-427a-8187-9c056a6a5fd5@1.2.3.4:443?security=tls&sni=example.com&dialMode=oob.0,32,65#oob")
+	if mask == nil || len(mask.TCP) != 1 || string(mask.TCP[0].Settings) != `{"bytes":[0,32,65]}` {
+		t.Fatalf("finalmask: %+v", mask)
+	}
+
+	for _, mode := range []string{"oob.", "oob.256", "tfo"} {
+		if _, err := ray2sing.Ray2SingboxOptions(context.Background(), "vless://dffb7646-1656-427a-8187-9c056a6a5fd5@1.2.3.4:443?security=tls&dialMode="+mode+"#x", false); err == nil {
+			t.Errorf("dialMode=%s accepted", mode)
+		}
+	}
+}

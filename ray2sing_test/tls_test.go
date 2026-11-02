@@ -30,3 +30,15 @@ func TestTLSCipherSuitesUnknownSkipped(t *testing.T) {
 		t.Fatalf("cipher suites %v", suites)
 	}
 }
+
+// patterniha's links write cipherSuites as cs.
+func TestTLSCipherSuitesShortKey(t *testing.T) {
+	options, err := ray2sing.Ray2SingboxOptions(libbox.BaseContext(nil), "vless://dffb7646-1656-427a-8187-9c056a6a5fd5@188.114.98.0:443?encryption=none&security=tls&type=ws&host=example.com&path=%2Fws&sni=example.com&fp=unsafe&cs=TLS_AES_256_GCM_SHA384%3ATLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384%3ATLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256#t", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tls := options.Outbounds[0].Options.(*option.VLESSOutboundOptions).TLS
+	if len(tls.CipherSuites) != 2 || tls.CipherSuites[0] != "TLS_AES_256_GCM_SHA384" || tls.CipherSuites[1] != "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" {
+		t.Fatalf("cipher suites %v", tls.CipherSuites)
+	}
+}

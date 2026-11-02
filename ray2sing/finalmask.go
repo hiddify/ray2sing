@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/sagernet/sing-box/hiddify/finalmask"
@@ -64,11 +65,58 @@ func parseFinalMask(config string) (*T.FinalMaskOptions, error) {
 	return &options, nil
 }
 
-// applyFinalMask sets the link's fm= finalmask on the outbound/endpoint dialer.
+var dialModeQueryPattern = regexp.MustCompile(`[?&]dialMode=([^&#]*)`)
+
+// dialModeMask is the tcp mask of a link's dialMode= (Xray's sockopt.dialMode), or nil without
+// one. "oob.<b>,<b>,..." sends the first writes with those bytes as TCP urgent data, the oob mask.
+func dialModeMask(config string) (*T.FinalMaskItem, error) {
+	match := dialModeQueryPattern.FindStringSubmatch(config)
+	if match == nil {
+		return nil, nil
+	}
+	mode, err := url.QueryUnescape(match[1])
+	if err != nil {
+		return nil, E.Cause(err, "dialMode")
+	}
+	mode = strings.ToLower(strings.TrimSpace(mode))
+	if mode == "" {
+		return nil, nil
+	}
+	list, isOOB := strings.CutPrefix(mode, "oob.")
+	if !isOOB {
+		return nil, E.New("dialMode: unsupported mode ", mode)
+	}
+	var oobBytes []int
+	for _, part := range strings.Split(list, ",") {
+		n, err := strconv.Atoi(strings.TrimSpace(part))
+		if err != nil || n < 0 || n > 255 {
+			return nil, E.New("dialMode: invalid byte ", part, " in ", mode)
+		}
+		oobBytes = append(oobBytes, n)
+	}
+	settings, _ := json.Marshal(map[string][]int{"bytes": oobBytes})
+	return &T.FinalMaskItem{Type: "oob", Settings: settings}, nil
+}
+
+// applyFinalMask sets the link's fm= finalmask on the outbound/endpoint dialer, with its dialMode=
+// as the last tcp mask: in Xray the dial mode works on the socket, under every finalmask mask.
 func applyFinalMask(config string, outend *OutEnd) error {
 	finalMask, err := parseFinalMask(config)
-	if err != nil || finalMask == nil {
+	if err != nil {
 		return err
+	}
+	dialMode, err := dialModeMask(config)
+	if err != nil {
+		return err
+	}
+	if dialMode != nil {
+		if finalMask == nil {
+			finalMask = &T.FinalMaskOptions{}
+		}
+		finalMask.TCP = append(finalMask.TCP, *dialMode)
+	}
+	if finalMask == nil {
+		return nil
 	}
 	var options any
 	if outend.outbound != nil {
