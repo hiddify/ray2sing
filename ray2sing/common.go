@@ -318,6 +318,8 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 		decoded["alpn"] = "h3"
 		transportOptions.Type = C.V2RayTransportTypeQUIC
 
+	case "xdrive":
+		return getXDriveTransport(decoded)
 	case "xhttp":
 		transportOptions.Type = C.V2RayTransportTypeXHTTP
 		transportOptions.XHTTPOptions = option.V2RayXHTTPOptions{
