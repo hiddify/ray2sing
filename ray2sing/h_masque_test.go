@@ -32,22 +32,23 @@ func TestMasqueLink(t *testing.T) {
 	}
 }
 
-// The inner link of MASQUE in MASQUE runs through the outer one, without the scanner.
+// The inner link of MASQUE in MASQUE runs through the outer one, without the scanner. Both are
+// WARP, so both are warp endpoints with mode masque.
 func TestMasqueInnerLink(t *testing.T) {
 	link := testMasqueLink + "&inner=" + url.QueryEscape(strings.Replace(testMasqueLink, "60:443", "61:443", 1)) + "#Masque%20In%20Masque"
 	options, err := Ray2SingboxOptions(context.Background(), link, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(options.Outbounds) != 2 {
-		t.Fatalf("outbounds: %+v", options.Outbounds)
+	if len(options.Endpoints) != 2 || len(options.Outbounds) != 0 {
+		t.Fatalf("endpoints: %+v outbounds: %+v", options.Endpoints, options.Outbounds)
 	}
-	outer, inner := options.Outbounds[0], options.Outbounds[1]
-	outerOptions, innerOptions := outer.Options.(*T.MASQUEOutboundOptions), inner.Options.(*T.MASQUEOutboundOptions)
-	if outerOptions.Device.EndpointV4 != "162.159.198.60:443" || outerOptions.Detour != "" || !outerOptions.Scanner.Enabled {
+	outer, inner := options.Endpoints[0], options.Endpoints[1]
+	outerOptions, innerOptions := outer.Options.(*T.WARPEndpointOptions), inner.Options.(*T.WARPEndpointOptions)
+	if outerOptions.MASQUE.Device.EndpointV4 != "162.159.198.60:443" || outerOptions.Detour != "" || !outerOptions.Scanner.Enabled {
 		t.Fatalf("outer: %s %+v", outer.Tag, outerOptions)
 	}
-	if innerOptions.Device.EndpointV4 != "162.159.198.61:443" || innerOptions.Detour != outer.Tag || innerOptions.Scanner.Enabled {
+	if innerOptions.MASQUE.Device.EndpointV4 != "162.159.198.61:443" || innerOptions.Detour != outer.Tag || innerOptions.Scanner.Enabled {
 		t.Fatalf("inner: %s %+v", inner.Tag, innerOptions)
 	}
 }

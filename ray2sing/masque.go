@@ -12,6 +12,10 @@ import (
 	T "github.com/sagernet/sing-box/option"
 )
 
+// MasqueSingbox reads a masque:// link into the masque outbound it describes. A link to WARP is
+// not used as one: MasqueLinkSingbox (h_masque_warp.go) turns it into a warp endpoint with mode
+// masque, since a masque outbound does not register WARP devices.
+//
 // A masque:// link is a WARP device already enrolled for MASQUE:
 //
 //		masque://<device id>?key=<ECDSA key>&peer=<endpoint key>&addr=172.16.0.2&endpoint=162.159.198.60:443&endpoint6=[2606:4700:103::2]:443&transport=h2&sni=www.cloudflare.com#name

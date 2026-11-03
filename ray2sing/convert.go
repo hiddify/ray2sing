@@ -105,7 +105,9 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outend *OutEn
 			}
 		}
 	}
-	if outend.outbound == nil {
+	if strings.HasPrefix(config, "masque://") { // a WARP one is a warp endpoint, see MasqueLinkSingbox
+		outend.outbound, outend.endpoint, err = MasqueLinkSingbox(config)
+	} else if outend.outbound == nil {
 		for k, v := range configTypes {
 			if strings.HasPrefix(config, k) {
 				outend.outbound, err = v(config)
