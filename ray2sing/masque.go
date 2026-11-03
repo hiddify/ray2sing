@@ -54,7 +54,10 @@ import (
 //	    has no dot); with no endpoint parameter, it is the endpoint.
 //	  - privateKey (or key, private_key): the device's key, as after the "@" above.
 //	  - ip (or address): the tunnel addresses, as address above.
-//	  - udp and flag have no counterpart and are ignored.
+//	  - publicKey: the endpoint's key, as peer. h2=1: HTTP/2 only, as transport=h2; without it, a
+//	    blocked HTTP/3 (UDP) is tried before HTTP/2 every time.
+//	  - udp, flag, cc and dns have no counterpart (sing-box has its own congestion control and
+//	    DNS) and are ignored.
 func MasqueSingbox(link string) (*T.Outbound, error) {
 	key, link, isKeyLink := splitMasqueKeyLink(link)
 	u, err := ParseUrl(link, 443)
@@ -71,7 +74,7 @@ func MasqueSingbox(link string) (*T.Outbound, error) {
 	device := &T.MASQUEDeviceOptions{
 		ID:                id,
 		PrivateKey:        param("key", "private_key"),
-		EndpointPublicKey: param("peer", "endpoint_public_key"),
+		EndpointPublicKey: param("peer", "endpoint_public_key", "public_key"),
 		IPv4:              param("addr", "ipv4"),
 		IPv6:              param("addr6", "ipv6_addr"),
 		EndpointH2V4:      param("cfdef", "endpoint_h2"),
@@ -162,6 +165,9 @@ func MasqueSingbox(link string) (*T.Outbound, error) {
 	}
 	if param("packets") != "" { // Xray's fragment
 		options.MASQUEOutboundTLSOptions.Fragment = true
+	}
+	if options.VHTTP == "" && toBool(param("h2"), false) { // h2=1: HTTP/2 only
+		options.VHTTP = "h2"
 	}
 	switch options.VHTTP {
 	case "h2", "h3", "auto":

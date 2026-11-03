@@ -140,3 +140,33 @@ func TestMasqueHostEndpointLink(t *testing.T) {
 		t.Fatalf("id link: %+v", device)
 	}
 }
+
+// A link with h2=1 wants HTTP/2 only: without it, HTTP/3 (UDP), which filtering often blocks, was
+// tried first on every connect. Its publicKey is the endpoint's key.
+func TestMasqueHostEndpointLinkHTTP2(t *testing.T) {
+	const peer = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w=="
+	const key = "MHcCAQEEIOAf/+45FJQE8VnQncfKBRVFDjKLtzKs/mcxkgCesLVjoAoGCCqGSM49AwEHoUQDQgAE5IFfZVGC9X0L5RMZz+Sn+pptLvCxKuRlCyAc+U6Z2G+xCtHQpCx53SJ7VkK8cM9Ul9r0kbOt+uEpC1rTHCVbQQ=="
+	escape := func(v string) string { return strings.NewReplacer("+", "%2B", "=", "%3D").Replace(v) }
+	link := "masque://[2606:4700:103::2]:443?publicKey=" + escape(peer) + "&privateKey=" + escape(key) +
+		"&ip=172.16.0.2&dns=1.1.1.1,%208.8.8.8&udp=1&cc=cubic&sni=www.deepseek.com&h2=1&flag=CDN#WARP-MASQUE"
+	out, err := MasqueSingbox(link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	options := out.Options.(*T.MASQUEOutboundOptions)
+	device := options.Device
+	if device.PrivateKey != key || device.EndpointPublicKey != peer || device.EndpointV6 != "[2606:4700:103::2]:443" || device.IPv4 != "172.16.0.2" {
+		t.Fatalf("device: %+v", device)
+	}
+	if options.VHTTP != "h2" || options.ServerName != "www.deepseek.com" || out.Tag != "WARP-MASQUE" {
+		t.Fatalf("options: %q %q %q", options.VHTTP, options.ServerName, out.Tag)
+	}
+	// an explicit transport wins over h2
+	out, err = MasqueSingbox(strings.Replace(link, "h2=1", "h2=1&transport=auto", 1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := out.Options.(*T.MASQUEOutboundOptions).VHTTP; got != "auto" {
+		t.Fatalf("transport=auto with h2=1: %q", got)
+	}
+}
