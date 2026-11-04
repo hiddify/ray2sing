@@ -1,6 +1,7 @@
 package ray2sing
 
 import (
+	"encoding/base64"
 	"net/url"
 	"testing"
 
@@ -60,6 +61,14 @@ func TestRealityKeyShare(t *testing.T) {
 		t.Fatal(err)
 	}
 	if tls := out.Options.(*T.TrojanOutboundOptions).TLS; tls == nil || tls.Reality == nil || tls.Reality.KeyShare != "hybrid" {
+		t.Fatalf("reality options: %+v", tls)
+	}
+	vmess := "vmess://" + base64.StdEncoding.EncodeToString([]byte(`{"add":"1.2.3.4","port":"443","id":"uuid","net":"tcp","tls":"reality","sni":"z.com","fp":"chrome","pbk":"PUBKEY","key_share":"classical","ps":"name"}`))
+	out, err = VmessSingbox(vmess)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tls := out.Options.(*T.VMessOutboundOptions).TLS; tls == nil || tls.Reality == nil || tls.Reality.KeyShare != "classical" {
 		t.Fatalf("reality options: %+v", tls)
 	}
 }

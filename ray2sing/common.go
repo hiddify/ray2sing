@@ -44,7 +44,11 @@ func getRealityOptions(decoded map[string]string) *T.OutboundRealityOptions {
 // whose ClientHello does not fit in one TCP segment and is blocked by some DPI; "hybrid" or empty
 // keeps it, which Xray servers from v26.9.8 require.
 func getRealityKeyShare(decoded map[string]string) string {
-	return strings.ToLower(getOneOfN(decoded, "", "keyshare"))
+	keyShare := getOneOfN(decoded, "", "keyshare")
+	if keyShare == "" { // vmess JSON keys are not normalized
+		keyShare = decoded["key_share"] + decoded["keyShare"]
+	}
+	return strings.ToLower(keyShare)
 }
 
 func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
