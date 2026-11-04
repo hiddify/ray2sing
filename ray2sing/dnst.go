@@ -20,10 +20,10 @@ import (
 // The transport (dnstt, vaydns or masterdns) becomes a dnstt or masterdns outbound and the
 // backend the outbound in front of it, as the chain "front -> tunnel", so that the existing link
 // parsers build both. slipstream is not supported. Parameters the spec does not know, such as
-// the dnstt resolvers, pass through to the tunnel outbound. The spec names no resolvers: dnstt
-// and vaydns use the built-in list ("auto"), masterdns a list of well-known public resolvers.
+// the dnstt resolvers, pass through to the tunnel outbound. The spec names no resolvers: dnstt,
+// vaydns and masterdns use the built-in list ("auto"), masterdns through its smart pool.
 
-// defaultMasterdnsResolvers are used when a dnst:// link for masterdns names no resolvers.
+// defaultMasterdnsResolvers are used for a masterdns link without resolvers and smart pool.
 var defaultMasterdnsResolvers = []string{"8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1", "9.9.9.9", "149.112.112.112", "208.67.222.222", "208.67.220.220"}
 
 // dnstTransportParams are the transport parameters of the spec; the rest of the query goes to
@@ -261,8 +261,8 @@ func (d *dnstLink) dnsttLink() string {
 }
 
 // masterdnsLink writes the masterdns outbound link: mkey and encryption from the spec, the mode
-// from the backend (socks: the server connects; anything else: its TCP forwarding), and the
-// resolvers from the link or the default list.
+// from the backend (socks: the server connects; anything else: its TCP forwarding). Resolvers the
+// link leaves out are chosen by the masterdns link (see MasterdnsSingbox).
 func (d *dnstLink) masterdnsLink() (string, error) {
 	key := getOneOfN(d.params, "", "mkey", "key")
 	encryption := d.params["encryption"]
@@ -281,9 +281,6 @@ func (d *dnstLink) masterdnsLink() (string, error) {
 	}
 	if d.backend != "socks" {
 		query.Set("mode", "tcp")
-	}
-	if getOneOfN(d.params, "", "resolvers", "resolver", "dns") == "" {
-		query.Set("resolvers", strings.Join(defaultMasterdnsResolvers, ","))
 	}
 	u := url.URL{Scheme: "masterdns", Host: d.domain, RawQuery: query.Encode(), Fragment: d.tag}
 	return u.String(), nil

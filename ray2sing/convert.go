@@ -51,6 +51,7 @@ var configTypes = map[string]ParserFunc{
 	"psiphon://":     PsiphonSingbox,
 	"dnstt://":       DnsttSingbox,
 	"masterdns://":   MasterdnsSingbox,
+	"soar://":        SoarSingbox,
 	"slipnet://":     SlipnetSingbox,
 	"slipnet-enc://": SlipnetSingbox,
 	"dnst://":        DnstSingbox,

@@ -70,7 +70,7 @@ func DnsttSingbox(vlessURL string) (*T.Outbound, error) {
 		UdpAcceptErrors: toBool(getOneOfN(decoded, "false", "udp-accept-errors"), false),
 		UdpSharedSocket: toBool(getOneOfN(decoded, "true", "udp-shared-socket"), true),
 		UdpWorkers:      toIntN(getOneOfN(decoded, "", "udp-workers")),
-		SmartPool:       smartPoolOption(getOneOfN(decoded, "", "smart-pool", "smart_pool")),
+		SmartPool:       withDiscovery(smartPoolOption(getOneOfN(decoded, "", "smart-pool", "smart_pool")), decoded, false),
 
 		// UDPOverTCP: &uot,
 	}

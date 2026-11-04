@@ -100,14 +100,15 @@ func TestDnstShadowsocks(t *testing.T) {
 }
 
 // MasterDNS + SOCKS is the masterdns outbound alone (the server connects to the destination),
-// with the default resolvers; custom is the server's TCP mode; a backend goes in front of it.
+// with the built-in resolvers through its smart pool; custom is the server's TCP mode; a backend
+// goes in front of it.
 func TestDnstMasterdns(t *testing.T) {
 	outs := convertDnst(t, "dnst://v.example.com/masterdns/socks?mkey=abcdef1234&encryption=5&user=foo&password=bar#md")
 	if len(outs) != 1 || outs[0].Type != C.TypeMasterDNS || outs[0].Tag != "md § 0" {
 		t.Fatalf("outbounds: %+v", outs)
 	}
 	md := outs[0].Options.(*T.MasterDNSOptions)
-	if md.Key != "abcdef1234" || md.Encryption != "5" || md.Mode != "" || len(md.Domains) != 1 || md.Domains[0] != "v.example.com" || len(md.Resolvers) != 8 || md.Resolvers[0] != "8.8.8.8" {
+	if md.Key != "abcdef1234" || md.Encryption != "5" || md.Mode != "" || len(md.Domains) != 1 || md.Domains[0] != "v.example.com" || strings.Join(md.Resolvers, ",") != "auto" || !md.SmartPool.IsEnabled() {
 		t.Fatalf("masterdns: %+v", md)
 	}
 

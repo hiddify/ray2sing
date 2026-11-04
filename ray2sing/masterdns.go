@@ -19,13 +19,21 @@ import (
 //	masterdns://v.example.com?key=<key>&resolvers=8.8.8.8,1.1.1.1&encryption=xor#name
 //	masterdns://<key>@v.example.com?resolvers=8.8.8.8,1.1.1.1#name
 //	masterdns://<base64 of a MasterDnsVPN client JSON config, plus a RESOLVERS list>#name
+//	masterdns://<base64url of a WhiteDNS profile JSON (schema "whitedns.profile")>
 //
 // The query keys are the masterdns outbound's fields (domains, resolvers, encryption, key, mode,
 // balancing, packet_duplication, ...). The JSON form uses the keys of client_config.toml
 // (DOMAINS, ENCRYPTION_KEY, DATA_ENCRYPTION_METHOD, PROTOCOL_TYPE, RESOLVER_BALANCING_STRATEGY,
 // ...), the same document the MasterDnsVPN client takes with -json_base64, with RESOLVERS added
 // because the client reads its resolvers from a separate file.
+//
+// The resolvers go through the outbound's smart pool unless the link says smart_pool=0 or lists
+// address ranges, which only the MasterDnsVPN client reads. A link without resolvers uses the
+// built-in list ("auto") through the pool, or well-known public resolvers without it.
 func MasterdnsSingbox(link string) (*T.Outbound, error) {
+	if params, name, ok := whiteDNSProfileLink(link, "masterdns://"); ok {
+		return masterdnsOutbound(params, name)
+	}
 	if params, name, ok := masterdnsJSONLink(link); ok {
 		return masterdnsOutbound(params, name)
 	}
@@ -175,8 +183,13 @@ func masterdnsOutbound(params map[string]string, name string) (*T.Outbound, erro
 		return nil, fmt.Errorf("masterdns link: the tunnel domain is missing")
 	}
 	resolvers := splitMasterdnsList(getOneOfN(params, "", "resolvers", "resolver", "dns"))
+	smartPool := masterdnsSmartPool(getOneOfN(params, "", "smart_pool", "smart-pool"), resolvers)
 	if len(resolvers) == 0 {
-		return nil, fmt.Errorf("masterdns link: resolvers are missing (resolvers=8.8.8.8,1.1.1.1)")
+		if smartPool.IsEnabled() {
+			resolvers = []string{"auto"}
+		} else {
+			resolvers = defaultMasterdnsResolvers
+		}
 	}
 	options := &T.MasterDNSOptions{
 		DialerOptions:               getDialerOptions(params),
@@ -207,6 +220,9 @@ func masterdnsOutbound(params map[string]string, name string) (*T.Outbound, erro
 		ReadyTimeout:                durationOrSeconds(getOneOfN(params, "", "ready_timeout")),
 		ConnectTimeout:              durationOrSeconds(getOneOfN(params, "", "connect_timeout")),
 		LogLevel:                    strings.ToLower(getOneOfN(params, "", "log_level")),
+		SmartPool:                   withDiscovery(smartPool, params, false),
+		PreTestDomain:               getOneOfN(params, "", "pretest_domain"),
+		PreTestRecordType:           getOneOfN(params, "", "pretest_record_type"),
 	}
 	if uot := getOneOfN(params, "", "uot", "udp_over_tcp"); toBool(uot, false) {
 		options.UDPOverTCP = &T.UDPOverTCPOptions{Enabled: true}
@@ -219,4 +235,22 @@ func masterdnsOutbound(params map[string]string, name string) (*T.Outbound, erro
 		Tag:     name,
 		Options: options,
 	}, nil
+}
+
+// masterdnsSmartPool reads smart_pool of a masterdns link, on by default: empty turns the pool
+// on unless a resolver is an address range (the pool takes single resolvers only), 0/false
+// turns it off, 1/true or a load balance strategy turns it on.
+func masterdnsSmartPool(value string, resolvers []string) *T.SmartPoolOptions {
+	if strings.TrimSpace(value) == "" {
+		for _, resolver := range resolvers {
+			if strings.Contains(resolver, "/") && !strings.Contains(resolver, "://") {
+				return nil
+			}
+		}
+		return &T.SmartPoolOptions{Enabled: true}
+	}
+	if options := soarSmartPoolOption(value); options != nil && options.Enabled {
+		return options
+	}
+	return nil
 }

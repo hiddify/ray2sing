@@ -3,6 +3,7 @@ package ray2sing_test
 import (
 	"context"
 	"encoding/base64"
+	"strings"
 	"testing"
 	"time"
 
@@ -60,8 +61,33 @@ func TestMasterdnsKeyLink(t *testing.T) {
 		len(options.Resolvers) != 1 || options.Resolvers[0] != "9.9.9.9" || options.Encryption != "" || options.Mode != "" || options.UDPOverTCP != nil {
 		t.Fatalf("options: %+v", options)
 	}
-	if _, err := ray2sing.MasterdnsSingbox("masterdns://v.example.com?key=k"); err == nil {
-		t.Fatal("a link without resolvers was accepted")
+	if !options.SmartPool.IsEnabled() {
+		t.Fatal("the smart pool is on by default")
+	}
+	// no resolvers: the built-in list through the pool, or public resolvers without it
+	out, err = ray2sing.MasterdnsSingbox("masterdns://v.example.com?key=k")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if o := out.Options.(*T.MasterDNSOptions); !o.SmartPool.IsEnabled() || strings.Join(o.Resolvers, ",") != "auto" {
+		t.Fatalf("no resolvers: %+v", o)
+	}
+	out, err = ray2sing.MasterdnsSingbox("masterdns://v.example.com?key=k&smart_pool=0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if o := out.Options.(*T.MasterDNSOptions); o.SmartPool != nil || len(o.Resolvers) != 8 || o.Resolvers[0] != "8.8.8.8" {
+		t.Fatalf("no resolvers, no pool: %+v", o)
+	}
+	// a range is for the MasterDnsVPN client: no pool unless asked; a strategy turns it on
+	out, _ = ray2sing.MasterdnsSingbox("masterdns://v.example.com?key=k&resolvers=8.8.8.8,10.0.0.0/30")
+	if out.Options.(*T.MasterDNSOptions).SmartPool != nil {
+		t.Fatal("a range turned the pool on")
+	}
+	out, _ = ray2sing.MasterdnsSingbox("masterdns://v.example.com?key=k&smart_pool=weighted&pretest_domain=example.org&country=IR&discovery_want=5")
+	if o := out.Options.(*T.MasterDNSOptions); !o.SmartPool.IsEnabled() || o.SmartPool.LoadBalance != "weighted" || o.PreTestDomain != "example.org" ||
+		o.SmartPool.DiscoveryOptions().Country != "ir" || o.SmartPool.DiscoveryOptions().Want != 5 {
+		t.Fatalf("strategy: %+v", o)
 	}
 	if _, err := ray2sing.MasterdnsSingbox("masterdns://?key=k&resolvers=8.8.8.8"); err == nil {
 		t.Fatal("a link without a domain was accepted")
@@ -90,5 +116,22 @@ func TestMasterdnsJSONLink(t *testing.T) {
 	out2, err := ray2sing.MasterdnsSingbox(link + "#Named%20One")
 	if err != nil || out2.Tag != "Named One" {
 		t.Fatalf("%v %q", err, out2.Tag)
+	}
+}
+
+// The profile link of WhiteDNS (schema "whitedns.profile") for MasterDnsVPN.
+func TestMasterdnsWhiteDNSLink(t *testing.T) {
+	doc := `{"schema":"whitedns.profile","version":1,"profile":{"name":"Tehran","server":{"domain":"v.example.com.","encryption_key":"k3y","encryption_method":2}}}`
+	link := "masterdns://" + base64.RawURLEncoding.EncodeToString([]byte(doc))
+	out, err := ray2sing.MasterdnsSingbox(link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	o := out.Options.(*T.MasterDNSOptions)
+	if out.Tag != "Tehran" || strings.Join(o.Domains, ",") != "v.example.com" || o.Key != "k3y" || o.Encryption != "2" || !o.SmartPool.IsEnabled() || strings.Join(o.Resolvers, ",") != "auto" {
+		t.Fatalf("options: %+v", o)
+	}
+	if out, err = ray2sing.MasterdnsSingbox(link + "#Other"); err != nil || out.Tag != "Other" {
+		t.Fatalf("%v %+v", err, out)
 	}
 }

@@ -67,6 +67,7 @@ require (
 	github.com/dunglas/httpsfv v1.0.2 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/enfein/mieru/v3 v3.38.2 // indirect
+	github.com/getlantern/soar v0.2.4 // indirect
 	github.com/florianl/go-nfqueue/v2 v2.1.0 // indirect
 	github.com/flynn/noise v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -313,3 +314,5 @@ replace github.com/kianmhz/GooseRelayVPN => github.com/hiddify/GooseRelayVPN v0.
 replace github.com/amnezia-vpn/amneziawg-go => github.com/hiddifydeveloper/amneziawg-go v0.0.0-20261001141816-70b344f2f78b
 
 replace masterdnsvpn-go => ../hiddify-sing-box/replace/MasterDnsVPN
+
+replace github.com/getlantern/soar => ../hiddify-sing-box/replace/soar
