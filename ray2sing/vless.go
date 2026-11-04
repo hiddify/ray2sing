@@ -18,11 +18,7 @@ func VlessSingbox(vlessURL string) (*T.Outbound, error) {
 
 	tlsOptions := getTLSOptions(decoded)
 	if tlsOptions.TLS != nil && isReality(decoded) {
-		tlsOptions.TLS.Reality = &T.OutboundRealityOptions{
-			Enabled:   true,
-			PublicKey: decoded["pbk"],
-			ShortID:   decoded["sid"],
-		}
+		tlsOptions.TLS.Reality = getRealityOptions(decoded)
 	}
 
 	// VLESS encryption (e.g. mlkem768x25519plus...); "none" is the plain protocol

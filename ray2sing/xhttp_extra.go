@@ -66,6 +66,7 @@ type REALITYConfig struct {
 	// Password      string `json:"password"`
 	PublicKey string `json:"publicKey"`
 	ShortId   string `json:"shortId"`
+	KeyShare  string `json:"keyShare"` // Hiddify only, see getRealityKeyShare
 	// Mldsa65Verify string `json:"mldsa65Verify"`
 	// SpiderX       string `json:"spiderX"`
 }

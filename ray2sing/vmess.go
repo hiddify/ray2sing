@@ -67,11 +67,7 @@ func VmessSingbox(vmessURL string) (*T.Outbound, error) {
 	}
 	tlsOptions := getTLSOptions(decoded)
 	if tlsOptions.TLS != nil && isReality(decoded) {
-		tlsOptions.TLS.Reality = &T.OutboundRealityOptions{
-			Enabled:   true,
-			PublicKey: decoded["pbk"],
-			ShortID:   decoded["sid"],
-		}
+		tlsOptions.TLS.Reality = getRealityOptions(decoded)
 	}
 	return &T.Outbound{
 		Tag:  decoded["ps"],

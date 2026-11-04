@@ -31,6 +31,22 @@ func isReality(decoded map[string]string) bool {
 	return decoded["security"] == "reality" || decoded["tls"] == "reality"
 }
 
+func getRealityOptions(decoded map[string]string) *T.OutboundRealityOptions {
+	return &T.OutboundRealityOptions{
+		Enabled:   true,
+		PublicKey: decoded["pbk"],
+		ShortID:   decoded["sid"],
+		KeyShare:  getRealityKeyShare(decoded),
+	}
+}
+
+// getRealityKeyShare reads keyshare (Hiddify only): "classical" drops the X25519MLKEM768 key share,
+// whose ClientHello does not fit in one TCP segment and is blocked by some DPI; "hybrid" or empty
+// keeps it, which Xray servers from v26.9.8 require.
+func getRealityKeyShare(decoded map[string]string) string {
+	return strings.ToLower(getOneOfN(decoded, "", "keyshare"))
+}
+
 func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	if !(decoded["tls"] == "tls" || decoded["security"] == "tls" || isReality(decoded)) {
 		return T.OutboundTLSOptionsContainer{TLS: nil}
@@ -388,8 +404,12 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 							Enabled:   true,
 							PublicKey: dl.REALITYSettings.PublicKey,
 							ShortID:   dl.REALITYSettings.ShortId,
+							KeyShare:  strings.ToLower(dl.REALITYSettings.KeyShare),
 						},
 						ServerName: dl.REALITYSettings.ServerName,
+					}
+					if dl.REALITYSettings.KeyShare == "" {
+						transportOptions.XHTTPOptions.Download.TLS.Reality.KeyShare = getRealityKeyShare(decoded)
 					}
 					if dl.REALITYSettings.Fingerprint != "" {
 						transportOptions.XHTTPOptions.Download.TLS.UTLS = &option.OutboundUTLSOptions{
