@@ -107,3 +107,17 @@ func TestFinalMaskMergeAndDialModeOOB(t *testing.T) {
 		}
 	}
 }
+
+// A mirage mask in fm= is kept, and a bad layout is refused like any bad mask.
+func TestFinalMaskMirage(t *testing.T) {
+	fm := finalMaskOf(t, "vless://25da296e-1d96-48ae-9867-4342796cd742@example.com:443?security=reality&sni=example.com&type=tcp&fm="+
+		url.QueryEscape(`{"tcp":[{"type":"mirage","settings":{"offset":4,"layout":"single"}}]}`)+"#mirage")
+	if fm == nil || len(fm.TCP) != 1 || fm.TCP[0].Type != "mirage" ||
+		!strings.Contains(string(fm.TCP[0].Settings), `"layout":"single"`) {
+		t.Fatalf("unexpected final mask: %+v", fm)
+	}
+	if _, err := ray2sing.Ray2SingboxOptions(context.Background(), "vless://25da296e-1d96-48ae-9867-4342796cd742@example.com:443?security=tls&type=tcp&fm="+
+		url.QueryEscape(`{"tcp":[{"type":"mirage","settings":{"layout":"both"}}]}`)+"#x", false); err == nil {
+		t.Fatal("a bad mirage layout was accepted")
+	}
+}
