@@ -63,6 +63,7 @@ var endpointParsers = map[string]EndpointParserFunc{
 	"warp://":      WarpSingbox,
 	"awg://":       AWGSingbox,
 	"[Interface]":  AWGSingboxTxt,
+	"ovpn://":      OpenVPNSingbox,
 }
 var xrayConfigTypes = map[string]ParserFunc{
 	"vmess://":  VmessXray,
@@ -144,6 +145,15 @@ func processSingleConfig(config string, useXrayWhenPossible bool) (outend *OutEn
 }
 
 func GenerateConfigLite(input string, useXrayWhenPossible bool) (*option.Options, error) {
+	// a .ovpn file is one profile, its certificates included: not lines to split and decode
+	if isOpenVPNProfile(input) {
+		endpoint, err := ParseOVPN(input, "", "", "")
+		if err != nil {
+			return nil, err
+		}
+		endpoint.Tag += " § 0"
+		return &T.Options{Endpoints: []T.Endpoint{*endpoint}}, nil
+	}
 
 	configArray := expandDecodedConfig(input)
 
