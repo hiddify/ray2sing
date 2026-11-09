@@ -257,10 +257,7 @@ func getTLSOptionsXray(decoded map[string]string) map[string]any {
 	if !(decoded["tls"] == "tls" || decoded["security"] == "tls") {
 		return nil
 	}
-	serverName := decoded["sni"]
-	if serverName == "" {
-		serverName = decoded["add"]
-	}
+	serverName := getTLSServerName(decoded)
 	alpn := []string{"h2", "http/1.1"}
 	if alpnlink, ok := decoded["alpn"]; ok && alpnlink != "" {
 		alpn = strings.Split(alpnlink, ",")
@@ -291,10 +288,7 @@ func getRealityOptionsXray(decoded map[string]string) map[string]any {
 	if !isReality(decoded) {
 		return nil
 	}
-	serverName := decoded["sni"]
-	if serverName == "" {
-		serverName = decoded["add"]
-	}
+	serverName := getTLSServerName(decoded)
 	// alpn := []string{"h2", "http/1.1"}
 	// if alpnlink, ok := decoded["alpn"]; ok && alpnlink != "" {
 	// 	alpn = strings.Split(alpnlink, ",")

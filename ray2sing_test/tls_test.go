@@ -42,3 +42,23 @@ func TestTLSCipherSuitesShortKey(t *testing.T) {
 		t.Fatalf("cipher suites %v", tls.CipherSuites)
 	}
 }
+
+// Without sni, the SNI is the transport host, then the server address (left to sing-box as empty).
+func TestTLSServerNameFallsBackToHost(t *testing.T) {
+	cases := []struct{ link, want string }{
+		// CDN IP as address, domain only in host: the issue #2466 link shape
+		{"vless://" + testUUID + "@104.16.1.1:443?type=ws&encryption=none&path=/ws&host=example.com&security=tls&fp=&alpn=http%2F1.1#t", "example.com"},
+		// sni wins over host
+		{"vless://" + testUUID + "@104.16.1.1:443?type=ws&path=/ws&host=example.com&sni=sni.example.com&security=tls#t", "sni.example.com"},
+		// first of several hosts, port dropped
+		{"vless://" + testUUID + "@104.16.1.1:443?type=ws&path=/ws&host=a.example.com%3A8443%2Cb.example.com&security=tls#t", "a.example.com"},
+		// neither: sing-box uses the server address
+		{"vless://" + testUUID + "@example.com:443?type=ws&path=/ws&security=tls#t", ""},
+	}
+	for _, c := range cases {
+		tls := convertOne(t, c.link).Options.(*option.VLESSOutboundOptions).TLS
+		if tls == nil || tls.ServerName != c.want {
+			t.Errorf("%s: server_name %+v, want %q", c.link, tls, c.want)
+		}
+	}
+}

@@ -51,15 +51,28 @@ func getRealityKeyShare(decoded map[string]string) string {
 	return strings.ToLower(keyShare)
 }
 
+// getTLSServerName picks the SNI as v2rayN does: sni, then the first transport host, then the vmess
+// JSON address. Empty leaves it to the core, which uses the server address. Without the host step
+// a link whose address is a CDN IP and whose domain is only in host sends the IP as SNI and fails.
+func getTLSServerName(decoded map[string]string) string {
+	if sni := strings.TrimSpace(decoded["sni"]); sni != "" {
+		return sni
+	}
+	if host := strings.TrimSpace(strings.Split(decoded["host"], ",")[0]); host != "" {
+		if h, _, err := net.SplitHostPort(host); err == nil {
+			host = h
+		}
+		return host
+	}
+	return decoded["add"]
+}
+
 func getTLSOptions(decoded map[string]string) T.OutboundTLSOptionsContainer {
 	if !(decoded["tls"] == "tls" || decoded["security"] == "tls" || isReality(decoded)) {
 		return T.OutboundTLSOptionsContainer{TLS: nil}
 	}
 
-	serverName := decoded["sni"]
-	if serverName == "" {
-		serverName = decoded["add"]
-	}
+	serverName := getTLSServerName(decoded)
 
 	var ECHOpts *option.OutboundECHOptions
 	valECH, hasECH := decoded["ech"]
