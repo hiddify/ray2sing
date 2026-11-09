@@ -1,6 +1,8 @@
 package ray2sing
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +14,55 @@ import (
 	T "github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/common/json/badoption"
 )
+
+// linkKey restores a base64 key of a link query: url.Values decodes an unescaped "+" as a space.
+func linkKey(s string) string {
+	return strings.ReplaceAll(strings.TrimSpace(s), " ", "+")
+}
+
+// awgHeaderProtectionKey returns the key as the 64 hex digits amneziawg-go reads; links and
+// configs also write it in base64, like the other WireGuard keys.
+func awgHeaderProtectionKey(s string) string {
+	s = linkKey(s)
+	if len(s) == 64 {
+		if _, err := hex.DecodeString(s); err == nil {
+			return s
+		}
+	}
+	if key, err := base64.StdEncoding.DecodeString(s); err == nil && len(key) == 32 {
+		return hex.EncodeToString(key)
+	}
+	return s
+}
+
+// setAwg3Option sets an AmneziaWG 3.x value from a normalized key (see normalizeStr), as a link
+// or a .conf writes it. It returns false for any other key.
+func setAwg3Option(awg *T.AwgOptions, key, value string) bool {
+	value = strings.TrimSpace(value)
+	switch key {
+	case "headerprotectionkey":
+		awg.HeaderProtectionKey = awgHeaderProtectionKey(value)
+	case "contentpaddingaddition":
+		awg.ContentPaddingAddition = T.AwgRange(value)
+	case "rekeyaftertime":
+		awg.RekeyAfterTime = T.AwgRange(value)
+	case "rekeytimeout":
+		awg.RekeyTimeout = T.AwgRange(value)
+	case "rejectaftertime":
+		awg.RejectAfterTime = T.AwgRange(value)
+	case "keepalivetimeout":
+		awg.KeepaliveTimeout = T.AwgRange(value)
+	case "maxhandshakeattempts":
+		awg.MaxHandshakeAttempts = T.AwgRange(value)
+	case "randomtrailers":
+		awg.RandomTrailers, _ = strconv.ParseBool(value)
+	case "disablecookies":
+		awg.DisableCookies, _ = strconv.ParseBool(value)
+	default:
+		return false
+	}
+	return true
+}
 
 func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 
@@ -25,6 +76,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 
 		peer     T.AwgPeerOptions
 		reserved []uint8
+		awg3     T.AwgOptions // the AmneziaWG 3.x values
 	)
 
 	section := ""
@@ -103,6 +155,8 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 				i4 = val
 			case "I5":
 				i5 = val
+			default:
+				setAwg3Option(&awg3, normalizeStr(key), val)
 			}
 
 		case "peer":
@@ -177,6 +231,16 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 		I3: i3,
 		I4: i4,
 		I5: i5,
+
+		HeaderProtectionKey:    awg3.HeaderProtectionKey,
+		ContentPaddingAddition: awg3.ContentPaddingAddition,
+		RekeyAfterTime:         awg3.RekeyAfterTime,
+		RekeyTimeout:           awg3.RekeyTimeout,
+		RejectAfterTime:        awg3.RejectAfterTime,
+		KeepaliveTimeout:       awg3.KeepaliveTimeout,
+		MaxHandshakeAttempts:   awg3.MaxHandshakeAttempts,
+		RandomTrailers:         awg3.RandomTrailers,
+		DisableCookies:         awg3.DisableCookies,
 	}
 	wg := T.WireGuardEndpointOptions{
 		PrivateKey: privateKey,
@@ -246,14 +310,6 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		return 0
 	}
 
-	getUint16 := func(key string) uint16 {
-		if v, ok := u.Params[key]; ok {
-			i, _ := strconv.Atoi(v)
-			return uint16(i)
-		}
-		return 0
-	}
-
 	parsePrefixes := func(raw string) (badoption.Listable[netip.Prefix], error) {
 		var out []netip.Prefix
 		for _, s := range strings.Split(raw, ",") {
@@ -291,12 +347,12 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 	peer := T.AwgPeerOptions{
 		Address:                     u.Hostname,
 		Port:                        u.Port,
-		PublicKey:                   getOneOfN(u.Params, "", "peerpublickey", "publickey", "pub", "peerpub", "peerpk"),
-		PresharedKey:                getOneOfN(u.Params, "", "presharedkey", "psk"),
+		PublicKey:                   linkKey(getOneOfN(u.Params, "", "peerpublickey", "publickey", "pub", "peerpub", "peerpk")),
+		PresharedKey:                linkKey(getOneOfN(u.Params, "", "presharedkey", "psk")),
 		AllowedIPs:                  allowedIPs,
-		PersistentKeepaliveInterval: getUint16("keepalive"),
+		PersistentKeepaliveInterval: uint16(toInt(getOneOfN(u.Params, "", "keepalive", "persistentkeepaliveinterval", "persistentkeepalive"))),
 	}
-	pk := getOneOfN(u.Params, "", "privatekey", "pk")
+	pk := linkKey(getOneOfN(u.Params, "", "privatekey", "pk"))
 	if pk == "" {
 		pk = u.Username
 	}
@@ -332,6 +388,9 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 			I5: getOneOfN(u.Params, "", "i5"),
 		},
 		Peers: []T.AwgPeerOptions{peer},
+	}
+	for key, value := range u.Params {
+		setAwg3Option(&opts.Awg, key, value)
 	}
 	if mtuStr, ok := u.Params["mtu"]; ok {
 		if mtu, err := strconv.ParseUint(mtuStr, 10, 32); err == nil {
