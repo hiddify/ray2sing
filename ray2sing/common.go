@@ -352,7 +352,11 @@ func getTransportOptions(decoded map[string]string) (*option.V2RayTransportOptio
 
 		if extra, ok := decoded["extra"]; ok {
 			x := XHTTPExtra{}
-			err := json.Unmarshal([]byte(extra), &x)
+			snakeExtra, err := xrayExtraToSnake([]byte(extra))
+			if err != nil {
+				return nil, err
+			}
+			err = json.Unmarshal(snakeExtra, &x)
 			if err != nil {
 				return nil, err
 			}
