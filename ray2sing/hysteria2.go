@@ -1,6 +1,8 @@
 package ray2sing
 
 import (
+	"strings"
+
 	T "github.com/sagernet/sing-box/option"
 )
 
@@ -12,7 +14,8 @@ func Hysteria2Singbox(hysteria2Url string) (*T.Outbound, error) {
 	decoded := u.Params
 	var ObfsOpts *T.Hysteria2Obfs
 	ObfsOpts = nil
-	if obfs, ok := decoded["obfs"]; ok && obfs != "" {
+	// "obfs=none" (and "plain") means no obfuscation; sing-box rejects them as an obfs type
+	if obfs := strings.ToLower(decoded["obfs"]); obfs != "" && obfs != "none" && obfs != "plain" {
 		ObfsOpts = &T.Hysteria2Obfs{
 			Type:     obfs,
 			Password: decoded["obfspassword"],
