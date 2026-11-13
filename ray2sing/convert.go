@@ -56,6 +56,8 @@ var configTypes = map[string]ParserFunc{
 	"slipnet-enc://": SlipnetSingbox,
 	"dnst://":        DnstSingbox,
 	"masque://":      MasqueSingbox,
+	"aether://":      AetherSingbox,
+	"tor://":         TorSingbox,
 }
 var endpointParsers = map[string]EndpointParserFunc{
 	"wg://":        AWGSingbox,

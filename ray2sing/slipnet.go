@@ -259,7 +259,7 @@ func boolParam(v bool) string {
 
 // expandLinks rewrites links that stand for a chain of outbounds into the " -> " chain form.
 func expandLinks(config string) string {
-	return expandDnstLink(expandSlipnetLink(expandInnerLinks(config)))
+	return expandDnstLink(expandSlipnetLink(expandInnerLinks(expandAetherLink(config))))
 }
 
 // expandSlipnetLink turns a slipnet:// profile into its chain of links. A profile that cannot be
