@@ -35,6 +35,15 @@ func awgHeaderProtectionKey(s string) string {
 	return s
 }
 
+// awgBool reads an AmneziaWG 3.1 flag. amneziawg-tools writes "on" or "off" in a .conf and also
+// reads a number (true when not 0); links write true or false.
+func awgBool(value string) bool {
+	if n, err := strconv.ParseUint(value, 10, 32); err == nil {
+		return n != 0
+	}
+	return toBool(value, false)
+}
+
 // setAwg3Option sets an AmneziaWG 3.x value from a normalized key (see normalizeStr), as a link
 // or a .conf writes it. It returns false for any other key.
 func setAwg3Option(awg *T.AwgOptions, key, value string) bool {
@@ -55,9 +64,9 @@ func setAwg3Option(awg *T.AwgOptions, key, value string) bool {
 	case "maxhandshakeattempts":
 		awg.MaxHandshakeAttempts = T.AwgRange(value)
 	case "randomtrailers":
-		awg.RandomTrailers, _ = strconv.ParseBool(value)
+		awg.RandomTrailers = awgBool(value)
 	case "disablecookies":
-		awg.DisableCookies, _ = strconv.ParseBool(value)
+		awg.DisableCookies = awgBool(value)
 	default:
 		return false
 	}

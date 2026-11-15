@@ -26,6 +26,31 @@ func TestWgLinkAwg3(t *testing.T) {
 		`"random_trailers":true`, `"disable_cookies":true`)
 }
 
+// The flags as amneziawg-tools writes them in a .conf ("awg showconf"): on or off, or a number.
+func TestAwgConf3Flags(t *testing.T) {
+	conf := func(trailers, cookies string) string {
+		return convert(t, `[Interface]
+PrivateKey = `+testPrivateKey+`
+Address = 10.8.1.2/32
+S1 = 87
+H1 = 13018123
+RandomTrailers = `+trailers+`
+DisableCookies = `+cookies+`
+
+[Peer]
+PublicKey = `+testPublicKey+`
+Endpoint = 198.51.100.1:51820
+`)
+	}
+	wantAll(t, conf("on", "On"), `"random_trailers":true`, `"disable_cookies":true`)
+	wantAll(t, conf("1", "2"), `"random_trailers":true`, `"disable_cookies":true`)
+	for _, got := range []string{conf("off", "0"), conf("OFF", "false")} {
+		if strings.Contains(got, "random_trailers") || strings.Contains(got, "disable_cookies") {
+			t.Errorf("flags turned on from off:\n%s", got)
+		}
+	}
+}
+
 // The same AmneziaWG 3.x values in a .conf.
 func TestAwgConf3(t *testing.T) {
 	got := convert(t, `[Interface]
