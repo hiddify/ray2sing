@@ -93,23 +93,37 @@ func ParseOVPN(profile, name, username, password string) (*T.Endpoint, error) {
 		controlWrap   string
 		hasDataCipher bool
 	)
+	// blockLine adds a line to the open inline block, closing it at its end tag, which some
+	// profiles put right after the content ("-----END PRIVATE KEY-----</key>").
+	blockLine := func(line string) {
+		content, closed := line, false
+		if i := strings.Index(strings.ToLower(line), "</"+inBlock+">"); i >= 0 {
+			content, closed = strings.TrimSpace(line[:i]), true
+		}
+		if content != "" {
+			blockLines = append(blockLines, content)
+		}
+		if closed {
+			blocks[inBlock] = blockLines
+			inBlock, blockLines = "", nil
+		}
+	}
 	for _, rawLine := range strings.Split(strings.ReplaceAll(profile, "\r", ""), "\n") {
-		line := strings.TrimSpace(rawLine)
+		line := strings.TrimSpace(strings.TrimPrefix(rawLine, "\ufeff"))
 		if inBlock != "" {
-			if strings.EqualFold(line, "</"+inBlock+">") {
-				blocks[inBlock] = blockLines
-				inBlock, blockLines = "", nil
-			} else if line != "" {
-				blockLines = append(blockLines, line)
-			}
+			blockLine(line)
 			continue
 		}
 		if line == "" || line[0] == '#' || line[0] == ';' {
 			continue
 		}
-		if strings.HasPrefix(line, "<") && strings.HasSuffix(line, ">") && !strings.HasPrefix(line, "</") {
-			inBlock = strings.ToLower(strings.Trim(line, "<>"))
-			continue
+		if strings.HasPrefix(line, "<") && !strings.HasPrefix(line, "</") {
+			if end := strings.Index(line, ">"); end > 1 {
+				// an inline block; its content may start on the same line ("<key>-----BEGIN...")
+				inBlock = strings.ToLower(strings.TrimSpace(line[1:end]))
+				blockLine(strings.TrimSpace(line[end+1:]))
+				continue
+			}
 		}
 		args := ovpnFields(line)
 		directive := strings.ToLower(strings.TrimPrefix(args[0], "--"))
@@ -259,6 +273,10 @@ func ParseOVPN(profile, name, username, password string) (*T.Endpoint, error) {
 		}
 	}
 
+	if inBlock != "" {
+		// a block the file never closes: keep what it has
+		blocks[inBlock] = blockLines
+	}
 	if len(remotes) == 0 {
 		return nil, fmt.Errorf("ovpn: no remote server")
 	}

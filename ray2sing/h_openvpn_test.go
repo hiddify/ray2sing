@@ -175,3 +175,19 @@ func TestOpenVPNProfileDetection(t *testing.T) {
 	require.False(t, isOpenVPNProfile("[Interface]\nPrivateKey = a2V5\n[Peer]\nEndpoint = 1.2.3.4:51820"))
 	require.False(t, isOpenVPNProfile("remote 1.2.3.4"), "one line alone is not enough")
 }
+
+// Some profiles close an inline block on its last line, or open it on its first.
+func TestOpenVPNInlineBlockTagsOnContentLines(t *testing.T) {
+	profile := strings.NewReplacer(
+		"-----END PRIVATE KEY-----\n</key>", "-----END PRIVATE KEY-----</key>",
+		"<cert>\n-----BEGIN CERTIFICATE-----", "<cert>-----BEGIN CERTIFICATE-----",
+	).Replace(hOVPNProfile)
+	endpoint, err := ParseOVPN(profile, "", "", "")
+	require.NoError(t, err)
+	opts := hOpenVPN(t, endpoint)
+	require.Len(t, opts.TLS.ClientCertificate, 3)
+	require.Len(t, opts.TLS.ClientKey, 3)
+	require.Equal(t, "-----END PRIVATE KEY-----", opts.TLS.ClientKey[2])
+	require.Equal(t, "alice", opts.Username, "the blocks after it are still read")
+	require.Len(t, opts.TLS.ControlWrap.Key, 3)
+}
