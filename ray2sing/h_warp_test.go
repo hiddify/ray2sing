@@ -84,3 +84,15 @@ func TestWarpScannerOffBehindDetour(t *testing.T) {
 		}
 	}
 }
+
+// A warp://auto link shares the search of its scanner.
+func TestWarpSearchOptions(t *testing.T) {
+	options := warpOptions(t, "warp://p1@auto?search_timeout=300&deep_concurrency=48&block_bits_ipv6=56")
+	search := options.Scanner.EdgeSearchOptions
+	if time.Duration(search.SearchTimeout) != 5*time.Minute || search.DeepConcurrency != 48 || search.BlockBitsIPv6 != 56 {
+		t.Fatalf("search: %+v", search)
+	}
+	if search := warpOptions(t, "warp://p1@auto?search_timeout=deep").Scanner.EdgeSearchOptions; search.SearchTimeout >= 0 {
+		t.Fatalf("deep: %+v", search)
+	}
+}

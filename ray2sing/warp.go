@@ -34,7 +34,8 @@ import (
 //     kernel_rx.
 //   - scanner: scanner and search_noise (both on unless set to 0 or false, and off behind a
 //     detour), scan_ports, scan_cidrs, max_rtt, scan_timeout, scan_count, scan_concurrency,
-//     noise_presets.
+//     noise_presets; the search (see edgeSearchOptions): search_timeout, deep_concurrency,
+//     block_bits_ipv4, block_bits_ipv6.
 //   - mtu (1280), workers, udp_timeout, license, recreate.
 //
 // A server of auto, default, random, auto4 or auto6 leaves the choice to the endpoint. Durations
@@ -154,6 +155,8 @@ func WarpSingbox(url string) (*T.Endpoint, error) {
 		Concurrency: getInt("scan_concurrency"),
 		MaxRTT:      warpDuration(param("max_rtt", "scan_max_rtt")),
 		Timeout:     warpDuration(param("scan_timeout")),
+
+		EdgeSearchOptions: edgeSearchOptions(param),
 	}
 	for _, port := range splitList(param("scan_ports")) {
 		if value := toInt(port); value > 0 && value < 65536 {

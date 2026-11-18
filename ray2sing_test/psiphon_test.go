@@ -25,3 +25,27 @@ func TestPsiphonRegion(t *testing.T) {
 		ray2sing.CheckUrlAndJson(url, expectedJSON, t)
 	}
 }
+
+// A psiphon:// link shares the CDN edge scanner and its search.
+func TestPsiphonScanner(t *testing.T) {
+	url := "psiphon://auto?scan_sets=fastly,psiphon-akamai&scan_candidates=3&scan_timeout=2.5&search_timeout=2h&deep_concurrency=64&block_bits_ipv4=22#psiphon"
+	expectedJSON := `
+	{
+		"outbounds": [
+		  {
+			"type": "psiphon",
+			"tag": "psiphon § 0",
+			"scanner": {
+			  "sets": ["fastly", "psiphon-akamai"],
+			  "candidates": 3,
+			  "timeout": "2.5s",
+			  "search_timeout": "2h0m0s",
+			  "deep_concurrency": 64,
+			  "block_bits_ipv4": 22
+			}
+		  }
+		]
+	  }
+	`
+	ray2sing.CheckUrlAndJson(url, expectedJSON, t)
+}
