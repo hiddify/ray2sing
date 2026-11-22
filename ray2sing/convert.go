@@ -66,6 +66,7 @@ var endpointParsers = map[string]EndpointParserFunc{
 	"awg://":       AWGSingbox,
 	"[Interface]":  AWGSingboxTxt,
 	"ovpn://":      OpenVPNSingbox,
+	"vpn://":       AmneziaVPNSingbox,
 }
 var xrayConfigTypes = map[string]ParserFunc{
 	"vmess://":  VmessXray,
