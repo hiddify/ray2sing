@@ -35,6 +35,21 @@ func awgHeaderProtectionKey(s string) string {
 	return s
 }
 
+// persistentKeepalive reads a PersistentKeepalive in seconds. 3x-ui writes a range such as
+// "15-25" for a randomised keepalive; the endpoint takes one interval, so it keeps the lower
+// bound, which keeps the NAT mapping alive at least as often as the server expects.
+func persistentKeepalive(value string) uint16 {
+	value = strings.TrimSpace(value)
+	if low, _, ok := strings.Cut(value, "-"); ok {
+		value = strings.TrimSpace(low)
+	}
+	v, err := strconv.ParseUint(value, 10, 16)
+	if err != nil {
+		return 0
+	}
+	return uint16(v)
+}
+
 // awgBool reads an AmneziaWG 3.1 flag. amneziawg-tools writes "on" or "off" in a .conf and also
 // reads a number (true when not 0); links write true or false.
 func awgBool(value string) bool {
@@ -197,8 +212,7 @@ func AWGSingboxTxt(content string) (*T.Endpoint, error) {
 				peer.Port = uint16(port)
 
 			case "PersistentKeepalive":
-				v, _ := strconv.Atoi(val)
-				peer.PersistentKeepaliveInterval = uint16(v)
+				peer.PersistentKeepaliveInterval = persistentKeepalive(val)
 			case "Reserved": // WARP generators write the client id so
 				for _, part := range strings.Split(val, ",") {
 					if num, err := strconv.ParseUint(strings.TrimSpace(part), 10, 8); err == nil {
@@ -359,7 +373,7 @@ func AWGSingbox(raw string) (*T.Endpoint, error) {
 		PublicKey:                   linkKey(getOneOfN(u.Params, "", "peerpublickey", "publickey", "pub", "peerpub", "peerpk")),
 		PresharedKey:                linkKey(getOneOfN(u.Params, "", "presharedkey", "psk")),
 		AllowedIPs:                  allowedIPs,
-		PersistentKeepaliveInterval: uint16(toInt(getOneOfN(u.Params, "", "keepalive", "persistentkeepaliveinterval", "persistentkeepalive"))),
+		PersistentKeepaliveInterval: persistentKeepalive(getOneOfN(u.Params, "", "keepalive", "persistentkeepaliveinterval", "persistentkeepalive")),
 	}
 	pk := linkKey(getOneOfN(u.Params, "", "privatekey", "pk"))
 	if pk == "" {
